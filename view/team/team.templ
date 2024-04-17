@@ -1,0 +1,26 @@
+package team
+
+import "ultigamecast/modelspb"
+import "ultigamecast/view/layout"
+
+templ Team(team modelspb.Teams) {
+	@layout.Root() {
+		<div>
+			{ team.GetName() }
+		</div>
+	}
+}
+
+templ Players(players []modelspb.Players) {
+	<ul>
+		for _, player := range players {
+			@PlayerRow(player)
+		}
+	</ul>
+}
+
+templ PlayerRow(player modelspb.Players) {
+    <li>
+        {player.GetName()}
+    </li>
+}

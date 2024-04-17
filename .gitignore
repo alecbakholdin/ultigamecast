@@ -1,0 +1,6 @@
+.env*
+pb_data
+ultigamecast
+tmp
+main
+*_templ.txt

@@ -1,0 +1,1 @@
+// purely for intellisense to recognize this as a tailwind file in vscode.
