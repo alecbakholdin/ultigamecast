@@ -1,17 +1,18 @@
-package team
+package view
 
 import "ultigamecast/modelspb"
 import "ultigamecast/view/layout"
 
-templ Team(team modelspb.Teams) {
+templ Team(team *modelspb.Teams, players []*modelspb.Players) {
 	@layout.Root() {
 		<div>
 			{ team.GetName() }
+			@Players(players)
 		</div>
 	}
 }
 
-templ Players(players []modelspb.Players) {
+templ Players(players []*modelspb.Players) {
 	<ul>
 		for _, player := range players {
 			@PlayerRow(player)
@@ -19,8 +20,8 @@ templ Players(players []modelspb.Players) {
 	</ul>
 }
 
-templ PlayerRow(player modelspb.Players) {
-    <li>
-        {player.GetName()}
-    </li>
+templ PlayerRow(player *modelspb.Players) {
+	<li>
+		{ player.GetName() }
+	</li>
 }
