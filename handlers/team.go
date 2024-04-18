@@ -28,15 +28,15 @@ func (t *Team) Routes(e *echo.Echo) {
 
 func (t *Team) getTeam(c echo.Context) (err error) {
 	var (
-		team    *modelspb.Teams
-		players []*modelspb.Players
+		team     *modelspb.Teams
+		players  []*modelspb.Players
 		teamSlug = c.PathParam("teamSlug")
 	)
 
 	if team, err = t.TeamRepo.GetOneBySlug(teamSlug); err != nil {
 		return err
 	}
-	if players, err = t.PlayerRepo.GetAllForTeamBySlug(teamSlug); err != nil {
+	if players, err = t.PlayerRepo.GetAllByTeamSlug(teamSlug); err != nil {
 		return err
 	}
 	log.Println(team, players)
