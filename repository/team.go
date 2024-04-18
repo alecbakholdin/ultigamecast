@@ -26,11 +26,11 @@ func (t *Team) GetOneBySlug(slug string) (*modelspb.Teams, error) {
 	if record, err := t.dao.FindFirstRecordByData(collectionName, slugField, slug); err != nil {
 		return nil, err
 	} else {
-		return mapToTeam(record), nil
+		return toTeam(record), nil
 	}
 }
 
-func mapToTeam(record *models.Record) *modelspb.Teams {
+func toTeam(record *models.Record) *modelspb.Teams {
 	return &modelspb.Teams{
 		Record: record,
 	}

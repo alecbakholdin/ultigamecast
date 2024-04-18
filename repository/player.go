@@ -26,15 +26,7 @@ func (p *Player) GetAllForTeamBySlug(slug string) ([]*modelspb.Players, error) {
 	if err != nil {
 		return nil, err
 	}
-	return toPlayers(records), nil
-}
-
-func toPlayers(records []*models.Record) []*modelspb.Players {
-	players := make([]*modelspb.Players, len(records))
-	for i, record := range records {
-		players[i] = toPlayer(record)
-	}
-	return players
+	return toArr(records, toPlayer), nil
 }
 
 func toPlayer(record *models.Record) *modelspb.Players {
