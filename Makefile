@@ -1,5 +1,5 @@
 dev:
-	templ generate --watch --proxy="http://localhost:8090" --cmd="go run . serve"
+	wgo -file=.go -file=.templ -xfile=_templ.go templ generate :: go run . serve
 serve:
 	templ generate && go run . serve
 build:
