@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"ultigamecast/modelspb"
 	"ultigamecast/repository"
-	"ultigamecast/view/component"
 	view "ultigamecast/view/team"
 
 	"github.com/labstack/echo/v5"
