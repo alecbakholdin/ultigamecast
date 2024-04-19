@@ -1,0 +1,14 @@
+package view
+
+import "ultigamecast/modelspb"
+import "github.com/labstack/echo/v5"
+
+templ TeamTournaments(c echo.Context, team *modelspb.Teams, tournaments []*modelspb.Tournaments) {
+	<div role="tablist" class="tabs tabs-bordered" aria-controls="tab-content">
+		<button hx-get={ string(teamUrl(team, "tournaments")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab tab-active">Tournaments</button>
+		<button hx-get={ string(teamUrl(team, "roster")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab">Roster</button>
+	</div>
+	<div>
+		Tournaments
+	</div>
+}

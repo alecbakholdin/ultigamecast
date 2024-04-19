@@ -10,19 +10,20 @@ import (
 )
 
 func main() {
-    app := pocketbase.New()
+	app := pocketbase.New()
 
-    app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
-        teamRepo := repository.NewTeam(app.Dao())
-        playerRepo := repository.NewPlayer(app.Dao())
+	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
+		teamRepo := repository.NewTeam(app.Dao())
+		playerRepo := repository.NewPlayer(app.Dao())
+		tournamentRepo := repository.NewTournament(app.Dao())
 
-        teamHandler := handlers.NewTeam(teamRepo, playerRepo)
-        teamHandler.Routes(e.Router)
-        
-        return nil
-    })
+		teamHandler := handlers.NewTeam(teamRepo, playerRepo, tournamentRepo)
+		teamHandler.Routes(e.Router)
 
-    if err := app.Start(); err != nil {
-        log.Fatal(err)
-    }
+		return nil
+	})
+
+	if err := app.Start(); err != nil {
+		log.Fatal(err)
+	}
 }

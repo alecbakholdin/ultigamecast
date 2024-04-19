@@ -19,10 +19,8 @@ func NewPlayer(dao *daos.Dao) *Player {
 	}
 }
 
-func (p *Player) GetAllByTeamSlug(teamSlug string) ([]*modelspb.Players, error) {
-	records, err := p.dao.FindRecordsByExpr("players", dbx.NewExp("team = (SELECT teams.id FROM teams WHERE LOWER(slug) = {:teamSlug} LIMIT 1)", dbx.Params{
-		"teamSlug": strings.ToLower(teamSlug),
-	}))
+func (p *Player) GetAllByTeamSlug(slug string) ([]*modelspb.Players, error) {
+	records, err := p.dao.FindRecordsByFilter("players", "team.slug = {:teamSlug}", "+order", 0, 0, dbx.Params{"teamSlug": strings.ToLower(slug)})
 	if err != nil {
 		return nil, err
 	}

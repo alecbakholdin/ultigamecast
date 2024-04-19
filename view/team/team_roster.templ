@@ -1,0 +1,31 @@
+package view
+
+import "ultigamecast/modelspb"
+import "github.com/labstack/echo/v5"
+
+templ TeamRoster(e echo.Context, team *modelspb.Teams, players []*modelspb.Players) {
+	<div role="tablist" class="tabs tabs-bordered" aria-controls="tab-content">
+		<button hx-get={ string(teamUrl(team, "tournaments")) } role="tab" class="tab">Tournaments</button>
+		<button hx-get={ string(teamUrl(team, "roster")) } role="tab" class="tab tab-active">Roster</button>
+	</div>
+	<div>
+		Roster
+	</div>
+}
+
+templ CreatePlayerResponse(player *modelspb.Players) {
+	@TeamPlayerRow(player)
+	@CreatePlayerForm()
+}
+
+templ CreatePlayerForm() {
+	<li>
+		<form method="post" action="/team/" hx-boost="true"></form>
+	</li>
+}
+
+templ TeamPlayerRow(player *modelspb.Players) {
+	<li>
+		{ player.GetName() }
+	</li>
+}

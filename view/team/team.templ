@@ -2,26 +2,45 @@ package view
 
 import "ultigamecast/modelspb"
 import "ultigamecast/view/layout"
+import "strings"
+import "github.com/labstack/echo/v5"
+import "fmt"
+import "net/url"
 
-templ Team(team *modelspb.Teams, players []*modelspb.Players) {
+templ Team(e echo.Context, team *modelspb.Teams) {
 	@layout.Root() {
-		<div>
-			{ team.GetName() }
-			@Players(players)
+		<div class="w-full flex flex-col">
+			<div class="w-full flex items-start gap-4 p-4">
+				<img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/nba/500/gs.png&h=200&w=200" alt={ team.GetName() } class="row-span-full w-20 h-20"/>
+				<div class="flex flex-col justify-between">
+					<span class="text-3xl">
+						{ strings.ToUpper(team.GetName()) }
+					</span>
+					if team.GetOrganization() != "" {
+						<span class="text-xl text-gray-400">
+							{ team.GetOrganization() }
+						</span>
+					}
+				</div>
+			</div>
+			<div hx-get={ string(teamUrl(team, "tournaments")) } hx-trigger="load" hx-target="this" hx-swap="innerHTML"></div>
 		</div>
 	}
 }
 
-templ Players(players []*modelspb.Players) {
-	<ul>
-		for _, player := range players {
-			@PlayerRow(player)
-		}
-	</ul>
+func teamUrl(team *modelspb.Teams, elem ...string) templ.SafeURL {
+	elem = append([]string{team.GetSlug()}, elem...)
+	if url, err := url.JoinPath("/team", elem...); err != nil {
+		panic(err)
+	} else {
+		return templ.URL(url)
+	}
 }
 
-templ PlayerRow(player *modelspb.Players) {
-	<li>
-		{ player.GetName() }
-	</li>
+templ TeamTabs(e echo.Context, team *modelspb.Teams) {
+	<div role="tablist" class="tabs tabs-bordered">
+		<a href={ templ.SafeURL(fmt.Sprintf("/team/%s/tournaments", team.GetName())) } role="tab" class={ "team", }>Tournaments</a>
+		<a href={ templ.SafeURL(fmt.Sprintf("/team/%s/roster", team.GetName())) } role="tab" class="tab">Roster</a>
+	</div>
+	<div id="team-tab-content" role="tabpanel" class="tab-content"></div>
 }
