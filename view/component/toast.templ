@@ -1,0 +1,51 @@
+package component
+
+import "time"
+import "ultigamecast/view/icon"
+import "fmt"
+
+type ToastSeverity string
+
+const (
+	ToastSeverityError   = "alert-error"
+	ToastSeverityWarning = "alert-warning"
+	ToastSeverityInfo    = "alert-info"
+	ToastSeveritySuccess = "alert-success"
+)
+
+type ToastData struct {
+	Message  string        // Message to display
+	Duration time.Duration // Duration before toast is auto-removed. Default is 1.5s
+	Severity ToastSeverity // Determines the color of the alert. Defaults to empty
+}
+
+templ Toast(data *ToastData) {
+	<div hx-swap-oob="afterbegin:#toasts" hx-swap="settle:1s">
+		<div class={ "alert bg-opacity-30 flex items-center gap-3", data.Severity } remove-me={ toastDuration(data.Duration) }>
+			@toastIcon(data.Severity)
+			<span>{ data.Message }</span>
+		</div>
+	</div>
+}
+
+func toastDuration(d time.Duration) string {
+	if d == 0 {
+		return "1.5s"
+	}
+	return fmt.Sprintf("%.02fs", float32(d)/float32(time.Second))
+}
+
+func toastIcon(severity ToastSeverity) templ.Component {
+	switch severity {
+	case "alert-error":
+		return icon.Error()
+	case "alert-warning":
+		return icon.Warning()
+	case "alert-info":
+		return icon.Info()
+	case "alert-success":
+		return icon.Success()
+	default:
+		return icon.Info()
+	}
+}

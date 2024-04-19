@@ -3,8 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	view "ultigamecast/view/error"
-
+	"ultigamecast/view/component"
 	"github.com/labstack/echo/v5"
 )
 
@@ -27,7 +26,7 @@ func ErrorHandler(c echo.Context, err error) {
 	}
 
 	c.Echo().Logger.Error(err)
-	if err := view.Error(c, code, message).Render(c.Request().Context(), c.Response().Writer); err != nil {
+	if err := component.Error(c, code, message).Render(c.Request().Context(), c.Response().Writer); err != nil {
 		c.Echo().Logger.Error(err)
 	}
 }

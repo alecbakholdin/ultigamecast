@@ -9,7 +9,9 @@ templ TeamTournaments(c echo.Context, team *modelspb.Teams, tournaments []*model
 		<button hx-get={ string(util.JoinSlugs("/team", team, "tournaments")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab tab-active">Tournaments</button>
 		<button hx-get={ string(util.JoinSlugs("/team", team, "roster")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab">Roster</button>
 	</div>
-	<div></div>
+	<div>
+		@tournamentList(c, team, tournaments)
+	</div>
 }
 
 templ tournamentList(c echo.Context, team *modelspb.Teams, tournaments []*modelspb.Tournaments) {
@@ -20,6 +22,19 @@ templ tournamentList(c echo.Context, team *modelspb.Teams, tournaments []*models
 			</li>
 		}
 	</ul>
+	<div id="create_team_modal_wrapper">
+		<button class="btn" onclick="create_team_modal.showModal()">+ New Team</button>
+		<dialog id="create_team_modal" class="modal">
+			<div class="modal-box">
+				<h3 class="font-bold text-lg">New Team</h3>
+				<form hx-boost="true" hx-post={ string(util.JoinSlugs("/team", team, "tournaments")) }>
+					<label for="name" class="label">Name</label>
+					<input type="text" class="input input-bordered" name="Name" placeholder="Name"/>
+				</form>
+			</div>
+			<form method="dialog" class="modal-backdrop"><button>close</button></form>
+		</dialog>
+	</div>
 }
 
 templ CreateTournament() {

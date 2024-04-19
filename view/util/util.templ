@@ -22,3 +22,7 @@ func JoinSlugs(base string, elem ...interface{}) templ.SafeURL {
 		return templ.URL(path)
 	}
 }
+
+func JoinSlugsString(base string, elem ...interface{}) string {
+	return string(JoinSlugs(base, elem...))
+}

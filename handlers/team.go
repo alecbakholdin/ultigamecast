@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"ultigamecast/modelspb"
 	"ultigamecast/repository"
+	"ultigamecast/view/component"
 	view "ultigamecast/view/team"
 
 	"github.com/labstack/echo/v5"
@@ -79,5 +80,8 @@ func (t *Team) getRoster(c echo.Context) (err error) {
 	if players, err = t.PlayerRepo.GetAllByTeamSlug(teamSlug); err != nil && !repository.IsNotFound(err) {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, unexpectedErrorMessage)
 	}
+	component.Toast(&component.ToastData{
+		Message: "This is a problem",
+	}).Render(c.Request().Context(), c.Response().Writer)
 	return view.TeamRoster(c, team, players).Render(c.Request().Context(), c.Response().Writer)
 }
