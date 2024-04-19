@@ -1,7 +1,17 @@
 package view
 
 import "github.com/labstack/echo/v5"
+import "ultigamecast/view/layout"
+import "strconv"
+import "net/http"
 
-templ Error(c echo.Context, status int, err error) {
-    
+templ Error(c echo.Context, status int, message string) {
+	@layout.Root() {
+		<div class="mx-auto flex flex-col items-center py-8">
+			<span class="font-bold text-3xl text-error">
+				{ strconv.Itoa(status) } { http.StatusText(status) }
+			</span>
+			<span class="text-xl text-error">{ message }</span>
+		</div>
+	}
 }

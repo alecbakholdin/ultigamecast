@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
+	"net/http"
 	"ultigamecast/modelspb"
 	"ultigamecast/repository"
 	view "ultigamecast/view/team"
@@ -37,8 +37,10 @@ func (t *Team) getTeam(c echo.Context) (err error) {
 		teamSlug = c.PathParam("teamSlug")
 	)
 
-	if team, err = t.TeamRepo.GetOneBySlug(teamSlug); err != nil {
-		return err
+	if team, err = t.TeamRepo.GetOneBySlug(teamSlug); repository.IsNotFound(err) {
+		return echo.NewHTTPErrorWithInternal(http.StatusNotFound, err, teamNotFoundMessage)
+	} else if err != nil {
+		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, unexpectedErrorMessage)
 	}
 	return view.Team(c, team).Render(c.Request().Context(), c.Response().Writer)
 }
@@ -49,15 +51,16 @@ func (t *Team) getTournaments(c echo.Context) (err error) {
 		tournaments []*modelspb.Tournaments
 		teamSlug    = c.PathParam("teamSlug")
 	)
-	log.Println(teamSlug)
 
-	if team, err = t.TeamRepo.GetOneBySlug(teamSlug); err != nil {
-		return err
+	if team, err = t.TeamRepo.GetOneBySlug(teamSlug); repository.IsNotFound(err) {
+		return echo.NewHTTPErrorWithInternal(http.StatusNotFound, err, teamNotFoundMessage)
+	} else if err != nil {
+		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, unexpectedErrorMessage)
 	}
-	if tournaments, err = t.TournamentRepo.GetAllByTeamSlug(teamSlug); err != nil {
-		return fmt.Errorf("error fetching players for %s: %s", teamSlug, err)
+
+	if tournaments, err = t.TournamentRepo.GetAllByTeamSlug(teamSlug); err != nil && !repository.IsNotFound(err) {
+		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, unexpectedErrorMessage)
 	}
-	log.Println(team, tournaments)
 	return view.TeamTournaments(c, team, tournaments).Render(c.Request().Context(), c.Response().Writer)
 }
 
@@ -69,11 +72,14 @@ func (t *Team) getRoster(c echo.Context) (err error) {
 	)
 	log.Println(teamSlug)
 
-	if team, err = t.TeamRepo.GetOneBySlug(teamSlug); err != nil {
-		return err
+	if team, err = t.TeamRepo.GetOneBySlug(teamSlug); repository.IsNotFound(err) {
+		return echo.NewHTTPErrorWithInternal(http.StatusNotFound, err, teamNotFoundMessage)
+	} else if err != nil {
+		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, unexpectedErrorMessage)
 	}
-	if players, err = t.PlayerRepo.GetAllByTeamSlug(teamSlug); err != nil {
-		return fmt.Errorf("error fetching players for %s: %s", teamSlug, err)
+
+	if players, err = t.PlayerRepo.GetAllByTeamSlug(teamSlug); err != nil && !repository.IsNotFound(err) {
+		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, unexpectedErrorMessage)
 	}
 	log.Println(team, players)
 	return view.TeamRoster(c, team, players).Render(c.Request().Context(), c.Response().Writer)

@@ -1,4 +1,3 @@
-
 package repository
 
 import (
@@ -21,7 +20,14 @@ func NewTournament(dao *daos.Dao) *Tournament {
 }
 
 func (p *Tournament) GetAllByTeamSlug(slug string) ([]*modelspb.Tournaments, error) {
-	records, err := p.dao.FindRecordsByFilter("tournaments", "team.slug = {:teamSlug}", "-created", 0, 0, dbx.Params{"teamSlug": strings.ToLower(slug)})
+	records, err := p.dao.FindRecordsByFilter(
+		"tournaments",
+		"team.slug = {:teamSlug}",
+		"-start",
+		0,
+		0,
+		dbx.Params{"teamSlug": strings.ToLower(slug)},
+	)
 	if err != nil {
 		return nil, err
 	}

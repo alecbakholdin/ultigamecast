@@ -13,6 +13,8 @@ func main() {
 	app := pocketbase.New()
 
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
+        e.Router.HTTPErrorHandler = handlers.ErrorHandler
+
 		teamRepo := repository.NewTeam(app.Dao())
 		playerRepo := repository.NewPlayer(app.Dao())
 		tournamentRepo := repository.NewTournament(app.Dao())
