@@ -1,5 +1,5 @@
 dev:
-	wgo -file=.go -file=.templ -xfile=_templ.go templ generate :: go run . serve
+	air -c .air.toml
 serve:
 	templ generate && go run . serve
 build:

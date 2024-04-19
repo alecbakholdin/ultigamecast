@@ -5,8 +5,9 @@
 - Go 1.22
 - templ installed: https://templ.guide/quick-start/installation
 -- go install github.com/a-h/templ/cmd/templ@latest
-- wgo: https://github.com/bokwoon95/wgo
--- go install github.com/bokwoon95/wgo@latest
-- Make
+- air: https://github.com/cosmtrek/air
+-- go install github.com/cosmtrek/air@latest
+- Make (optional)
+-- If you don't have Make, just run `air -c .air.toml`
 
-Just run `make` to start developing
+Just run `make` or `air -c .air.toml` to start developing
