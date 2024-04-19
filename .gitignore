@@ -5,3 +5,4 @@ tmp
 main
 *_templ.txt
 *_templ.go
+.vscode
