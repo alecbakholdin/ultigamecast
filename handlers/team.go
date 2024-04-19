@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 	"ultigamecast/modelspb"
 	"ultigamecast/repository"
@@ -70,7 +69,6 @@ func (t *Team) getRoster(c echo.Context) (err error) {
 		players  []*modelspb.Players
 		teamSlug = c.PathParam("teamSlug")
 	)
-	log.Println(teamSlug)
 
 	if team, err = t.TeamRepo.GetOneBySlug(teamSlug); repository.IsNotFound(err) {
 		return echo.NewHTTPErrorWithInternal(http.StatusNotFound, err, teamNotFoundMessage)
@@ -81,6 +79,5 @@ func (t *Team) getRoster(c echo.Context) (err error) {
 	if players, err = t.PlayerRepo.GetAllByTeamSlug(teamSlug); err != nil && !repository.IsNotFound(err) {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, unexpectedErrorMessage)
 	}
-	log.Println(team, players)
 	return view.TeamRoster(c, team, players).Render(c.Request().Context(), c.Response().Writer)
 }

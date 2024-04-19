@@ -31,3 +31,13 @@ func (m *Players) GetName() string {
 func (m *Players) SetName(val string)  {
     m.Record.Set("name", val)
 }
+
+// GetOrder returns the value of the "order" field
+func (m *Players) GetOrder() int {
+    return m.Record.GetInt("order")
+}
+
+// SetOrder sets the value of the "order" field
+func (m *Players) SetOrder(val int)  {
+    m.Record.Set("order", val)
+}

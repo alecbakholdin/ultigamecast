@@ -1,0 +1,24 @@
+package util
+
+import (
+	"log"
+	"net/url"
+	"ultigamecast/modelspb"
+)
+
+func JoinSlugs(base string, elem ...interface{}) templ.SafeURL {
+	arr := make([]string, len(elem))
+	for i, el := range elem {
+		if slug, ok := el.(modelspb.WithSlug); ok {
+			arr[i] = slug.GetSlug()
+		} else if str, ok := el.(string); ok {
+			arr[i] = str
+		}
+	}
+	if path, err := url.JoinPath(base, arr...); err != nil {
+		log.Printf("Could not generate path for %s, %s: %s\n", base, arr, err)
+		return templ.SafeURL("/error")
+	} else {
+		return templ.URL(path)
+	}
+}

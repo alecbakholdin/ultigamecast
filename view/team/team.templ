@@ -4,8 +4,7 @@ import "ultigamecast/modelspb"
 import "ultigamecast/view/layout"
 import "strings"
 import "github.com/labstack/echo/v5"
-import "fmt"
-import "net/url"
+import "ultigamecast/view/util"
 
 templ Team(e echo.Context, team *modelspb.Teams) {
 	@layout.Root() {
@@ -23,24 +22,7 @@ templ Team(e echo.Context, team *modelspb.Teams) {
 					}
 				</div>
 			</div>
-			<div hx-get={ string(teamUrl(team, "tournaments")) } hx-trigger="load" hx-target="this" hx-swap="innerHTML"></div>
+			<div hx-get={ string(util.JoinSlugs("/team", team, "tournaments")) } hx-trigger="load" hx-target="this" hx-swap="innerHTML"></div>
 		</div>
 	}
-}
-
-func teamUrl(team *modelspb.Teams, elem ...string) templ.SafeURL {
-	elem = append([]string{team.GetSlug()}, elem...)
-	if url, err := url.JoinPath("/team", elem...); err != nil {
-		panic(err)
-	} else {
-		return templ.URL(url)
-	}
-}
-
-templ TeamTabs(e echo.Context, team *modelspb.Teams) {
-	<div role="tablist" class="tabs tabs-bordered">
-		<a href={ templ.SafeURL(fmt.Sprintf("/team/%s/tournaments", team.GetName())) } role="tab" class={ "team", }>Tournaments</a>
-		<a href={ templ.SafeURL(fmt.Sprintf("/team/%s/roster", team.GetName())) } role="tab" class="tab">Roster</a>
-	</div>
-	<div id="team-tab-content" role="tabpanel" class="tab-content"></div>
 }

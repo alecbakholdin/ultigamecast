@@ -2,11 +2,12 @@ package view
 
 import "ultigamecast/modelspb"
 import "github.com/labstack/echo/v5"
+import "ultigamecast/view/util"
 
 templ TeamRoster(e echo.Context, team *modelspb.Teams, players []*modelspb.Players) {
 	<div role="tablist" class="tabs tabs-bordered" aria-controls="tab-content">
-		<button hx-get={ string(teamUrl(team, "tournaments")) } role="tab" class="tab">Tournaments</button>
-		<button hx-get={ string(teamUrl(team, "roster")) } role="tab" class="tab tab-active">Roster</button>
+		<button hx-get={ string(util.JoinSlugs("/team", team, "tournaments")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab">Tournaments</button>
+		<button hx-get={ string(util.JoinSlugs("/team", team, "roster")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab tab-active">Roster</button>
 	</div>
 	<div>
 		Roster
