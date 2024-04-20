@@ -5,45 +5,83 @@ import "github.com/labstack/echo/v5"
 import "ultigamecast/view/util"
 import "ultigamecast/validation"
 import "fmt"
+import "ultigamecast/view/icon"
 
 templ TeamTournaments(c echo.Context, team *modelspb.Teams, tournaments []*modelspb.Tournaments) {
 	<div role="tablist" class="tabs tabs-bordered" aria-controls="tab-content">
 		<button hx-get={ string(util.JoinSlugs("/team", team, "tournaments")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab tab-active">Tournaments</button>
 		<button hx-get={ string(util.JoinSlugs("/team", team, "roster")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab">Roster</button>
 	</div>
-	<div>
-		@tournamentList(c, team, tournaments)
-	</div>
+	@tournamentList(c, team, tournaments)
 }
 
 templ tournamentList(c echo.Context, team *modelspb.Teams, tournaments []*modelspb.Tournaments) {
-	<ul id="tournament_list">
-		for _, t := range tournaments {
-			<li id={ fmt.Sprintf("tournament_%s", t.Record.GetId()) }>
-				{ t.GetName() }
-			</li>
-		}
-	</ul>
-	<div id="create_tournament_modal_wrapper">
-		<button class="btn" onclick="create_tournament_form.reset(); create_tournament_modal.showModal()">+ New Team</button>
-		<dialog id="create_tournament_modal" class="modal" hx-on:formsuccess="this.close()">
-			<div class="modal-box">
-				<h3 class="font-bold text-lg">New Tournament</h3>
-				@CreateTournamentForm(c, team)
-				<div class="modal-action">
-					<form method="dialog"><button class="btn">Close</button></form>
-					<button id="create_tournament_button" class="btn" form="create_tournament_form">Submit</button>
+	<div class="mx-auto px-8 py-4 mt-4 relative">
+		<ul id="tournament_list">
+			for _, t := range tournaments {
+				@tournamentRow(team, t)
+			}
+		</ul>
+		<div id="create_tournament_modal_wrapper">
+			<button type="button" class="btn btn-icon">d</button>
+			<button
+				type="button"
+				id="create_tournament_open_modal_button"
+				class="px-1.5 rounded-full absolute top-6 left-[18px] -translate-y-1/2 text-white text-nowrap flex flex-nowrap items-center gap-1 truncate text-lg btn btn-sm btn-primary"
+				onclick="create_tournament_form.reset(); create_tournament_modal.showModal()"
+				onmouseover="create_tournament_text.style.width = 100"
+				onmouseout="create_tournament_text.style.width = 0"
+			>
+				<div class="w-fit flex items-center">
+					@icon.Add()
+					<span class="text-sm text-nowrap truncate w-0 transition-all" id="create_tournament_text">New Tournament</span>
 				</div>
-			</div>
-			<form method="dialog" class="modal-backdrop"><button>close</button></form>
-		</dialog>
+			</button>
+			<dialog id="create_tournament_modal" class="modal" hx-on:formsuccess="this.close()">
+				<div class="modal-box">
+					<h3 class="font-bold text-lg">New Tournament</h3>
+					@CreateTournamentForm(c, team)
+					<div class="modal-action">
+						<form method="dialog"><button class="btn">Close</button></form>
+						<button id="create_tournament_button" class="btn" form="create_tournament_form">Submit</button>
+					</div>
+				</div>
+				<form method="dialog" class="modal-backdrop"><button>close</button></form>
+			</dialog>
+		</div>
 	</div>
 }
 
 templ tournamentRow(team *modelspb.Teams, tournament *modelspb.Tournaments) {
-	<li id={ fmt.Sprintf("tournament_%s", tournament.Record.GetId()) }>
-		<h3 class="font-bold text-lg">{ tournament.GetName() }</h3>
-		{ team.GetName() }
+	<li id={ fmt.Sprintf("tournament_%s", tournament.Record.GetId()) } class="border-l-4 border-primary first:pt-8">
+		<div class="p-4 relative">
+			<div class="h-4 w-4 rounded-full bg-white border-4 border-primary absolute left-[-10px] top-6"></div>
+			<h3 class="font-bold text-lg">{ tournament.GetName() }</h3>
+			if !tournament.GetStart().IsZero() || !tournament.GetEnd().IsZero() {
+				<div class="flex items-center gap-2 text-gray-400">
+					@icon.Date()
+					<div class="gap-1">
+						if tournament.GetStart().IsZero() {
+							<span>?</span>
+						} else {
+							<span>{ tournament.GetStart().Time().Format("Jan 2, 06") }</span>
+						}
+						<span>-</span>
+						if tournament.GetEnd().IsZero() {
+							<span>?</span>
+						} else {
+							<span>{ tournament.GetEnd().Time().Format("Jan 2, 06") }</span>
+						}
+					</div>
+				</div>
+			}
+			if tournament.GetLocation() != "" {
+				<div class="flex items-center gap-2 text-gray-400">
+					@icon.Location()
+					<span>{ tournament.GetLocation() }</span>
+				</div>
+			}
+		</div>
 	</li>
 }
 
