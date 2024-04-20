@@ -28,7 +28,7 @@ templ tournamentList(c echo.Context, team *modelspb.Teams, tournaments []*models
 				id="create_tournament_open_modal_button"
 				class="px-1.5 rounded-full absolute top-6 left-[18px] -translate-y-1/2 text-white text-nowrap flex flex-nowrap items-center gap-1 truncate text-lg btn btn-sm btn-primary"
 				onclick="create_tournament_form.reset(); create_tournament_modal.showModal()"
-				onmouseover="create_tournament_text.style.width = 100"
+				onmouseover="create_tournament_text.style.width = 150"
 				onmouseout="create_tournament_text.style.width = 0"
 			>
 				<div class="w-fit flex items-center">
@@ -48,6 +48,7 @@ templ tournamentList(c echo.Context, team *modelspb.Teams, tournaments []*models
 				<form method="dialog" class="modal-backdrop"><button>close</button></form>
 			</dialog>
 		</div>
+		<div id="edit_tournament_modal"></div>
 	</div>
 }
 
@@ -55,37 +56,68 @@ templ tournamentRow(team *modelspb.Teams, tournament *modelspb.Tournaments) {
 	<li id={ fmt.Sprintf("tournament_%s", tournament.Record.GetId()) } class="border-l-4 border-primary first:pt-8">
 		<div class="p-4 relative">
 			<div class="h-4 w-4 rounded-full bg-white border-4 border-primary absolute left-[-10px] top-6"></div>
-			<h3 class="font-bold text-lg">{ tournament.GetName() }</h3>
-			if !tournament.GetStart().IsZero() || !tournament.GetEnd().IsZero() {
-				<div class="flex items-center gap-2 text-gray-400">
-					@icon.Date()
-					<div class="gap-1">
-						if tournament.GetStart().IsZero() {
-							<span>?</span>
-						} else {
-							<span>{ tournament.GetStart().Time().Format("Jan 2, 06") }</span>
-						}
-						<span>-</span>
-						if tournament.GetEnd().IsZero() {
-							<span>?</span>
-						} else {
-							<span>{ tournament.GetEnd().Time().Format("Jan 2, 06") }</span>
-						}
-					</div>
+			<div class="flex justify-between">
+				<div class="flex flex-col gap-1">
+					<h3 class="font-bold text-lg">{ tournament.GetName() }</h3>
+					if !tournament.GetStart().IsZero() || !tournament.GetEnd().IsZero() {
+						<div class="flex items-center gap-2 text-gray-400">
+							@icon.Date()
+							<div class="gap-1">
+								if tournament.GetStart().IsZero() {
+									<span>?</span>
+								} else {
+									<span>{ tournament.GetStart().Time().Format("Jan 2, 06") }</span>
+								}
+								<span>-</span>
+								if tournament.GetEnd().IsZero() {
+									<span>?</span>
+								} else {
+									<span>{ tournament.GetEnd().Time().Format("Jan 2, 06") }</span>
+								}
+							</div>
+						</div>
+					}
+					if tournament.GetLocation() != "" {
+						<div class="flex items-center gap-2 text-gray-400">
+							@icon.Location()
+							<span>{ tournament.GetLocation() }</span>
+						</div>
+					}
 				</div>
-			}
-			if tournament.GetLocation() != "" {
-				<div class="flex items-center gap-2 text-gray-400">
-					@icon.Location()
-					<span>{ tournament.GetLocation() }</span>
+				<div>
+					<details class="dropdown dropdown-bottom dropdown-end">
+						<summary class="m-1 btn btn-ghost text-lg">
+							@icon.VerticalDots()
+						</summary>
+						<ul class="p-2 shadow-xl menu dropdown-content z-[1] bg-base-100 rounded-box w-52">
+							<li>
+								<a hx-get={ util.JoinSlugsString("/team", team, "tournaments", tournament, "edit") } hx-target="#edit_tournament_modal">
+									@icon.Edit()
+									Edit
+								</a>
+							</li>
+							<li>
+								<a>
+									@icon.TrashCan()
+									Delete
+								</a>
+							</li>
+						</ul>
+					</details>
 				</div>
-			}
+			</div>
 		</div>
 	</li>
 }
 
 templ NewTournamentRow(team *modelspb.Teams, tournament *modelspb.Tournaments) {
 	<div hx-swap-oob="afterbegin:#tournament_list">
+		@tournamentRow(team, tournament)
+	</div>
+}
+
+templ EditedTournamentRow(team *modelspb.Teams, tournament *modelspb.Tournaments) {
+	<div hx-swap-oob={fmt.Sprintf("outerHTML:#tournament_%s", tournament.Record.GetId())}>
 		@tournamentRow(team, tournament)
 	</div>
 }
@@ -100,6 +132,7 @@ templ CreateTournamentForm(c echo.Context, team *modelspb.Teams) {
 		hx-target="this"
 		hx-disabled-elt="#create_tournament_button"
 	>
+		<input type="hidden" name="tournament_id" value={ c.FormValue("tournament_id") }/>
 		<div class="flex flex-col">
 			<label for="create_tournament_name" class="label">Name</label>
 			<input

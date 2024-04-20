@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"cmp"
+	"fmt"
 	"net/http"
-	"strings"
 	"ultigamecast/modelspb"
 	"ultigamecast/repository"
 	"ultigamecast/validation"
@@ -38,6 +38,7 @@ func (t *Team) Routes(e *echo.Echo) {
 	group.GET("/:teamSlug", t.getTeam)
 	group.GET("/:teamSlug/tournaments", t.getTournaments)
 	group.POST("/:teamSlug/tournaments", t.postTournaments)
+	group.PUT("/:teamSlug/tournaments", t.updateTournament)
 	group.GET("/:teamSlug/roster", t.getRoster)
 }
 
@@ -74,54 +75,43 @@ func (t *Team) getTournaments(c echo.Context) (err error) {
 	return view.TeamTournaments(c, team, tournaments).Render(c.Request().Context(), c.Response().Writer)
 }
 
+type TournamentPayload struct {
+	TeamSlug       string `path:"teamSlug"`
+	Team           modelspb.Teams
+	TournamentID   string `form:"tournament_id"`
+	Name           string `form:"name"`
+	TournamentSlug string
+	Start          string `form:"start"`
+	StartDt        types.DateTime
+	End            string `form:"end"`
+	EndDt          types.DateTime
+	Location       string `form:"location"`
+}
+
 func (t *Team) postTournaments(c echo.Context) (err error) {
 	var (
 		team       *modelspb.Teams
 		tournament *modelspb.Tournaments
-		teamSlug   = c.PathParam("teamSlug")
-
-		name           = strings.TrimSpace(c.FormValue("name"))
-		tournamentSlug = ConvertToSlug(name)
-
-		start   = c.FormValue("start")
-		startDt types.DateTime
-
-		end   = c.FormValue("end")
-		endDt types.DateTime
-
-		location = strings.TrimSpace(c.FormValue("location"))
+		payload    *TournamentPayload
 	)
 
-	if team, err = t.TeamRepo.GetOneBySlug(teamSlug); repository.IsNotFound(err) {
+	if payload, err = t.validateAndBindTournament(c); err != nil {
+		c.Echo().Logger.Error(err)
+		return component.RenderToast(c, err.Error(), component.ToastSeverityError)
+	}
+
+	// check for duplicates
+	if t, err := t.TournamentRepo.GetOneBySlug(payload.TeamSlug, payload.TournamentSlug); err != nil && !repository.IsNotFound(err) {
+		c.Echo().Logger.Error(err)
+		validation.AddFormErrorString(c, "unexpected error occurred creating tournament")
+	} else if t != nil {
+		validation.AddFieldErrorString(c, "name", "a tournament with this name already exists")
+	}
+
+	if team, err = t.TeamRepo.GetOneBySlug(payload.TeamSlug); repository.IsNotFound(err) {
 		return component.RenderToast(c, teamNotFoundMessage, component.ToastSeverityError)
 	} else if err != nil {
 		return component.RenderToast(c, unexpectedErrorMessage, component.ToastSeverityError)
-	}
-
-	// field value validations
-	if name == "" {
-		validation.AddFieldErrorString(c, "name", "name cannot be empty")
-	}
-	if startDt, err = types.ParseDateTime(start); start != "" && err != nil {
-		validation.AddFieldErrorString(c, "start", "invalid date format")
-	}
-	if endDt, err = types.ParseDateTime(end); end != "" && err != nil {
-		validation.AddFieldErrorString(c, "end", "invalid date format")
-	}
-	if startDt.Time() != endDt.Time() && !endDt.Time().After(startDt.Time()) {
-		validation.AddFieldErrorString(c, "end", "end date must be after start date")
-	}
-
-	if !validation.IsFormValid(c) {
-		return view.CreateTournamentForm(c, team).Render(c.Request().Context(), c.Response().Writer)
-	}
-
-	// determine if duplicate
-	if t, err := t.TournamentRepo.GetOneBySlug(teamSlug, tournamentSlug); err != nil && !repository.IsNotFound(err) {
-		c.Echo().Logger.Error(err)
-		validation.AddFormErrorString(c, "unexpected error occurred creating team")
-	} else if t != nil {
-		validation.AddFieldErrorString(c, "name", "a tournament with this name already exists")
 	}
 
 	if !validation.IsFormValid(c) {
@@ -129,7 +119,7 @@ func (t *Team) postTournaments(c echo.Context) (err error) {
 	}
 
 	// create and return values
-	if tournament, err = t.TournamentRepo.Create(team, name, tournamentSlug, startDt, endDt, location); err != nil {
+	if tournament, err = t.TournamentRepo.Create(team, payload.Name, payload.TournamentSlug, payload.StartDt, payload.EndDt, payload.Location); err != nil {
 		c.Echo().Logger.Error(err)
 		validation.AddFormErrorString(c, "unexpected error occurred creating team")
 		return view.CreateTournamentForm(c, team).Render(c.Request().Context(), c.Response().Writer)
@@ -140,6 +130,65 @@ func (t *Team) postTournaments(c echo.Context) (err error) {
 		view.CreateTournamentForm(c, team).Render(c.Request().Context(), c.Response().Writer),
 		view.NewTournamentRow(team, tournament).Render(c.Request().Context(), c.Response().Writer),
 	)
+}
+
+func (t *Team) updateTournament(c echo.Context) (err error) {
+	var (
+		team       *modelspb.Teams
+		tournament *modelspb.Tournaments
+		payload    *TournamentPayload
+	)
+
+	if payload, err = t.validateAndBindTournament(c); err != nil {
+		c.Echo().Logger.Error(err)
+		return component.RenderToast(c, err.Error(), component.ToastSeverityError)
+	}
+
+	if team, err = t.TeamRepo.GetOneBySlug(payload.TeamSlug); repository.IsNotFound(err) {
+		return component.RenderToast(c, teamNotFoundMessage, component.ToastSeverityError)
+	} else if err != nil {
+		return component.RenderToast(c, unexpectedErrorMessage, component.ToastSeverityError)
+	}
+
+	if !validation.IsFormValid(c) {
+		return view.CreateTournamentForm(c, team).Render(c.Request().Context(), c.Response().Writer)
+	}
+
+	// create and return values
+	if tournament, err = t.TournamentRepo.Create(team, payload.Name, payload.TournamentSlug, payload.StartDt, payload.EndDt, payload.Location); err != nil {
+		c.Echo().Logger.Error(err)
+		validation.AddFormErrorString(c, "unexpected error occurred creating team")
+		return view.CreateTournamentForm(c, team).Render(c.Request().Context(), c.Response().Writer)
+	}
+
+	return cmp.Or(
+		MarkFormSuccess(c),
+		view.CreateTournamentForm(c, team).Render(c.Request().Context(), c.Response().Writer),
+		view.NewTournamentRow(team, tournament).Render(c.Request().Context(), c.Response().Writer),
+	)
+}
+
+func (t *Team) validateAndBindTournament(c echo.Context) (payload *TournamentPayload, err error) {
+	payload = new(TournamentPayload)
+	if err := c.Bind(payload); err != nil {
+		return nil, fmt.Errorf("data was improperly formatted")
+	}
+
+	payload.TournamentSlug = ConvertToSlug(payload.Name)
+	if payload.Name == "" {
+		validation.AddFieldErrorString(c, "name", "name cannot be empty")
+	} 
+	if payload.StartDt, err = types.ParseDateTime(payload.Start); payload.Start != "" && err != nil {
+		validation.AddFieldErrorString(c, "start", "invalid date format")
+	}
+	if payload.EndDt, err = types.ParseDateTime(payload.End); payload.End != "" && err != nil {
+		validation.AddFieldErrorString(c, "end", "invalid date format")
+	}
+	if payload.StartDt.Time() != payload.EndDt.Time() && !payload.EndDt.Time().After(payload.StartDt.Time()) {
+		validation.AddFieldErrorString(c, "end", "end date must be after start date")
+	}
+
+	return payload, nil
 }
 
 func (t *Team) getRoster(c echo.Context) (err error) {
