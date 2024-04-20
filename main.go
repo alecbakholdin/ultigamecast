@@ -5,6 +5,7 @@ import (
 	"os"
 	"ultigamecast/handlers"
 	"ultigamecast/repository"
+	"ultigamecast/setup"
 
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
@@ -15,8 +16,10 @@ func main() {
 	app := pocketbase.New()
 
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
-        e.Router.HTTPErrorHandler = handlers.ErrorHandler
+		e.Router.HTTPErrorHandler = setup.ErrorHandler
 		e.Router.GET("/*", apis.StaticDirectoryHandler(os.DirFS("./public"), false))
+
+		setup.RegisterDevParams(e)
 
 		teamRepo := repository.NewTeam(app.Dao())
 		playerRepo := repository.NewPlayer(app.Dao())
@@ -27,7 +30,6 @@ func main() {
 
 		return nil
 	})
-
 
 	if err := app.Start(); err != nil {
 		log.Fatal(err)

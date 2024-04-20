@@ -3,6 +3,7 @@ package component
 import "time"
 import "ultigamecast/view/icon"
 import "fmt"
+import "github.com/labstack/echo/v5"
 
 type ToastSeverity string
 
@@ -19,9 +20,16 @@ type ToastData struct {
 	Severity ToastSeverity // Determines the color of the alert. Defaults to empty
 }
 
+func RenderToast(c echo.Context, message string, severity ToastSeverity) error {
+	return Toast(&ToastData{
+		Message:  message,
+		Severity: severity,
+	}).Render(c.Request().Context(), c.Response().Writer)
+}
+
 templ Toast(data *ToastData) {
-	<div hx-swap-oob="afterbegin:#toasts" hx-swap="settle:1s">
-		<div class={ "alert bg-opacity-30 flex items-center gap-3", data.Severity } remove-me={ toastDuration(data.Duration) }>
+	<div hx-swap-oob="afterbegin:#toasts">
+		<div class={ "alert flex items-center gap-3", templ.SafeClass(string(data.Severity)) } remove-me={ toastDuration(data.Duration) }>
 			@toastIcon(data.Severity)
 			<span>{ data.Message }</span>
 		</div>

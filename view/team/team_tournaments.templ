@@ -3,6 +3,8 @@ package view
 import "ultigamecast/modelspb"
 import "github.com/labstack/echo/v5"
 import "ultigamecast/view/util"
+import "ultigamecast/validation"
+import "fmt"
 
 templ TeamTournaments(c echo.Context, team *modelspb.Teams, tournaments []*modelspb.Tournaments) {
 	<div role="tablist" class="tabs tabs-bordered" aria-controls="tab-content">
@@ -15,27 +17,112 @@ templ TeamTournaments(c echo.Context, team *modelspb.Teams, tournaments []*model
 }
 
 templ tournamentList(c echo.Context, team *modelspb.Teams, tournaments []*modelspb.Tournaments) {
-	<ul>
+	<ul id="tournament_list">
 		for _, t := range tournaments {
-			<li>
+			<li id={ fmt.Sprintf("tournament_%s", t.Record.GetId()) }>
 				{ t.GetName() }
 			</li>
 		}
 	</ul>
-	<div id="create_team_modal_wrapper">
-		<button class="btn" onclick="create_team_modal.showModal()">+ New Team</button>
-		<dialog id="create_team_modal" class="modal">
+	<div id="create_tournament_modal_wrapper">
+		<button class="btn" onclick="create_tournament_form.reset(); create_tournament_modal.showModal()">+ New Team</button>
+		<dialog id="create_tournament_modal" class="modal" hx-on:formsuccess="this.close()">
 			<div class="modal-box">
-				<h3 class="font-bold text-lg">New Team</h3>
-				<form hx-boost="true" hx-post={ string(util.JoinSlugs("/team", team, "tournaments")) }>
-					<label for="name" class="label">Name</label>
-					<input type="text" class="input input-bordered" name="Name" placeholder="Name"/>
-				</form>
+				<h3 class="font-bold text-lg">New Tournament</h3>
+				@CreateTournamentForm(c, team)
+				<div class="modal-action">
+					<form method="dialog"><button class="btn">Close</button></form>
+					<button id="create_tournament_button" class="btn" form="create_tournament_form">Submit</button>
+				</div>
 			</div>
 			<form method="dialog" class="modal-backdrop"><button>close</button></form>
 		</dialog>
 	</div>
 }
 
-templ CreateTournament() {
+templ tournamentRow(team *modelspb.Teams, tournament *modelspb.Tournaments) {
+	<li id={ fmt.Sprintf("tournament_%s", tournament.Record.GetId()) }>
+		<h3 class="font-bold text-lg">{ tournament.GetName() }</h3>
+		{ team.GetName() }
+	</li>
+}
+
+templ NewTournamentRow(team *modelspb.Teams, tournament *modelspb.Tournaments) {
+	<div hx-swap-oob="afterbegin:#tournament_list">
+		@tournamentRow(team, tournament)
+	</div>
+}
+
+templ CreateTournamentForm(c echo.Context, team *modelspb.Teams) {
+	<form
+		id="create_tournament_form"
+		class="flex flex-col gap-2"
+		hx-boost="true"
+		hx-post={ util.JoinSlugsString("/team", team, "tournaments") }
+		hx-swap="outerHTML"
+		hx-target="this"
+		hx-disabled-elt="#create_tournament_button"
+	>
+		<div class="flex flex-col">
+			<label for="create_tournament_name" class="label">Name</label>
+			<input
+				id="create_tournament_name"
+				type="text"
+				class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "name")) }
+				name="name"
+				placeholder="Name"
+				value={ c.FormValue("name") }
+			/>
+			<span class={ "text-sm text-error", templ.KV("hidden", validation.IsFieldValid(c, "name")) }>
+				{ validation.GetFieldErrorString(c, "name") }
+			</span>
+		</div>
+		<div class="flex flex-col sm:flex-row gap-2 w-full">
+			<div class="flex flex-col flex-grow gap-0">
+				<label for="create_tournament_start" class="label">Start</label>
+				<input
+					type="date"
+					name="start"
+					id="create_tournament_start"
+					placeholder="Start"
+					class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "start")) }
+					value={ c.FormValue("start") }
+				/>
+				<span class={ "text-sm text-error", templ.KV("hidden", validation.IsFieldValid(c, "start")) }>
+					{ validation.GetFieldErrorString(c, "start") }
+				</span>
+			</div>
+			<div class="flex flex-col flex-grow gap-0">
+				<label for="create_tournament_end" class="label">End</label>
+				<input
+					type="date"
+					name="end"
+					id="create_tournament_end"
+					placeholder="End"
+					class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "end")) }
+					value={ c.FormValue("end") }
+				/>
+				<span class={ "text-sm text-error", templ.KV("hidden", validation.IsFieldValid(c, "end")) }>
+					{ validation.GetFieldErrorString(c, "end") }
+				</span>
+			</div>
+		</div>
+		<div class="flex flex-col gap-0 w-full">
+			<label for="create_tournament_location" class="label">Location</label>
+			<input
+				type="text"
+				id="create_tournament_location"
+				class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "location")) }
+				name="location"
+				placeholder="Location"
+				value={ c.FormValue("location") }
+			/>
+			<span class={ "text-sm text-error", templ.KV("hidden", validation.IsFieldValid(c, "location")) }>
+				{ validation.GetFieldErrorString(c, "location") }
+			</span>
+		</div>
+		<span class={ "text-error text-sm", templ.KV("hidden", validation.IsFormValid(c)) }>
+			{ validation.GetFormErrorString(c) }
+		</span>
+	</form>
 }

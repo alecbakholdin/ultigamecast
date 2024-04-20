@@ -1,0 +1,22 @@
+package handlers
+
+import (
+	"net/http"
+	"regexp"
+	"strings"
+
+	"github.com/labstack/echo/v5"
+)
+
+func MarkFormSuccess(c echo.Context) error {
+	c.Response().Header().Set("HX-Trigger", "formsuccess")
+	c.Response().WriteHeader(http.StatusOK)
+	return nil
+}
+
+var whitespaceRegex = regexp.MustCompile(`[\s+]`)
+
+func ConvertToSlug(s string) string {
+	noWhitespace := whitespaceRegex.ReplaceAllString(s, "-")
+	return strings.ToLower(noWhitespace)
+}
