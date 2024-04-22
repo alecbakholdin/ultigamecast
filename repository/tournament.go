@@ -31,7 +31,7 @@ func (t *Tournament) GetOneBySlug(teamSlug string, tournamentSlug string) (*mode
 		t.collection.Name,
 		"team.slug = {:teamSlug} && slug = {:tournamentSlug}",
 		dbx.Params{
-			"teamSlug": teamSlug,
+			"teamSlug":       teamSlug,
 			"tournamentSlug": tournamentSlug,
 		},
 	)
@@ -39,6 +39,14 @@ func (t *Tournament) GetOneBySlug(teamSlug string, tournamentSlug string) (*mode
 		return nil, err
 	}
 	return toTournament(record), err
+}
+
+func (t *Tournament) GetOneById(id string) (*modelspb.Tournaments, error) {
+	if record, err := t.dao.FindRecordById(t.collection.Id, id); err != nil {
+		return nil, err
+	} else {
+		return toTournament(record), nil
+	}
 }
 
 func (t *Tournament) ExistsBySlug(teamSlug string, tournamentSlug string) (bool, error) {
@@ -64,6 +72,27 @@ func (t *Tournament) GetAllByTeamSlug(slug string) ([]*modelspb.Tournaments, err
 		return nil, err
 	}
 	return toArr(records, toTournament), nil
+}
+
+func (t *Tournament) Update(id string, name string, slug string, start types.DateTime, end types.DateTime, location string) (*modelspb.Tournaments, error) {
+	var tournament *modelspb.Tournaments
+
+	if record, err := t.dao.FindRecordById(t.collection.Name, id); err != nil {
+		return nil, err
+	} else {
+		tournament = toTournament(record)
+	}
+
+	tournament.SetName(name)
+	tournament.SetSlug(slug)
+	tournament.SetStart(start)
+	tournament.SetEnd(end)
+	tournament.SetLocation(location)
+
+	if err := t.dao.Save(tournament.Record); err != nil {
+		return nil, err
+	}
+	return tournament, nil
 }
 
 func (t *Tournament) Create(team *modelspb.Teams, name string, slug string, start types.DateTime, end types.DateTime, location string) (*modelspb.Tournaments, error) {

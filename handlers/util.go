@@ -12,10 +12,9 @@ type Handler interface {
 	Routes(g *echo.Group) *echo.Group
 }
 
-func MarkFormSuccess(c echo.Context) error {
+func MarkFormSuccess(c echo.Context) {
 	c.Response().Header().Set("HX-Trigger", "formsuccess")
 	c.Response().WriteHeader(http.StatusOK)
-	return nil
 }
 
 var whitespaceRegex = regexp.MustCompile(`[\s+]`)

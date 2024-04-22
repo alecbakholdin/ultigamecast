@@ -87,13 +87,17 @@ templ tournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
 						</summary>
 						<ul class="p-2 shadow-xl menu dropdown-content z-[1] bg-base-100 rounded-box w-52">
 							<li>
-								<a hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournament, "edit") } hx-target="#edit_tournament_modal">
-									@icon.Edit()
+								<a
+									hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournament.Record.GetId(), "edit") }
+									hx-target="#tournament_modal"
+									hx-swap="outerHTML"
+								>
+									@icon.HtmxLoading(icon.Edit(), icon.LoadingXs())
 									Edit
 								</a>
 							</li>
 							<li>
-								<a>
+								<a role="button" onclick="">
 									@icon.TrashCan()
 									Delete
 								</a>
@@ -127,7 +131,7 @@ type TournamentData struct {
 }
 
 templ TournamentDialog(c echo.Context, title string, teamSlug string, values TournamentData) {
-	<dialog id="tournament_modal" class="modal" hx-on:formsuccess="this.close()">
+	<dialog id="tournament_modal" class="modal" hx-on:formsuccess="setTimeout(() => tournament_modal.close())">
 		<div class="modal-box">
 			<h3 class="font-bold text-lg">{ title }</h3>
 			@TournamentForm(c, teamSlug, values)
@@ -156,7 +160,7 @@ templ TournamentForm(c echo.Context, teamSlug string, values TournamentData) {
 	>
 		@component.InputWrapperLabel(c, "name", "tournament_modal_name", "Name") {
 			<input
-				type="text"
+				type=""
 				id="tournament_modal_name"
 				name="name"
 				class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "start")) }
@@ -164,7 +168,7 @@ templ TournamentForm(c echo.Context, teamSlug string, values TournamentData) {
 				value={ values.Name }
 			/>
 		}
-		<div class="flex flex-col sm:flex-row gap-2 w-full">
+		<div class="flex flex-col sm:flex-row gap-2 w-full [&_.input-wrapper]:flex-grow">
 			@component.InputWrapperLabel(c, "start", "tournament_modal_start", "Start") {
 				<input
 					type="date"
@@ -192,74 +196,6 @@ templ TournamentForm(c echo.Context, teamSlug string, values TournamentData) {
 				name="location"
 				placeholder="Location"
 				value={ values.Location }
-			/>
-		}
-		@component.FormError(c)
-	</form>
-}
-
-templ CreateTournamentDialog(c echo.Context, teamSlug string) {
-	<dialog id="create_tournament_modal" class="modal" hx-on:formsuccess="this.close()">
-		<div class="modal-box">
-			<h3 class="font-bold text-lg">New Tournament</h3>
-			@CreateTournamentForm(c, teamSlug)
-			<div class="modal-action">
-				<form method="dialog"><button class="btn">Close</button></form>
-				<button id="create_tournament_button" class="btn" form="create_tournament_form">Submit</button>
-			</div>
-		</div>
-		<form method="dialog" class="modal-backdrop"><button>close</button></form>
-	</dialog>
-}
-
-templ CreateTournamentForm(c echo.Context, teamSlug string) {
-	<form
-		id="create_tournament_form"
-		class="flex flex-col gap-2"
-		hx-boost="true"
-		hx-post={ util.JoinSlugsString("/team", teamSlug, "tournaments") }
-		hx-swap="outerHTML"
-		hx-target="this"
-		hx-disabled-elt="#create_tournament_button"
-	>
-		@component.InputWrapperLabel(c, "name", "create_tournament_name", "Name") {
-			<input
-				type="text"
-				id="create_tournament_name"
-				name="name"
-				class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "start")) }
-				placeholder="Name"
-				value={ c.FormValue("name") }
-			/>
-		}
-		<div class="flex flex-col sm:flex-row gap-2 w-full">
-			@component.InputWrapperLabel(c, "start", "create_tournament_start", "Start") {
-				<input
-					type="date"
-					name="start"
-					id="create_tournament_start"
-					class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "start")) }
-					value={ c.FormValue("start") }
-				/>
-			}
-			@component.InputWrapperLabel(c, "end", "create_tournament_end", "End") {
-				<input
-					type="date"
-					name="end"
-					id="create_tournament_end"
-					class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "end")) }
-					value={ c.FormValue("end") }
-				/>
-			}
-		</div>
-		@component.InputWrapperLabel(c, "location", "create_tournament_location", "Location") {
-			<input
-				type="text"
-				id="create_tournament_location"
-				class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "location")) }
-				name="location"
-				placeholder="Location"
-				value={ c.FormValue("location") }
 			/>
 		}
 		@component.FormError(c)

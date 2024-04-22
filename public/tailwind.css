@@ -2495,6 +2495,10 @@ input.tab:checked + .tab-content,
   }
 }
 
+.\[\&_\.input-wrapper\]\:flex-grow .input-wrapper {
+  flex-grow: 1;
+}
+
 .htmx-request .\[\.htmx-request_\&\]\:inline {
   display: inline;
 }

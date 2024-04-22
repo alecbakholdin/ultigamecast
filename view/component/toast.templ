@@ -27,6 +27,10 @@ func RenderToast(c echo.Context, message string, severity ToastSeverity) error {
 	}).Render(c.Request().Context(), c.Response().Writer)
 }
 
+func RenderToastError(c echo.Context, message string) error {
+	return RenderToast(c, message, ToastSeverityError)
+}
+
 templ Toast(data *ToastData) {
 	<div hx-swap-oob="afterbegin:#toasts">
 		<div class={ "alert flex items-center gap-3", templ.SafeClass(string(data.Severity)) } remove-me={ toastDuration(data.Duration) }>

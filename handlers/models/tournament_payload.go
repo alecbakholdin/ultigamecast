@@ -9,9 +9,9 @@ import (
 )
 
 type TournamentPayload struct {
-	TournamentID   string
+	TournamentID   string `param:"tournamentId"`
 	TeamSlug       string `param:"teamSlug"`
-	TournamentSlug string `param:"tournamentSlug"`
+	TournamentSlug string 
 	Name           string `form:"name"`
 	Start          string `form:"start"`
 	StartDt        types.DateTime

@@ -33,7 +33,8 @@ func (t *Tournaments) Routes(g *echo.Group) *echo.Group {
 	group.GET("/new", t.getNewTournament)
 	group.POST("", t.createNewTournament)
 
-	group.GET("/edit", t.getEditTournament)
+	group.GET("/:tournamentId/edit", t.getEditTournament)
+	group.PUT("/:tournamentId", t.updateTournament)
 
 	return group
 }
@@ -61,13 +62,13 @@ func (t *Tournaments) createNewTournament(c echo.Context) (err error) {
 	)
 	if err := models.BindTournament(c, &payload); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error binding tournament: %s", err))
-		return component.RenderToast(c, "unexpected error", component.ToastSeverityError)
+		return component.RenderToastError(c, "unexpected error")
 	}
 	defer renderForm(c, &payload)
 
 	if exists, err := t.TournamentRepo.ExistsBySlug(payload.TeamSlug, payload.TournamentSlug); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error determining if tournament exists: %s", err))
-		return component.RenderToast(c, "unexpected error", component.ToastSeverityError)
+		return component.RenderToastError(c, "unexpected error")
 	} else if exists {
 		validation.AddFieldErrorString(c, "name", "Name is already taken")
 		return nil
@@ -90,19 +91,17 @@ func (t *Tournaments) createNewTournament(c echo.Context) (err error) {
 	return
 }
 
-func renderForm(c echo.Context, payload *models.TournamentPayload) {
-	if err := view.TournamentForm(c, payload.TeamSlug, payload.ToData()).Render(c.Request().Context(), c.Response().Writer); err != nil {
-		c.Echo().Logger.Error(fmt.Errorf("error rendering form: %s", err))
-		component.RenderToast(c, "unexpected error returning form", component.ToastSeverityError)
-	}
-}
-
 func (t *Tournaments) getEditTournament(c echo.Context) (err error) {
 	teamSlug := c.PathParam("teamSlug")
-	tournamentSlug := c.PathParam("tournamentSlug")
+	tournamentId := c.PathParam("tournamentId")
+	if teamSlug == "" || tournamentId == "" {
+		c.Echo().Logger.Error(fmt.Errorf("teamSlug [%s] or tournamentId [%s] is empty", teamSlug, tournamentId))
+		return component.RenderToastError(c, "unexpected error")
+	}
 
-	if tournament, err := t.TournamentRepo.GetOneBySlug(teamSlug, tournamentSlug); err != nil {
-		return component.RenderToast(c, "Error finding tournament", component.ToastSeverityError)
+	if tournament, err := t.TournamentRepo.GetOneById(tournamentId); err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("error finding tournament: %s", err))
+		return component.RenderToastError(c, "could not find tournament")
 	} else {
 		data := view.TournamentData{
 			ID:       tournament.Record.GetId(),
@@ -112,5 +111,49 @@ func (t *Tournaments) getEditTournament(c echo.Context) (err error) {
 			Location: tournament.GetLocation(),
 		}
 		return view.TournamentDialog(c, "Edit Tournament", teamSlug, data).Render(c.Request().Context(), c.Response().Writer)
+	}
+}
+
+func (t *Tournaments) updateTournament(c echo.Context) (err error) {
+	var (
+		payload    models.TournamentPayload
+		tournament *modelspb.Tournaments
+	)
+	if err = models.BindTournament(c, &payload); err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("error binding tournament: %s", err))
+		return component.RenderToastError(c, "unexpected error")
+	}
+	defer renderForm(c, &payload)
+
+	if payload.TournamentID == "" {
+		validation.AddFormErrorString(c, "missing tournament in request")
+	} else if to, err := t.TournamentRepo.GetOneBySlug(payload.TeamSlug, payload.TournamentSlug); err != nil && !repository.IsNotFound(err) {
+		c.Echo().Logger.Error(fmt.Errorf("error determining if tournament exists: %s", err))
+		validation.AddFormErrorString(c, "unexpected error")
+	} else if to != nil && to.Record.GetId() != payload.TournamentID {
+		validation.AddFieldErrorString(c, "name", "name is already taken")
+	}
+
+	if !validation.IsFormValid(c) {
+		return
+	}
+
+	tournament, err = t.TournamentRepo.Update(payload.TournamentID, payload.Name, payload.TournamentSlug, payload.StartDt, payload.EndDt, payload.Location)
+	if err != nil {
+		validation.AddFormErrorString(c, "could not save tournament")
+		return
+	}
+
+	if validation.IsFormValid(c) {
+		MarkFormSuccess(c)
+		return view.EditedTournamentRow(payload.TeamSlug, tournament).Render(c.Request().Context(), c.Response().Writer)
+	}
+	return
+}
+
+func renderForm(c echo.Context, payload *models.TournamentPayload) {
+	if err := view.TournamentForm(c, payload.TeamSlug, payload.ToData()).Render(c.Request().Context(), c.Response().Writer); err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("error rendering form: %s", err))
+		component.RenderToast(c, "unexpected error returning form", component.ToastSeverityError)
 	}
 }
