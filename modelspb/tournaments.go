@@ -2,8 +2,8 @@
 package modelspb
 
 import (
-    "github.com/pocketbase/pocketbase/models"
     "github.com/pocketbase/pocketbase/tools/types"
+    "github.com/pocketbase/pocketbase/models"
 )
 
 // Tournaments is a wrapper around models.Record for type safe operations on the collection tournaments.

@@ -8,6 +8,10 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
+type Handler interface {
+	Routes(g *echo.Group) *echo.Group
+}
+
 func MarkFormSuccess(c echo.Context) error {
 	c.Response().Header().Set("HX-Trigger", "formsuccess")
 	c.Response().WriteHeader(http.StatusOK)

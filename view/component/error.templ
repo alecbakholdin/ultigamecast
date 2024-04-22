@@ -4,6 +4,7 @@ import "github.com/labstack/echo/v5"
 import "ultigamecast/view/layout"
 import "strconv"
 import "net/http"
+import "ultigamecast/validation"
 
 templ Error(c echo.Context, status int, message string) {
 	@layout.Root() {
@@ -13,5 +14,14 @@ templ Error(c echo.Context, status int, message string) {
 			</span>
 			<span class="text-xl text-error">{ message }</span>
 		</div>
+	}
+}
+
+
+templ FormError(c echo.Context) {
+	if !validation.IsFormValid(c) {
+		<span class="text-error text-sm">
+			{ validation.GetFormErrorString(c) }
+		</span>
 	}
 }

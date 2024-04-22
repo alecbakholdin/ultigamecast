@@ -6,53 +6,49 @@ import "ultigamecast/view/util"
 import "ultigamecast/validation"
 import "fmt"
 import "ultigamecast/view/icon"
+import "ultigamecast/view/component"
 
-templ TeamTournaments(c echo.Context, team *modelspb.Teams, tournaments []*modelspb.Tournaments) {
+templ TeamTournaments(c echo.Context, teamSlug string, tournaments []*modelspb.Tournaments) {
 	<div role="tablist" class="tabs tabs-bordered" aria-controls="tab-content">
-		<button hx-get={ string(util.JoinSlugs("/team", team, "tournaments")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab tab-active">Tournaments</button>
-		<button hx-get={ string(util.JoinSlugs("/team", team, "roster")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab">Roster</button>
+		<button hx-get={ string(util.JoinSlugs("/team", teamSlug, "tournaments")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab tab-active">Tournaments</button>
+		<button hx-get={ string(util.JoinSlugs("/team", teamSlug, "roster")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab">Roster</button>
 	</div>
-	@tournamentList(c, team, tournaments)
+	@tournamentList(c, teamSlug, tournaments)
 }
 
-templ tournamentList(c echo.Context, team *modelspb.Teams, tournaments []*modelspb.Tournaments) {
+templ tournamentList(c echo.Context, teamSlug string, tournaments []*modelspb.Tournaments) {
 	<div class="mx-auto px-8 py-4 mt-4 relative">
 		<ul id="tournament_list">
 			for _, t := range tournaments {
-				@tournamentRow(team, t)
+				@tournamentRow(teamSlug, t)
 			}
 		</ul>
 		<div id="create_tournament_modal_wrapper">
-			<button
-				type="button"
-				id="create_tournament_open_modal_button"
-				class="px-1.5 rounded-full absolute top-6 left-[18px] -translate-y-1/2 text-white text-nowrap flex flex-nowrap items-center gap-1 truncate text-lg btn btn-sm btn-primary"
-				onclick="create_tournament_form.reset(); create_tournament_modal.showModal()"
-				onmouseover="create_tournament_text.style.width = 150"
-				onmouseout="create_tournament_text.style.width = 0"
-			>
-				<div class="w-fit flex items-center">
-					@icon.Add()
-					<span class="text-sm text-nowrap truncate w-0 transition-all" id="create_tournament_text">New Tournament</span>
-				</div>
-			</button>
-			<dialog id="create_tournament_modal" class="modal" hx-on:formsuccess="this.close()">
-				<div class="modal-box">
-					<h3 class="font-bold text-lg">New Tournament</h3>
-					@CreateTournamentForm(c, team)
-					<div class="modal-action">
-						<form method="dialog"><button class="btn">Close</button></form>
-						<button id="create_tournament_button" class="btn" form="create_tournament_form">Submit</button>
+			<div class="absolute top-6 left-[18px] -translate-y-1/2">
+				<button
+					type="button"
+					id="create_tournament_open_modal_button"
+					class="px-1.5 rounded-full text-white text-nowrap flex flex-nowrap items-center gap-1 truncate text-lg btn btn-sm btn-primary"
+					onmouseover="create_tournament_text.style.width = 150"
+					onmouseout="create_tournament_text.style.width = 0"
+					hx-target="#tournament_modal"
+					hx-swap="outerHTML"
+					hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", "new") }
+				>
+					<div class="w-fit flex items-center">
+						@icon.HtmxLoading(icon.Add(), icon.LoadingSm())
+						<span class="text-sm text-nowrap truncate w-0 transition-all" id="create_tournament_text">New Tournament</span>
 					</div>
-				</div>
-				<form method="dialog" class="modal-backdrop"><button>close</button></form>
-			</dialog>
+				</button>
+			</div>
 		</div>
-		<div id="edit_tournament_modal"></div>
+		<div hx-on::after-swap="tournament_modal.show()">
+			<div id="tournament_modal"></div>
+		</div>
 	</div>
 }
 
-templ tournamentRow(team *modelspb.Teams, tournament *modelspb.Tournaments) {
+templ tournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
 	<li id={ fmt.Sprintf("tournament_%s", tournament.Record.GetId()) } class="border-l-4 border-primary first:pt-8">
 		<div class="p-4 relative">
 			<div class="h-4 w-4 rounded-full bg-white border-4 border-primary absolute left-[-10px] top-6"></div>
@@ -91,7 +87,7 @@ templ tournamentRow(team *modelspb.Teams, tournament *modelspb.Tournaments) {
 						</summary>
 						<ul class="p-2 shadow-xl menu dropdown-content z-[1] bg-base-100 rounded-box w-52">
 							<li>
-								<a hx-get={ util.JoinSlugsString("/team", team, "tournaments", tournament, "edit") } hx-target="#edit_tournament_modal">
+								<a hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournament, "edit") } hx-target="#edit_tournament_modal">
 									@icon.Edit()
 									Edit
 								</a>
@@ -110,75 +106,153 @@ templ tournamentRow(team *modelspb.Teams, tournament *modelspb.Tournaments) {
 	</li>
 }
 
-templ NewTournamentRow(team *modelspb.Teams, tournament *modelspb.Tournaments) {
+templ NewTournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
 	<div hx-swap-oob="afterbegin:#tournament_list">
-		@tournamentRow(team, tournament)
+		@tournamentRow(teamSlug, tournament)
 	</div>
 }
 
-templ EditedTournamentRow(team *modelspb.Teams, tournament *modelspb.Tournaments) {
-	<div hx-swap-oob={fmt.Sprintf("outerHTML:#tournament_%s", tournament.Record.GetId())}>
-		@tournamentRow(team, tournament)
+templ EditedTournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
+	<div hx-swap-oob={ fmt.Sprintf("outerHTML:#tournament_%s", tournament.Record.GetId()) }>
+		@tournamentRow(teamSlug, tournament)
 	</div>
 }
 
-templ CreateTournamentForm(c echo.Context, team *modelspb.Teams) {
+type TournamentData struct {
+	ID       string
+	Name     string
+	Start    string
+	End      string
+	Location string
+}
+
+templ TournamentDialog(c echo.Context, title string, teamSlug string, values TournamentData) {
+	<dialog id="tournament_modal" class="modal" hx-on:formsuccess="this.close()">
+		<div class="modal-box">
+			<h3 class="font-bold text-lg">{ title }</h3>
+			@TournamentForm(c, teamSlug, values)
+			<div class="modal-action">
+				<form method="dialog"><button class="btn">Close</button></form>
+				<button id="tournament_modal_button" class="btn" form="tournament_modal_form">Submit</button>
+			</div>
+		</div>
+		<form method="dialog" class="modal-backdrop"><button>close</button></form>
+	</dialog>
+}
+
+templ TournamentForm(c echo.Context, teamSlug string, values TournamentData) {
+	<form
+		id="tournament_modal_form"
+		class="flex flex-col gap-2"
+		hx-boost="true"
+		hx-swap="outerHTML"
+		hx-target="this"
+		hx-disabled-elt="#tournament_modal_button"
+		if values.ID == "" {
+			hx-post={ util.JoinSlugsString("/team", teamSlug, "tournaments") }
+		} else {
+			hx-put={ util.JoinSlugsString("/team", teamSlug, "tournaments", values.ID) }
+		}
+	>
+		@component.InputWrapperLabel(c, "name", "tournament_modal_name", "Name") {
+			<input
+				type="text"
+				id="tournament_modal_name"
+				name="name"
+				class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "start")) }
+				placeholder="Name"
+				value={ values.Name }
+			/>
+		}
+		<div class="flex flex-col sm:flex-row gap-2 w-full">
+			@component.InputWrapperLabel(c, "start", "tournament_modal_start", "Start") {
+				<input
+					type="date"
+					name="start"
+					id="tournament_modal_start"
+					class="input input-bordered"
+					value={ values.Start }
+				/>
+			}
+			@component.InputWrapperLabel(c, "end", "tournament_modal_end", "End") {
+				<input
+					type="date"
+					name="end"
+					id="tournament_modal_end"
+					class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "end")) }
+					value={ values.End }
+				/>
+			}
+		</div>
+		@component.InputWrapperLabel(c, "location", "tournament_modal_location", "Location") {
+			<input
+				type="text"
+				id="tournament_modal_location"
+				class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "location")) }
+				name="location"
+				placeholder="Location"
+				value={ values.Location }
+			/>
+		}
+		@component.FormError(c)
+	</form>
+}
+
+templ CreateTournamentDialog(c echo.Context, teamSlug string) {
+	<dialog id="create_tournament_modal" class="modal" hx-on:formsuccess="this.close()">
+		<div class="modal-box">
+			<h3 class="font-bold text-lg">New Tournament</h3>
+			@CreateTournamentForm(c, teamSlug)
+			<div class="modal-action">
+				<form method="dialog"><button class="btn">Close</button></form>
+				<button id="create_tournament_button" class="btn" form="create_tournament_form">Submit</button>
+			</div>
+		</div>
+		<form method="dialog" class="modal-backdrop"><button>close</button></form>
+	</dialog>
+}
+
+templ CreateTournamentForm(c echo.Context, teamSlug string) {
 	<form
 		id="create_tournament_form"
 		class="flex flex-col gap-2"
 		hx-boost="true"
-		hx-post={ util.JoinSlugsString("/team", team, "tournaments") }
+		hx-post={ util.JoinSlugsString("/team", teamSlug, "tournaments") }
 		hx-swap="outerHTML"
 		hx-target="this"
 		hx-disabled-elt="#create_tournament_button"
 	>
-		<input type="hidden" name="tournament_id" value={ c.FormValue("tournament_id") }/>
-		<div class="flex flex-col">
-			<label for="create_tournament_name" class="label">Name</label>
+		@component.InputWrapperLabel(c, "name", "create_tournament_name", "Name") {
 			<input
-				id="create_tournament_name"
 				type="text"
-				class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "name")) }
+				id="create_tournament_name"
 				name="name"
+				class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "start")) }
 				placeholder="Name"
 				value={ c.FormValue("name") }
 			/>
-			<span class={ "text-sm text-error", templ.KV("hidden", validation.IsFieldValid(c, "name")) }>
-				{ validation.GetFieldErrorString(c, "name") }
-			</span>
-		</div>
+		}
 		<div class="flex flex-col sm:flex-row gap-2 w-full">
-			<div class="flex flex-col flex-grow gap-0">
-				<label for="create_tournament_start" class="label">Start</label>
+			@component.InputWrapperLabel(c, "start", "create_tournament_start", "Start") {
 				<input
 					type="date"
 					name="start"
 					id="create_tournament_start"
-					placeholder="Start"
 					class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "start")) }
 					value={ c.FormValue("start") }
 				/>
-				<span class={ "text-sm text-error", templ.KV("hidden", validation.IsFieldValid(c, "start")) }>
-					{ validation.GetFieldErrorString(c, "start") }
-				</span>
-			</div>
-			<div class="flex flex-col flex-grow gap-0">
-				<label for="create_tournament_end" class="label">End</label>
+			}
+			@component.InputWrapperLabel(c, "end", "create_tournament_end", "End") {
 				<input
 					type="date"
 					name="end"
 					id="create_tournament_end"
-					placeholder="End"
 					class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "end")) }
 					value={ c.FormValue("end") }
 				/>
-				<span class={ "text-sm text-error", templ.KV("hidden", validation.IsFieldValid(c, "end")) }>
-					{ validation.GetFieldErrorString(c, "end") }
-				</span>
-			</div>
+			}
 		</div>
-		<div class="flex flex-col gap-0 w-full">
-			<label for="create_tournament_location" class="label">Location</label>
+		@component.InputWrapperLabel(c, "location", "create_tournament_location", "Location") {
 			<input
 				type="text"
 				id="create_tournament_location"
@@ -187,12 +261,7 @@ templ CreateTournamentForm(c echo.Context, team *modelspb.Teams) {
 				placeholder="Location"
 				value={ c.FormValue("location") }
 			/>
-			<span class={ "text-sm text-error", templ.KV("hidden", validation.IsFieldValid(c, "location")) }>
-				{ validation.GetFieldErrorString(c, "location") }
-			</span>
-		</div>
-		<span class={ "text-error text-sm", templ.KV("hidden", validation.IsFormValid(c)) }>
-			{ validation.GetFormErrorString(c) }
-		</span>
+		}
+		@component.FormError(c)
 	</form>
 }

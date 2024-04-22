@@ -33,13 +33,24 @@ func NewTeam(t *repository.Team, p *repository.Player, to *repository.Tournament
 	}
 }
 
-func (t *Team) Routes(e *echo.Echo) {
-	group := e.Group("/team")
-	group.GET("/:teamSlug", t.getTeam)
-	group.GET("/:teamSlug/tournaments", t.getTournaments)
-	group.POST("/:teamSlug/tournaments", t.postTournaments)
-	group.PUT("/:teamSlug/tournaments", t.updateTournament)
-	group.GET("/:teamSlug/roster", t.getRoster)
+func (t *Team) Routes(g *echo.Group) (*echo.Group) {
+	group := g.Group("/team/:teamSlug")
+	group.GET("", t.getTeam)
+
+	return group
+}
+
+type TournamentPayload struct {
+	TeamSlug       string `path:"teamSlug"`
+	Team           modelspb.Teams
+	TournamentID   string `form:"tournament_id"`
+	Name           string `form:"name"`
+	TournamentSlug string `path:"tournamentSlug"`
+	Start          string `form:"start"`
+	StartDt        types.DateTime
+	End            string `form:"end"`
+	EndDt          types.DateTime
+	Location       string `form:"location"`
 }
 
 func (t *Team) getTeam(c echo.Context) (err error) {
@@ -58,34 +69,14 @@ func (t *Team) getTeam(c echo.Context) (err error) {
 
 func (t *Team) getTournaments(c echo.Context) (err error) {
 	var (
-		team        *modelspb.Teams
 		tournaments []*modelspb.Tournaments
 		teamSlug    = c.PathParam("teamSlug")
 	)
 
-	if team, err = t.TeamRepo.GetOneBySlug(teamSlug); repository.IsNotFound(err) {
-		return echo.NewHTTPErrorWithInternal(http.StatusNotFound, err, teamNotFoundMessage)
-	} else if err != nil {
-		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, unexpectedErrorMessage)
-	}
-
 	if tournaments, err = t.TournamentRepo.GetAllByTeamSlug(teamSlug); err != nil && !repository.IsNotFound(err) {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, unexpectedErrorMessage)
 	}
-	return view.TeamTournaments(c, team, tournaments).Render(c.Request().Context(), c.Response().Writer)
-}
-
-type TournamentPayload struct {
-	TeamSlug       string `path:"teamSlug"`
-	Team           modelspb.Teams
-	TournamentID   string `form:"tournament_id"`
-	Name           string `form:"name"`
-	TournamentSlug string
-	Start          string `form:"start"`
-	StartDt        types.DateTime
-	End            string `form:"end"`
-	EndDt          types.DateTime
-	Location       string `form:"location"`
+	return view.TeamTournaments(c, teamSlug, tournaments).Render(c.Request().Context(), c.Response().Writer)
 }
 
 func (t *Team) postTournaments(c echo.Context) (err error) {
@@ -115,20 +106,20 @@ func (t *Team) postTournaments(c echo.Context) (err error) {
 	}
 
 	if !validation.IsFormValid(c) {
-		return view.CreateTournamentForm(c, team).Render(c.Request().Context(), c.Response().Writer)
+		return view.CreateTournamentForm(c, payload.TeamSlug).Render(c.Request().Context(), c.Response().Writer)
 	}
 
 	// create and return values
 	if tournament, err = t.TournamentRepo.Create(team, payload.Name, payload.TournamentSlug, payload.StartDt, payload.EndDt, payload.Location); err != nil {
 		c.Echo().Logger.Error(err)
 		validation.AddFormErrorString(c, "unexpected error occurred creating team")
-		return view.CreateTournamentForm(c, team).Render(c.Request().Context(), c.Response().Writer)
+		return view.CreateTournamentForm(c, payload.TeamSlug).Render(c.Request().Context(), c.Response().Writer)
 	}
 
 	return cmp.Or(
 		MarkFormSuccess(c),
-		view.CreateTournamentForm(c, team).Render(c.Request().Context(), c.Response().Writer),
-		view.NewTournamentRow(team, tournament).Render(c.Request().Context(), c.Response().Writer),
+		view.CreateTournamentForm(c, payload.TeamSlug).Render(c.Request().Context(), c.Response().Writer),
+		view.NewTournamentRow(payload.TeamSlug, tournament).Render(c.Request().Context(), c.Response().Writer),
 	)
 }
 
@@ -151,20 +142,20 @@ func (t *Team) updateTournament(c echo.Context) (err error) {
 	}
 
 	if !validation.IsFormValid(c) {
-		return view.CreateTournamentForm(c, team).Render(c.Request().Context(), c.Response().Writer)
+		return view.CreateTournamentForm(c, payload.TeamSlug).Render(c.Request().Context(), c.Response().Writer)
 	}
 
 	// create and return values
 	if tournament, err = t.TournamentRepo.Create(team, payload.Name, payload.TournamentSlug, payload.StartDt, payload.EndDt, payload.Location); err != nil {
 		c.Echo().Logger.Error(err)
 		validation.AddFormErrorString(c, "unexpected error occurred creating team")
-		return view.CreateTournamentForm(c, team).Render(c.Request().Context(), c.Response().Writer)
+		return view.CreateTournamentForm(c, payload.TeamSlug).Render(c.Request().Context(), c.Response().Writer)
 	}
 
 	return cmp.Or(
 		MarkFormSuccess(c),
-		view.CreateTournamentForm(c, team).Render(c.Request().Context(), c.Response().Writer),
-		view.NewTournamentRow(team, tournament).Render(c.Request().Context(), c.Response().Writer),
+		view.CreateTournamentForm(c, payload.TeamSlug).Render(c.Request().Context(), c.Response().Writer),
+		view.NewTournamentRow(payload.TeamSlug, tournament).Render(c.Request().Context(), c.Response().Writer),
 	)
 }
 

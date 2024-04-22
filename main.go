@@ -26,7 +26,11 @@ func main() {
 		tournamentRepo := repository.NewTournament(app.Dao())
 
 		teamHandler := handlers.NewTeam(teamRepo, playerRepo, tournamentRepo)
-		teamHandler.Routes(e.Router)
+		tournamentHandler := handlers.NewTournaments(tournamentRepo, teamRepo)
+
+		baseGroup := e.Router.Group("")
+		teamGroup := teamHandler.Routes(baseGroup)
+		tournamentHandler.Routes(teamGroup)
 
 		return nil
 	})
