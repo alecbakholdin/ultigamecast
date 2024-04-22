@@ -110,6 +110,15 @@ func (t *Tournament) Create(team *modelspb.Teams, name string, slug string, star
 	return tournament, nil
 }
 
+func (t *Tournament) Delete(id string) (error) {
+	if record, err := t.dao.FindRecordById(t.collection.Id, id); err != nil {
+		return err
+	} else if err = t.dao.DeleteRecord(record); err != nil {
+		return err
+	}
+	return nil
+}
+
 func toTournament(record *models.Record) *modelspb.Tournaments {
 	return &modelspb.Tournaments{
 		Record: record,

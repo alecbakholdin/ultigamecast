@@ -31,9 +31,9 @@ templ tournamentList(c echo.Context, teamSlug string, tournaments []*modelspb.To
 					class="px-1.5 rounded-full text-white text-nowrap flex flex-nowrap items-center gap-1 truncate text-lg btn btn-sm btn-primary"
 					onmouseover="create_tournament_text.style.width = 150"
 					onmouseout="create_tournament_text.style.width = 0"
-					hx-target="#tournament_modal"
+					hx-target="#tournament_modal_content"
 					hx-swap="outerHTML"
-					hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", "new") }
+					hx-get={ util.JoinSlugsString("/team", teamSlug, "newTournament") }
 				>
 					<div class="w-fit flex items-center">
 						@icon.HtmxLoading(icon.Add(), icon.LoadingSm())
@@ -42,8 +42,11 @@ templ tournamentList(c echo.Context, teamSlug string, tournaments []*modelspb.To
 				</button>
 			</div>
 		</div>
-		<div hx-on::after-swap="tournament_modal.show()">
-			<div id="tournament_modal"></div>
+		<div hx-on::after-swap="tournament_modal.showModal()" hx-on:formsuccess="setTimeout(() => tournament_modal.close())">
+			<dialog id="tournament_modal" class="modal">
+				<div id="tournament_modal_content"></div>
+				<form method="dialog" class="modal-backdrop"><button>close</button></form>
+			</dialog>
 		</div>
 	</div>
 }
@@ -89,7 +92,7 @@ templ tournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
 							<li>
 								<a
 									hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournament.Record.GetId(), "edit") }
-									hx-target="#tournament_modal"
+									hx-target="#tournament_modal_content"
 									hx-swap="outerHTML"
 								>
 									@icon.HtmxLoading(icon.Edit(), icon.LoadingXs())
@@ -97,7 +100,7 @@ templ tournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
 								</a>
 							</li>
 							<li>
-								<a role="button" onclick="">
+								<a role="button" onclick={ showDeleteModal(tournament.Record.GetId()) }>
 									@icon.TrashCan()
 									Delete
 								</a>
@@ -107,7 +110,39 @@ templ tournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
 				</div>
 			</div>
 		</div>
+		<dialog class="modal" id={ deleteModalId(tournament.Record.GetId()) }>
+			<div class="modal-box">
+				<h3 class="font-bold text-xl">Are you sure?</h3>
+				<p class="text-sm py-2">Are you sure you want to delete <span class="text-primary">{ tournament.GetName() }</span>? This will remove all data associated with this tournament, including statistics and games. This cannot be undone.</p>
+				<div class="modal-action">
+					<form method="dialog"><button class="btn">Cancel</button></form>
+					<button
+						class="btn btn-primary"
+						hx-delete={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournament.Record.GetId()) }
+						hx-disabled-elt="this"
+						hx-on::beforeSwap={ closeDeleteModal(tournament.Record.GetId()) }
+						hx-target="closest li"
+					>
+						Confirm
+					</button>
+				</div>
+			</div>
+			<form method="dialog" class="modal-backdrop"><button>close</button></form>
+		</dialog>
 	</li>
+}
+
+script showDeleteModal(tournamentId string) {
+	document.getElementById("delete_tournament_" + tournamentId)?.showModal()
+}
+
+script closeDeleteModal(tournamentId string) {
+	console.log(tournamentId)
+	setTimeout(() => document.getElementById("delete_tournament_" + tournamentId)?.close())
+}
+
+func deleteModalId(tournamentId string) string {
+	return fmt.Sprintf("delete_tournament_%s", tournamentId)
 }
 
 templ NewTournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
@@ -131,17 +166,15 @@ type TournamentData struct {
 }
 
 templ TournamentDialog(c echo.Context, title string, teamSlug string, values TournamentData) {
-	<dialog id="tournament_modal" class="modal" hx-on:formsuccess="setTimeout(() => tournament_modal.close())">
-		<div class="modal-box">
-			<h3 class="font-bold text-lg">{ title }</h3>
-			@TournamentForm(c, teamSlug, values)
-			<div class="modal-action">
-				<form method="dialog"><button class="btn">Close</button></form>
-				<button id="tournament_modal_button" class="btn" form="tournament_modal_form">Submit</button>
-			</div>
+	<div id="tournament_modal_content" class="modal-box">
+		<h3 class="font-bold text-lg">{ title }</h3>
+		@TournamentForm(c, teamSlug, values)
+		<div class="modal-action">
+			<form method="dialog"><button class="btn">Close</button></form>
+			<button id="tournament_modal_button" class="btn btn-primary" form="tournament_modal_form">Submit</button>
 		</div>
-		<form method="dialog" class="modal-backdrop"><button>close</button></form>
-	</dialog>
+	</div>
+	<form method="dialog" class="modal-backdrop"><button>close</button></form>
 }
 
 templ TournamentForm(c echo.Context, teamSlug string, values TournamentData) {

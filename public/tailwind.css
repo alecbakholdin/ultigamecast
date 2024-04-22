@@ -2393,6 +2393,11 @@ input.tab:checked + .tab-content,
   padding-right: 2rem;
 }
 
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
 .py-4 {
   padding-top: 1rem;
   padding-bottom: 1rem;
@@ -2461,17 +2466,21 @@ input.tab:checked + .tab-content,
 
 @keyframes fadeInOut {
   0% {
-    opacity: 0
+    opacity: 0;
   }
 
   25%,
   75% {
-    opacity: 1
+    opacity: 1;
   }
 
   100% {
-    opacity: 0
+    opacity: 0;
   }
+}
+
+script {
+  display: none !important;
 }
 
 .\[\&_input\]\:input-error input {

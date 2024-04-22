@@ -26,17 +26,17 @@ func NewTournaments(to *repository.Tournament, te *repository.Team) *Tournaments
 }
 
 func (t *Tournaments) Routes(g *echo.Group) *echo.Group {
-	group := g.Group("/tournaments")
+	g.GET("/tournaments", t.getTournaments)
 
-	group.GET("", t.getTournaments)
+	g.GET("/newTournament", t.getNewTournament)
+	g.POST("/tournaments", t.createNewTournament)
 
-	group.GET("/new", t.getNewTournament)
-	group.POST("", t.createNewTournament)
+	tournamentGroup := g.Group("/tournaments/:tournamentId")
+	tournamentGroup.GET("/edit", t.getEditTournament)
+	tournamentGroup.PUT("", t.updateTournament)
+	tournamentGroup.DELETE("", t.deleteTournament)
 
-	group.GET("/:tournamentId/edit", t.getEditTournament)
-	group.PUT("/:tournamentId", t.updateTournament)
-
-	return group
+	return tournamentGroup
 }
 
 func (t *Tournaments) getTournaments(c echo.Context) (err error) {
@@ -156,4 +156,14 @@ func renderForm(c echo.Context, payload *models.TournamentPayload) {
 		c.Echo().Logger.Error(fmt.Errorf("error rendering form: %s", err))
 		component.RenderToast(c, "unexpected error returning form", component.ToastSeverityError)
 	}
+}
+
+func (t *Tournaments) deleteTournament(c echo.Context) (err error) {
+	tournamentId := c.PathParam("tournamentId")
+	if err = t.TournamentRepo.Delete(tournamentId); err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("could not delete tournament: %s", err))
+		return component.RenderToastError(c, "unexpected error")
+	}
+	MarkFormSuccess(c)
+	return
 }
