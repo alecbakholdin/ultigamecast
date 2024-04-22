@@ -6,3 +6,4 @@ main
 *_templ.txt
 *_templ.go
 .vscode
+node_modules

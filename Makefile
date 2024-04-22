@@ -8,5 +8,7 @@ kill:
 	pkill 8090
 types:
 	pb-gen models
+styles:
+	npx tailwindcss -i ./public/styles.css -o ./public/tailwind.css
 clean:
 	rm -rf main temp

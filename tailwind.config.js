@@ -1,1 +1,9 @@
-// purely for intellisense to recognize this as a tailwind file in vscode.
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ["./view/**/*.{templ, html, js}"],
+  theme: {
+    extend: {},
+  },
+  plugins: [require('daisyui')],
+}
+

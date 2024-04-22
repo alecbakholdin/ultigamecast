@@ -3,9 +3,9 @@ tmp_dir = "tmp"
 
 [build]
   bin = "./tmp/main serve --dev --dir ./pb_data"
-  cmd = "templ generate && go build -o ./tmp/main ."
+  cmd = "make styles && templ generate && go build -o ./tmp/main ."
   delay = 1000
-  exclude_dir = ["assets", "tmp", "vendor"]
+  exclude_dir = ["assets", "tmp", "vendor", "node_modules"]
   exclude_file = []
   exclude_regex = [".*_templ.go"]
   exclude_unchanged = false
