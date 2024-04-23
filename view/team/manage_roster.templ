@@ -57,6 +57,7 @@ templ PlayerRow(c echo.Context, player *modelspb.Players) {
 				hx-target="closest .manage-roster-row"
 				hx-indicator="closest .manage-roster-row"
 				hx-swap="outerHTML"
+				hx-disabled-elt="this"
 				class="btn btn-icon btn-sm"
 			>
 				@icon.HtmxLoading(icon.Edit(), icon.LoadingXs())
@@ -78,7 +79,52 @@ templ EditPlayerRow(c echo.Context, data PlayerData) {
 		hx-boost="true"
 		hx-put={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "roster", data.PlayerID) }
 		hx-target="this"
-	></form>
+		hx-swap="outerHTML"
+		class="mb-0"
+		hx-disabled-elt=".edit-player-button"
+		hx-indicator="#edit_player_put"
+	>
+		<div class="flex gap-1">
+			<div class="flex-grow">
+				@component.InputWrapper(c, "name") {
+					<input
+						autofocus
+						name="name"
+						type="text"
+						class="input input-sm"
+						value={ data.PlayerName }
+					/>
+				}
+			</div>
+			<button
+				id="edit_player_cancel"
+				hx-get={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "roster", data.PlayerID, "row") }
+				hx-target="closest form"
+				hx-indicator="this"
+				class="edit-player-put edit-player-button btn btn-icon btn-sm"
+			>
+				@icon.HtmxLoading(icon.Cancel(), icon.LoadingXs())
+			</button>
+			<button
+				id="edit_player_delete"
+				class="edit-player-button btn btn-icon btn-sm btn-error"
+				aria-label="delete"
+				hx-delete={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "roster", data.PlayerID) }
+				hx-confirm={ fmt.Sprintf("Are you sure you want to delete %s? This action cannot be undone", data.PlayerName) }
+				hx-indicator="this"
+			>
+				@icon.HtmxLoading(icon.TrashCan(), icon.LoadingXs())
+			</button>
+			<button
+				id="edit_player_put"
+				class="edit-player-button btn btn-icon btn-sm btn-primary"
+				aria-label="submit edit"
+			>
+				@icon.HtmxLoading(icon.Check(), icon.LoadingXs())
+			</button>
+		</div>
+		@component.FormError(c)
+	</form>
 }
 
 templ CreatePlayerRow(c echo.Context, data PlayerData) {
@@ -88,10 +134,12 @@ templ CreatePlayerRow(c echo.Context, data PlayerData) {
 		hx-target="this"
 		hx-disabled-elt="#create_player_button"
 		class="flex flex-col mb-0"
+		hx-on::after-settle="setTimeout(() => create_player_name.focus())"
 	>
 		<div class="flex gap-1">
 			@component.InputWrapper(c, "name") {
 				<input
+					id="create_player_name"
 					type="text"
 					name="name"
 					placeholder="Name"

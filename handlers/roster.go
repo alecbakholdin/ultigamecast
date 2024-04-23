@@ -11,6 +11,7 @@ import (
 	"ultigamecast/view/component"
 	view "ultigamecast/view/team"
 
+	"github.com/a-h/templ"
 	"github.com/labstack/echo/v5"
 )
 
@@ -34,6 +35,18 @@ func (r *Roster) Routes(g *echo.Group) *echo.Group {
 	g.PUT("/rosterOrder", r.updateRosterOrder)
 
 	playerGroup := g.Group("/roster/:playerId")
+	playerGroup.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if c.PathParam("playerId") == "" {
+				return echo.NewHTTPError(http.StatusBadRequest, "no player specified in request")
+			}
+			return next(c)
+		}
+	})
+	playerGroup.GET("/edit", r.getEditPlayer)
+	playerGroup.GET("/row", r.getPlayerRow)
+	playerGroup.DELETE("", r.deletePlayer)
+	playerGroup.PUT("", r.updatePlayer)
 	return playerGroup
 }
 
@@ -51,6 +64,30 @@ func (r *Roster) getPlayers(c echo.Context) (err error) {
 	teamSlug := c.PathParam("teamSlug")
 
 	return view.TeamRoster(c, teamSlug).Render(c.Request().Context(), c.Response().Writer)
+}
+
+func (r *Roster) getEditPlayer(c echo.Context) (err error) {
+	playerId := c.PathParam("playerId")
+
+	if player, err := r.PlayerRepo.GetOneById(playerId); err != nil && !repository.IsNotFound(err) {
+		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "unexpected error")
+	} else {
+		return view.EditPlayerRow(c, view.PlayerData{
+			PlayerID:    player.Record.GetId(),
+			PlayerName:  player.GetName(),
+			PlayerOrder: player.GetOrder(),
+		}).Render(c.Request().Context(), c.Response().Writer)
+	}
+}
+
+func (r *Roster) getPlayerRow(c echo.Context) (err error) {
+	playerId := c.PathParam("playerId")
+
+	if player, err := r.PlayerRepo.GetOneById(playerId); err != nil && !repository.IsNotFound(err) {
+		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "unexpected error")
+	} else {
+		return view.PlayerRow(c, player).Render(c.Request().Context(), c.Response().Writer)
+	}
 }
 
 func (r *Roster) getRosterTable(c echo.Context) (err error) {
@@ -119,6 +156,47 @@ func (r *Roster) createPlayer(c echo.Context) (err error) {
 		return view.NewPlayerRow(c, player).Render(c.Request().Context(), c.Response().Writer)
 	}
 	return nil
+}
+
+func (r *Roster) updatePlayer(c echo.Context) (err error) {
+	var (
+		payload models.PlayerPayload
+		player  *modelspb.Players
+	)
+	if err := models.BindPlayer(c, &payload); err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("error binding player: %s", err))
+		return component.RenderToastError(c, "unexpected error")
+	}
+
+	defer func(c echo.Context, payload *models.PlayerPayload, player **modelspb.Players) {
+		var component templ.Component
+		if validation.IsFormValid(c) {
+			component = view.PlayerRow(c, *player)
+		} else {
+			component = view.EditPlayerRow(c, payload.ToData())
+		}
+		if err := component.Render(c.Request().Context(), c.Response().Writer); err != nil {
+			c.Echo().Logger.Error(fmt.Errorf("error rendering [validForm=%t] player row: %s", validation.IsFormValid(c), err))
+		}
+	}(c, &payload, &player)
+
+	if !validation.IsFormValid(c) {
+		return
+	}
+
+	if player, err = r.PlayerRepo.Update(payload.PlayerID, payload.Name); err != nil {
+		validation.AddFormError(c, err)
+	}
+	return
+}
+
+func (r *Roster) deletePlayer(c echo.Context) (err error) {
+	playerId := c.PathParam("playerId")
+	if err := r.PlayerRepo.Delete(playerId); err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("error deleting player %s: %s", playerId, err))
+		return component.RenderToastError(c, "unexpected error")
+	}
+	return
 }
 
 func (r *Roster) updateRosterOrder(c echo.Context) (err error) {

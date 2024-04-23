@@ -49,6 +49,14 @@ func NewPlayer(app core.App) *Player {
 	}
 }
 
+func (p *Player) GetOneById(id string) (*modelspb.Players, error) {
+	if record, err := p.dao.FindRecordById(p.collection.Id, id); err != nil {
+		return nil, err
+	} else {
+		return toPlayer(record), nil
+	}
+}
+
 func (p *Player) GetAllByTeamSlug(slug string) ([]*modelspb.Players, error) {
 	records, err := p.dao.FindRecordsByFilter(p.collection.Id, "team.slug = {:teamSlug}", "+order", 0, 0, dbx.Params{"teamSlug": strings.ToLower(slug)})
 	if err != nil {
@@ -69,6 +77,30 @@ func (p *Player) Create(team *modelspb.Teams, name string, order int) (*modelspb
 		return nil, err
 	}
 	return player, nil
+}
+
+func (p *Player) Update(id string, name string) (*modelspb.Players, error) {
+	var player *modelspb.Players
+	if record, err := p.dao.FindRecordById(p.collection.Id, id); err != nil {
+		return nil, err
+	} else {
+		player = toPlayer(record)
+	}
+
+	player.SetName(name)
+
+	if err := p.dao.SaveRecord(player.Record); err != nil {
+		return nil, err
+	}
+	return player, nil
+}
+
+func (p *Player) Delete(id string) error {
+	if record, err := p.dao.FindRecordById(p.collection.Id, id); err != nil {
+		return err
+	} else {
+		return p.dao.DeleteRecord(record)
+	}
 }
 
 func (p *Player) UpdateOrder(players []*modelspb.Players, playerIds []string) ([]*modelspb.Players, error) {
