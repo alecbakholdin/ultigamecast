@@ -18,3 +18,7 @@
 script {
   display: none !important;
 }
+
+.handle {
+  cursor: pointer;
+}

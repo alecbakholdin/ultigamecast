@@ -2668,6 +2668,10 @@ script {
   display: none !important;
 }
 
+.handle {
+  cursor: pointer;
+}
+
 .\[\&_input\]\:input-error input {
   --tw-border-opacity: 1;
   border-color: var(--fallback-er,oklch(var(--er)/var(--tw-border-opacity)));

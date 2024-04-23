@@ -12,11 +12,24 @@ templ ManageRosterDialogContent(c echo.Context, players []*modelspb.Players) {
 	<div id="manage_roster_dialog_content">
 		<h3 class="font-bold text-lg">Manage Roster</h3>
 		<div class="flex flex-col gap-2">
-			<div id="manage_roster_players" class="flex flex-col gap-2">
+			<form
+				hx-boost="true"
+				hx-put={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "rosterOrder") }
+				hx-swap="none"
+				hx-trigger="end"
+				enctype="multipart/form-data"
+				id="manage_roster_players"
+				class="sortable flex flex-col gap-2"
+				hx-indicator=".sortable-indicator"
+			>
+				@component.FormError(c)
+				<div class="htmx-indicator sortable-indicator">
+					Updating...
+				</div>
 				for _, player := range players {
 					@PlayerRow(c, player)
 				}
-			</div>
+			</form>
 			@CreatePlayerRow(c, PlayerData{
 				PlayerOrder: len(players),
 			})
@@ -28,23 +41,30 @@ templ ManageRosterDialogContent(c echo.Context, players []*modelspb.Players) {
 }
 
 templ PlayerRow(c echo.Context, player *modelspb.Players) {
-	<div id={ fmt.Sprintf("manage_roster_player_%s", player.Record.GetId()) } class="manage-roster-row flex items-center" >
+	<div
+		id={ fmt.Sprintf("manage_roster_player_%s", player.Record.GetId()) }
+		class="manage-roster-row flex items-center gap-2"
+	>
+		<span class="handle">
+			@icon.Hamburger()
+		</span>
 		<span class="flex-grow">
 			{ player.GetName() }
 		</span>
 		<div>
-            <button
-                hx-get={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "roster", player.Record.GetId(), "edit") }
-                        hx-target="closest .manage-roster-row"
-                        hx-swap="outerHTML"
-                class="btn btn-icon btn-sm"
-            >
-                @icon.HtmxLoading(icon.Edit(), icon.LoadingXs())
-            </button>
-        </div>
+			<button
+				hx-get={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "roster", player.Record.GetId(), "edit") }
+				hx-target="closest .manage-roster-row"
+				hx-indicator="closest .manage-roster-row"
+				hx-swap="outerHTML"
+				class="btn btn-icon btn-sm"
+			>
+				@icon.HtmxLoading(icon.Edit(), icon.LoadingXs())
+			</button>
+		</div>
+		<input type="hidden" name="player_id" value={ player.Record.GetId() }/>
 	</div>
 }
-
 
 type PlayerData struct {
 	TeamSlug    string

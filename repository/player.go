@@ -71,6 +71,34 @@ func (p *Player) Create(team *modelspb.Teams, name string, order int) (*modelspb
 	return player, nil
 }
 
+func (p *Player) UpdateOrder(players []*modelspb.Players, playerIds []string) ([]*modelspb.Players, error) {
+	sortedPlayers := make([]*modelspb.Players, len(players))
+	for order, id := range playerIds {
+		for _, player := range players {
+			if player.Record.GetId() == id {
+				sortedPlayers[order] = player
+				break
+			}
+		}
+	}
+	err := p.dao.RunInTransaction(func(txDao *daos.Dao) error {
+		for order, player := range sortedPlayers {
+			player.SetOrder(-(order + 1))
+			if err := txDao.SaveRecord(player.Record); err != nil {
+				return err
+			}
+		}
+		for order, player := range sortedPlayers {
+			player.SetOrder(order)
+			if err := txDao.SaveRecord(player.Record); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	return sortedPlayers, err
+}
+
 type PlayerSummaryType string
 
 const (

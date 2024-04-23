@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"ultigamecast/handlers/models"
 	"ultigamecast/modelspb"
@@ -30,6 +31,7 @@ func (r *Roster) Routes(g *echo.Group) *echo.Group {
 	g.GET("/rosterTable", r.getRosterTable)
 	g.GET("/roster", r.getPlayers)
 	g.POST("/roster", r.createPlayer)
+	g.PUT("/rosterOrder", r.updateRosterOrder)
 
 	playerGroup := g.Group("/roster/:playerId")
 	return playerGroup
@@ -117,6 +119,40 @@ func (r *Roster) createPlayer(c echo.Context) (err error) {
 		return view.NewPlayerRow(c, player).Render(c.Request().Context(), c.Response().Writer)
 	}
 	return nil
+}
+
+func (r *Roster) updateRosterOrder(c echo.Context) (err error) {
+	var (
+		form      *multipart.Form
+		playerIds []string
+		players   []*modelspb.Players
+		teamSlug  = c.PathParam("teamSlug")
+		ok        bool
+	)
+	if form, err = c.MultipartForm(); err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("error getting multipart form: %s", err))
+		return component.RenderToastError(c, "unexpected error")
+	}
+
+	if playerIds, ok = form.Value["player_id"]; !ok {
+		return
+	} else if players, err = r.PlayerRepo.GetAllByTeamSlug(teamSlug); err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("error fetching players: %s", err))
+		validation.AddFormErrorString(c, "unexpected error")
+	} else if len(players) != len(playerIds) {
+		validation.AddFormErrorString(c, "your data is stale, please refresh and try again")
+	}
+
+	if !validation.IsFormValid(c) {
+		return
+	}
+
+	if _, err = r.PlayerRepo.UpdateOrder(players, playerIds); err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("error updating player order: %s", err))
+		validation.AddFormErrorString(c, "unexpected error")
+	}
+
+	return
 }
 
 func renderPlayerForm(c echo.Context, payload *models.PlayerPayload) (err error) {
