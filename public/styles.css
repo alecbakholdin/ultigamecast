@@ -19,6 +19,10 @@ script {
   display: none !important;
 }
 
+form {
+  margin-bottom: 0;
+}
+
 .handle {
   cursor: pointer;
 }

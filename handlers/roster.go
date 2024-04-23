@@ -56,6 +56,7 @@ func (r *Roster) getManageRoster(c echo.Context) (err error) {
 	if players, err := r.PlayerRepo.GetAllByTeamSlug(teamSlug); err != nil {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "")
 	} else {
+		TriggerOpenModal(c)
 		return view.ManageRosterDialogContent(c, players).Render(c.Request().Context(), c.Response().Writer)
 	}
 }
@@ -72,6 +73,7 @@ func (r *Roster) getEditPlayer(c echo.Context) (err error) {
 	if player, err := r.PlayerRepo.GetOneById(playerId); err != nil && !repository.IsNotFound(err) {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "unexpected error")
 	} else {
+		TriggerOpenModal(c)
 		return view.EditPlayerRow(c, view.PlayerData{
 			PlayerID:    player.Record.GetId(),
 			PlayerName:  player.GetName(),

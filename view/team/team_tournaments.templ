@@ -31,8 +31,8 @@ templ tournamentList(c echo.Context, teamSlug string, tournaments []*modelspb.To
 					class="px-1.5 rounded-full text-white text-nowrap flex flex-nowrap items-center gap-1 truncate text-lg btn btn-sm btn-primary"
 					onmouseover="create_tournament_text.style.width = 150"
 					onmouseout="create_tournament_text.style.width = 0"
-					hx-target="#tournament_modal_content"
-					hx-swap="outerHTML"
+					hx-target="#modal_content"
+					hx-swap="innerHTML"
 					hx-get={ util.JoinSlugsString("/team", teamSlug, "newTournament") }
 				>
 					<div class="w-fit flex items-center">
@@ -41,12 +41,6 @@ templ tournamentList(c echo.Context, teamSlug string, tournaments []*modelspb.To
 					</div>
 				</button>
 			</div>
-		</div>
-		<div hx-on::after-swap="tournament_modal.showModal()" hx-on:formsuccess="setTimeout(() => tournament_modal.close())">
-			<dialog id="tournament_modal" class="max-w-full modal">
-				<div id="tournament_modal_content"></div>
-				<form method="dialog" class="modal-backdrop"><button>close</button></form>
-			</dialog>
 		</div>
 	</div>
 }
@@ -84,16 +78,26 @@ templ tournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
 					}
 				</div>
 				<div>
-					<details class="dropdown dropdown-bottom dropdown-end">
-						<summary class="m-1 btn btn-ghost text-lg">
+					<div class="dropdown dropdown-end">
+						<div tabindex="0" role="button" class="btn m-1">
 							@icon.VerticalDots()
-						</summary>
-						<ul class="p-2 shadow-xl menu dropdown-content z-[1] bg-base-100 rounded-box w-52">
+						</div>
+						<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+							<li>
+								<a
+									hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournament.Record.GetId(), "newGame") }
+									hx-target="#modal_content"
+									hx-swap="innerHTML"
+								>
+									@icon.HtmxLoading(icon.Add(), icon.LoadingXs())
+									New Game
+								</a>
+							</li>
 							<li>
 								<a
 									hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournament.Record.GetId(), "edit") }
-									hx-target="#tournament_modal_content"
-									hx-swap="outerHTML"
+									hx-target="#modal_content"
+									hx-swap="innerHTML"
 								>
 									@icon.HtmxLoading(icon.Edit(), icon.LoadingXs())
 									Edit
@@ -106,7 +110,7 @@ templ tournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
 								</a>
 							</li>
 						</ul>
-					</details>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -166,7 +170,7 @@ type TournamentData struct {
 }
 
 templ TournamentDialog(c echo.Context, title string, teamSlug string, values TournamentData) {
-	<div id="tournament_modal_content" class="modal-box">
+	<div id="tournament_modal_content">
 		<h3 class="font-bold text-lg">{ title }</h3>
 		@TournamentForm(c, teamSlug, values)
 		<div class="modal-action">

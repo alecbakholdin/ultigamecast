@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/pocketbase/pocketbase/daos"
 	"github.com/pocketbase/pocketbase/models"
 )
 
@@ -41,3 +42,10 @@ func GetSortString(d SortDirection, field string) string {
 	return fmt.Sprintf("%s%s", d, field)
 }
 
+func mustGetCollection(dao *daos.Dao, idOrName string) *models.Collection {
+	if collection, err := dao.FindCollectionByNameOrId(idOrName); err != nil {
+		panic(err)
+	} else {
+		return collection
+	}
+}

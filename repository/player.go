@@ -22,30 +22,13 @@ type Player struct {
 
 func NewPlayer(app core.App) *Player {
 	dao := app.Dao()
-	collection, err := dao.FindCollectionByNameOrId("players")
-	if err != nil {
-		panic(err)
-	}
-	tournamentSummaryView, err := dao.FindCollectionByNameOrId("player_tournament_summary")
-	if err != nil {
-		panic(err)
-	}
-	teamSummaryView, err := dao.FindCollectionByNameOrId("player_team_summary")
-	if err != nil {
-		panic(err)
-	}
-	gameSummaryView, err := dao.FindCollectionByNameOrId("player_game_summary")
-	if err != nil {
-		panic(err)
-	}
-
 	return &Player{
 		app:                   app,
 		dao:                   dao,
-		collection:            collection,
-		tournamentSummaryView: tournamentSummaryView,
-		teamSummaryView:       teamSummaryView,
-		gameSummaryView:       gameSummaryView,
+		collection:            mustGetCollection(dao, "players"),
+		tournamentSummaryView: mustGetCollection(dao, "player_tournament_summary"),
+		teamSummaryView:       mustGetCollection(dao, "player_team_summary"),
+		gameSummaryView:       mustGetCollection(dao, "player_game_summary"),
 	}
 }
 

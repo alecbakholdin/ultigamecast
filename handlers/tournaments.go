@@ -51,6 +51,7 @@ func (t *Tournaments) getTournaments(c echo.Context) (err error) {
 
 func (t *Tournaments) getNewTournament(c echo.Context) (err error) {
 	teamSlug := c.PathParam("teamSlug")
+	TriggerOpenModal(c)
 	return view.TournamentDialog(c, "New Tournament", teamSlug, view.TournamentData{}).Render(c.Request().Context(), c.Response().Writer)
 }
 
@@ -103,6 +104,7 @@ func (t *Tournaments) getEditTournament(c echo.Context) (err error) {
 		c.Echo().Logger.Error(fmt.Errorf("error finding tournament: %s", err))
 		return component.RenderToastError(c, "could not find tournament")
 	} else {
+		TriggerOpenModal(c)
 		data := view.TournamentData{
 			ID:       tournament.Record.GetId(),
 			Name:     tournament.GetName(),

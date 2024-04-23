@@ -17,6 +17,10 @@ func MarkFormSuccess(c echo.Context) {
 	c.Response().WriteHeader(http.StatusOK)
 }
 
+func TriggerOpenModal(c echo.Context) {
+	c.Response().Header().Set("HX-Trigger", "openmodal")
+}
+
 var whitespaceRegex = regexp.MustCompile(`[\s+]`)
 
 func ConvertToSlug(s string) string {

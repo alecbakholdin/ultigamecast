@@ -29,10 +29,10 @@ templ Team(e echo.Context, team *modelspb.Teams) {
 						@icon.VerticalDots()
 					</div>
 					<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-						<li>
+						<li class="hidden"> // TODO: finish editing teams. Working with files is hard so don't wanna do it right now...
 							<a
 								hx-get={ util.JoinSlugsString("/team", team, "edit") }
-								hx-target="#team_modal_content"
+								hx-target="#modal_content"
 								hx-swap="innerHTML"
 								class="flex items-center gap-2"
 							>
@@ -40,10 +40,10 @@ templ Team(e echo.Context, team *modelspb.Teams) {
 								<span>Edit Team</span>
 							</a>
 						</li>
-						<li class="hidden"> // TODO: finish editing teams. Working with files is hard so don't wanna do it right now...
+						<li>
 							<a
 								hx-get={ util.JoinSlugsString("/team", team, "manageRoster") }
-								hx-target="#team_modal_content"
+								hx-target="#modal_content"
 								hx-swap="innerHTML"
 								class="flex items-center gap-2"
 							>
@@ -56,10 +56,6 @@ templ Team(e echo.Context, team *modelspb.Teams) {
 			</div>
 		</div>
 		<div hx-get={ string(util.JoinSlugs("/team", team, "tournaments")) } hx-trigger="load" hx-target="this" hx-swap="innerHTML"></div>
-		<dialog id="team_modal" class="modal" hx-on::after-settle="this.showModal()" hx-on:formsuccess="this.close()">
-			<div id="team_modal_content" class="modal-box"></div>
-			<form method="dialog" class="modal-backdrop"><button>close</button></form>
-		</dialog>
 	</div>
 }
 

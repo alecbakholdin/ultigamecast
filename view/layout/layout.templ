@@ -41,8 +41,12 @@ templ Root() {
 			<link href="/tailwind.css" rel="stylesheet" type="text/css"/>
 			<title></title>
 		</head>
-		<body>
+		<body hx-on:openmodal="modal_dialog.showModal()">
 			{ children... }
+			<dialog id="modal_dialog" class="modal" hx-on:formsuccess="setTimeout(() => this.close())">
+				<div id="modal_content" class="modal-box"></div>
+				<form method="dialog" class="modal-backdrop"><button>close</button></form>
+			</dialog>
 			<div id="toasts" class="toast z-10" hx-ext="remove-me"></div>
 		</body>
 	</html>
