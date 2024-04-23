@@ -97,6 +97,7 @@ templ EditPlayerRow(c echo.Context, data PlayerData) {
 				}
 			</div>
 			<button
+                type="button"
 				id="edit_player_cancel"
 				hx-get={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "roster", data.PlayerID, "row") }
 				hx-target="closest form"
@@ -106,6 +107,7 @@ templ EditPlayerRow(c echo.Context, data PlayerData) {
 				@icon.HtmxLoading(icon.Cancel(), icon.LoadingXs())
 			</button>
 			<button
+                type="button"
 				id="edit_player_delete"
 				class="edit-player-button btn btn-icon btn-sm btn-error"
 				aria-label="delete"
