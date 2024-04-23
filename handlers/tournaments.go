@@ -43,7 +43,7 @@ func (t *Tournaments) getTournaments(c echo.Context) (err error) {
 	teamSlug := c.PathParam("teamSlug")
 
 	if tournaments, err := t.TournamentRepo.GetAllByTeamSlug(teamSlug); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Unexpected error")
+		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "Unexpected error")
 	} else {
 		return view.TeamTournaments(c, teamSlug, tournaments).Render(c.Request().Context(), c.Response().Writer)
 	}

@@ -43,7 +43,7 @@ templ tournamentList(c echo.Context, teamSlug string, tournaments []*modelspb.To
 			</div>
 		</div>
 		<div hx-on::after-swap="tournament_modal.showModal()" hx-on:formsuccess="setTimeout(() => tournament_modal.close())">
-			<dialog id="tournament_modal" class="modal">
+			<dialog id="tournament_modal" class="max-w-full modal">
 				<div id="tournament_modal_content"></div>
 				<form method="dialog" class="modal-backdrop"><button>close</button></form>
 			</dialog>

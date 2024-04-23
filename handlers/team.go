@@ -32,6 +32,14 @@ func (t *Team) Routes(g *echo.Group) (*echo.Group) {
 	group := g.Group("/team/:teamSlug")
 	group.GET("", t.getTeam)
 
+	group.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if c.PathParam("teamSlug") == "" {
+				return echo.NewHTTPError(http.StatusBadRequest, "No team provided in request")
+			}
+			return next(c)
+		}
+	})
 	return group
 }
 
@@ -47,23 +55,4 @@ func (t *Team) getTeam(c echo.Context) (err error) {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, unexpectedErrorMessage)
 	}
 	return view.Team(c, team).Render(c.Request().Context(), c.Response().Writer)
-}
-
-func (t *Team) getRoster(c echo.Context) (err error) {
-	var (
-		team     *modelspb.Teams
-		players  []*modelspb.Players
-		teamSlug = c.PathParam("teamSlug")
-	)
-
-	if team, err = t.TeamRepo.GetOneBySlug(teamSlug); repository.IsNotFound(err) {
-		return echo.NewHTTPErrorWithInternal(http.StatusNotFound, err, teamNotFoundMessage)
-	} else if err != nil {
-		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, unexpectedErrorMessage)
-	}
-
-	if players, err = t.PlayerRepo.GetAllByTeamSlug(teamSlug); err != nil && !repository.IsNotFound(err) {
-		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, unexpectedErrorMessage)
-	}
-	return view.TeamRoster(c, team, players).Render(c.Request().Context(), c.Response().Writer)
 }

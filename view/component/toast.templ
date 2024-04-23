@@ -8,10 +8,10 @@ import "github.com/labstack/echo/v5"
 type ToastSeverity string
 
 const (
-	ToastSeverityError   = "alert-error"
-	ToastSeverityWarning = "alert-warning"
-	ToastSeverityInfo    = "alert-info"
-	ToastSeveritySuccess = "alert-success"
+	ToastSeverityError   ToastSeverity = "alert-error"
+	ToastSeverityWarning ToastSeverity = "alert-warning"
+	ToastSeverityInfo    ToastSeverity = "alert-info"
+	ToastSeveritySuccess ToastSeverity = "alert-success"
 )
 
 type ToastData struct {

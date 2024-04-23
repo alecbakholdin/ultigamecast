@@ -27,10 +27,12 @@ func main() {
 
 		teamHandler := handlers.NewTeam(teamRepo, playerRepo, tournamentRepo)
 		tournamentHandler := handlers.NewTournaments(tournamentRepo, teamRepo)
+		rosterHandler := handlers.NewRoster(playerRepo)
 
 		baseGroup := e.Router.Group("")
 		teamGroup := teamHandler.Routes(baseGroup)
 		tournamentHandler.Routes(teamGroup)
+		rosterHandler.Routes(teamGroup)
 
 		return nil
 	})

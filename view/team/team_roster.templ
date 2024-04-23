@@ -3,30 +3,78 @@ package view
 import "ultigamecast/modelspb"
 import "github.com/labstack/echo/v5"
 import "ultigamecast/view/util"
+import "strconv"
+import "fmt"
+import "ultigamecast/view/icon"
 
-templ TeamRoster(e echo.Context, team *modelspb.Teams, players []*modelspb.Players) {
+templ TeamRoster(e echo.Context, teamSlug string) {
 	<div role="tablist" class="tabs tabs-bordered" aria-controls="tab-content">
-		<button hx-get={ string(util.JoinSlugs("/team", team, "tournaments")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab">Tournaments</button>
-		<button hx-get={ string(util.JoinSlugs("/team", team, "roster")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab tab-active">Roster</button>
+		<button hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments") } role="tab" aria-controls="tab-content" aria-selected="false" class="tab">Tournaments</button>
+		<button hx-get={ util.JoinSlugsString("/team", teamSlug, "roster") } role="tab" aria-controls="tab-content" aria-selected="false" class="tab tab-active">Roster</button>
 	</div>
-	<div>
-		Roster
+	<div
+		id="roster-table"
+		hx-get={ util.JoinSlugsString("/team", teamSlug, "rosterTable") }
+		hx-trigger="load"
+		hx-target="this"
+		hx-swap="outerHTML"
+	></div>
+}
+
+templ RosterTable(teamSlug string, players []modelspb.PlayerSummary, orderByField string, orderByAsc bool) {
+	<div id="roster-table" class="overflow-x-auto">
+		<table class="table table-zebra table-pin-rows">
+			<thead>
+				<tr>
+					@rosterTableColumnnHeader(teamSlug, "Name", "player_name", orderByField == "player_name", orderByAsc)
+					@rosterTableColumnnHeader(teamSlug, "Points", "points", orderByField == "points", orderByAsc)
+					@rosterTableColumnnHeader(teamSlug, "Goals", "goals", orderByField == "goals", orderByAsc)
+					@rosterTableColumnnHeader(teamSlug, "Assists", "assists", orderByField == "assists", orderByAsc)
+					@rosterTableColumnnHeader(teamSlug, "Turns", "turns", orderByField == "turns", orderByAsc)
+					@rosterTableColumnnHeader(teamSlug, "Drops", "drops", orderByField == "drops", orderByAsc)
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				for _, player := range players {
+					<tr>
+						<th>{ player.GetPlayerName() }</th>
+						<td>{ strconv.Itoa(player.GetPoints()) }</td>
+						<td>{ strconv.Itoa(player.GetGoals()) }</td>
+						<td>{ strconv.Itoa(player.GetAssists()) }</td>
+						<td>{ strconv.Itoa(player.GetTurns()) }</td>
+						<td>{ strconv.Itoa(player.GetDrops()) }</td>
+					</tr>
+				}
+			</tbody>
+		</table>
 	</div>
 }
 
-templ CreatePlayerResponse(player *modelspb.Players) {
-	@TeamPlayerRow(player)
-	@CreatePlayerForm()
-}
-
-templ CreatePlayerForm() {
-	<li>
-		<form method="post" action="/team/" hx-boost="true"></form>
-	</li>
-}
-
-templ TeamPlayerRow(player *modelspb.Players) {
-	<li>
-		{ player.GetName() }
-	</li>
+templ rosterTableColumnnHeader(teamSlug string, title string, field string, isOrderedBy bool, orderByAsc bool) {
+	<th
+		if isOrderedBy && orderByAsc {
+			hx-get={ util.JoinSlugsString("/team", teamSlug, "rosterTable") + fmt.Sprintf("?orderby=%s&dir=desc", field) }
+		}
+		if isOrderedBy && !orderByAsc {
+			hx-get={ util.JoinSlugsString("/team", teamSlug, "rosterTable") }
+		}
+		if !isOrderedBy {
+			hx-get={ util.JoinSlugsString("/team", teamSlug, "rosterTable") + fmt.Sprintf("?orderby=%s&dir=asc", field) }
+		}
+		hx-target="#roster-table"
+		hx-swap="outerHTML"
+		role="button"
+		class="cursor-pointer"
+	>
+		<div class="flex items-center gap-1">
+			{ title }
+			if isOrderedBy && orderByAsc {
+				@icon.ChevronUp()
+			}
+			if isOrderedBy && !orderByAsc {
+				@icon.ChevronDown()
+			}
+		</div>
+	</th>
 }

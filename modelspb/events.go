@@ -3,6 +3,7 @@ package modelspb
 
 import (
     "github.com/pocketbase/pocketbase/models"
+    "github.com/pocketbase/pocketbase/tools/types"
 )
 
 // Events is a wrapper around models.Record for type safe operations on the collection events.
@@ -45,13 +46,13 @@ func (m *Events) SetIsOpponent(val bool)  {
 }
 
 // GetType returns the value of the "type" field
-// Possible values: [Goal Assist Block Turn Drop Point Start Sub In Sub Out Halftime Half Cap Soft Cap Hard Cap Game End]
+// Possible values: [Starting Line Subbed In Goal Assist Block Turn Drop Point Start Sub In Sub Out Halftime Half Cap Soft Cap Hard Cap Game End]
 func (m *Events) GetType() string {
     return m.Record.GetString("type")
 }
 
 // SetType sets the value of the "type" field
-// Possible values: [Goal Assist Block Turn Drop Point Start Sub In Sub Out Halftime Half Cap Soft Cap Hard Cap Game End]
+// Possible values: [Starting Line Subbed In Goal Assist Block Turn Drop Point Start Sub In Sub Out Halftime Half Cap Soft Cap Hard Cap Game End]
 func (m *Events) SetType(val string)  {
     m.Record.Set("type", val)
 }
@@ -76,4 +77,14 @@ func (m *Events) GetMessage() string {
 // SetMessage sets the value of the "message" field
 func (m *Events) SetMessage(val string)  {
     m.Record.Set("message", val)
+}
+
+// GetMetadata returns the value of the "metadata" field
+func (m *Events) GetMetadata() types.JsonRaw {
+    return m.Record.Get("metadata").(types.JsonRaw)
+}
+
+// SetMetadata sets the value of the "metadata" field
+func (m *Events) SetMetadata(val types.JsonRaw)  {
+    m.Record.Set("metadata", val)
 }
