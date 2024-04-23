@@ -6,6 +6,7 @@ import "ultigamecast/view/util"
 import "strconv"
 import "fmt"
 import "ultigamecast/view/icon"
+import "ultigamecast/view/component"
 
 templ TeamRoster(e echo.Context, teamSlug string) {
 	<div role="tablist" class="tabs tabs-bordered" aria-controls="tab-content">
@@ -13,16 +14,61 @@ templ TeamRoster(e echo.Context, teamSlug string) {
 		<button hx-get={ util.JoinSlugsString("/team", teamSlug, "roster") } role="tab" aria-controls="tab-content" aria-selected="false" class="tab tab-active">Roster</button>
 	</div>
 	<div
-		id="roster-table"
+		id="roster_table"
 		hx-get={ util.JoinSlugsString("/team", teamSlug, "rosterTable") }
 		hx-trigger="load"
 		hx-target="this"
 		hx-swap="outerHTML"
-	></div>
+		class="flex flex-col gap-2 items-center text-primary pt-8"
+	>
+		@icon.LoadingLg()
+		<span>Loading stats...</span>
+	</div>
+	<dialog class="modal" id="player_modal" hx-on::afterSwap="this.showModal()" hx-on:formsuccess="setTimeout(() => this.close())">
+		<div id="player_modal_content"></div>
+		<form method="dialog" class="modal-backdrop"><button>close</button></form>
+	</dialog>
 }
 
-templ RosterTable(teamSlug string, players []modelspb.PlayerSummary, orderByField string, orderByAsc bool) {
-	<div id="roster-table" class="overflow-x-auto">
+type PlayerData struct {
+	TeamSlug   string
+	PlayerID   string
+	PlayerName string
+}
+
+templ PlayerDialogContent(c echo.Context, title string, data PlayerData) {
+	<div id="player_modal_content">
+		<h3 class="font-bold text-lg">{ title }</h3>
+		<form
+			if data.PlayerID == "" {
+				hx-post={ util.JoinSlugsString("/team", data.TeamSlug, "roster") }
+			} else {
+				hx-put={ util.JoinSlugsString("/team", data.TeamSlug, "roster", data.PlayerID) }
+			}
+			hx-boost="true"
+			hx-disabled-elt="#player_modal_submit"
+		>
+			@component.InputWrapperLabel(c, "name", "player_name", "Name") {
+				<input
+					type="text"
+					id="player_name"
+					class="input input-bordered"
+					placeholder="Name"
+					value={ data.PlayerName }
+				/>
+			}
+		</form>
+		<div class="modal-body">
+			<div class="modal-action">
+				<form method="dialog"><button type="button" class="btn">Close</button></form>
+				<button id="player_modal_submit" form="player_modal_form" class="btn btn-primary">Submit</button>
+			</div>
+		</div>
+	</div>
+}
+
+templ RosterTable(teamSlug string, summaryType string, players []modelspb.PlayerSummary, orderByField string, orderByAsc bool) {
+	<div id="roster_table" class="overflow-x-auto">
 		<table class="table table-zebra table-pin-rows">
 			<thead>
 				<tr>
@@ -37,18 +83,31 @@ templ RosterTable(teamSlug string, players []modelspb.PlayerSummary, orderByFiel
 			</thead>
 			<tbody>
 				for _, player := range players {
-					<tr>
-						<th>{ player.GetPlayerName() }</th>
-						<td>{ strconv.Itoa(player.GetPoints()) }</td>
-						<td>{ strconv.Itoa(player.GetGoals()) }</td>
-						<td>{ strconv.Itoa(player.GetAssists()) }</td>
-						<td>{ strconv.Itoa(player.GetTurns()) }</td>
-						<td>{ strconv.Itoa(player.GetDrops()) }</td>
-					</tr>
+					@PlayerSummaryRow(summaryType, player)
 				}
 			</tbody>
 		</table>
 	</div>
+}
+
+templ PlayerSummaryRow(summaryType string, player modelspb.PlayerSummary) {
+	<tr
+		id={ fmt.Sprintf("player_%s", player.GetPlayerId()) }
+	>
+		<td>
+			<div class="flex items-center gap-1">
+				if summaryType == "team" {
+					<button></button>
+				}
+				{ player.GetPlayerName() }
+			</div>
+		</td>
+		<td>{ strconv.Itoa(player.GetPoints()) }</td>
+		<td>{ strconv.Itoa(player.GetGoals()) }</td>
+		<td>{ strconv.Itoa(player.GetAssists()) }</td>
+		<td>{ strconv.Itoa(player.GetTurns()) }</td>
+		<td>{ strconv.Itoa(player.GetDrops()) }</td>
+	</tr>
 }
 
 templ rosterTableColumnnHeader(teamSlug string, title string, field string, isOrderedBy bool, orderByAsc bool) {
@@ -62,7 +121,7 @@ templ rosterTableColumnnHeader(teamSlug string, title string, field string, isOr
 		if !isOrderedBy {
 			hx-get={ util.JoinSlugsString("/team", teamSlug, "rosterTable") + fmt.Sprintf("?orderby=%s&dir=asc", field) }
 		}
-		hx-target="#roster-table"
+		hx-target="#roster_table"
 		hx-swap="outerHTML"
 		role="button"
 		class="cursor-pointer"

@@ -3,8 +3,11 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"ultigamecast/handlers/models"
 	"ultigamecast/modelspb"
 	"ultigamecast/repository"
+	"ultigamecast/validation"
+	"ultigamecast/view/component"
 	view "ultigamecast/view/team"
 
 	"github.com/labstack/echo/v5"
@@ -23,6 +26,8 @@ func NewRoster(p *repository.Player) *Roster {
 func (r *Roster) Routes(g *echo.Group) *echo.Group {
 	g.GET("/roster", r.getPlayers)
 	g.GET("/rosterTable", r.getRosterTable)
+	g.GET("/newPlayer", r.getNewPlayer)
+	g.POST("", r.createPlayer)
 
 	playerGroup := g.Group("/roster/:playerId")
 	return playerGroup
@@ -67,5 +72,36 @@ func (r *Roster) getRosterTable(c echo.Context) (err error) {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "unexpected error")
 	}
 
-	return view.RosterTable(teamSlug, playerSummaries, orderByField, sortDirection == repository.SortDirectionAsc).Render(c.Request().Context(), c.Response().Writer)
+	return view.RosterTable(teamSlug, summaryType, playerSummaries, orderByField, sortDirection == repository.SortDirectionAsc).Render(c.Request().Context(), c.Response().Writer)
+}
+
+func (r *Roster) getNewPlayer(c echo.Context) (err error) {
+	teamSlug := c.PathParam("teamSlug")
+
+	return view.PlayerDialogContent(c, "New Player", view.PlayerData{TeamSlug: teamSlug}).Render(c.Request().Context(), c.Response().Writer)
+}
+
+func (r *Roster) createPlayer(c echo.Context) (err error) {
+	var (
+		payload models.PlayerPayload
+	)
+	if err = models.BindPlayer(c, &payload); err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("error binding player: %s", err))
+		return component.RenderToastError(c, "unexpected error")
+	}
+	defer renderPlayerDialogContent(c, "New Player", &payload)
+
+	if validation.IsFormValid(c) {
+		MarkFormSuccess(c)
+		return 
+	}
+	return nil
+}
+
+func renderPlayerDialogContent(c echo.Context, title string, payload *models.PlayerPayload) (err error) {
+	err = view.PlayerDialogContent(c, title, payload.ToData()).Render(c.Request().Context(), c.Response().Writer)
+	if err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("error rendering PlayerDialogContent: %s", err))
+	}
+	return
 }
