@@ -8,9 +8,10 @@ import (
 )
 
 type PlayerPayload struct {
-	TeamSlug   string `param:"teamSlug"`
-	PlayerID   string `param:"playerId"`
-	PlayerName string `form:"name"`
+	TeamSlug string `param:"teamSlug"`
+	PlayerID string `param:"playerId"`
+	Name     string `form:"name"`
+	Order    int    `form:"order"`
 }
 
 func BindPlayer(c echo.Context, payload *PlayerPayload) error {
@@ -18,7 +19,7 @@ func BindPlayer(c echo.Context, payload *PlayerPayload) error {
 		return err
 	}
 
-	if payload.PlayerName == "" {
+	if payload.Name == "" {
 		validation.AddFieldErrorString(c, "name", "name cannot be empty")
 	}
 
@@ -27,8 +28,9 @@ func BindPlayer(c echo.Context, payload *PlayerPayload) error {
 
 func (p *PlayerPayload) ToData() view.PlayerData {
 	return view.PlayerData{
-		TeamSlug:   p.TeamSlug,
-		PlayerID:   p.PlayerID,
-		PlayerName: p.PlayerName,
+		TeamSlug:    p.TeamSlug,
+		PlayerID:    p.PlayerID,
+		PlayerName:  p.Name,
+		PlayerOrder: p.Order,
 	}
 }

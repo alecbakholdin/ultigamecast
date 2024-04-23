@@ -15,22 +15,34 @@ import (
 
 type Roster struct {
 	PlayerRepo *repository.Player
+	TeamRepo   *repository.Team
 }
 
-func NewRoster(p *repository.Player) *Roster {
+func NewRoster(p *repository.Player, t *repository.Team) *Roster {
 	return &Roster{
 		PlayerRepo: p,
+		TeamRepo:   t,
 	}
 }
 
 func (r *Roster) Routes(g *echo.Group) *echo.Group {
-	g.GET("/roster", r.getPlayers)
+	g.GET("/manageRoster", r.getManageRoster)
 	g.GET("/rosterTable", r.getRosterTable)
-	g.GET("/newPlayer", r.getNewPlayer)
-	g.POST("", r.createPlayer)
+	g.GET("/roster", r.getPlayers)
+	g.POST("/roster", r.createPlayer)
 
 	playerGroup := g.Group("/roster/:playerId")
 	return playerGroup
+}
+
+func (r *Roster) getManageRoster(c echo.Context) (err error) {
+	teamSlug := c.PathParam("teamSlug")
+
+	if players, err := r.PlayerRepo.GetAllByTeamSlug(teamSlug); err != nil {
+		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "")
+	} else {
+		return view.ManageRosterDialogContent(c, players).Render(c.Request().Context(), c.Response().Writer)
+	}
 }
 
 func (r *Roster) getPlayers(c echo.Context) (err error) {
@@ -75,33 +87,42 @@ func (r *Roster) getRosterTable(c echo.Context) (err error) {
 	return view.RosterTable(teamSlug, summaryType, playerSummaries, orderByField, sortDirection == repository.SortDirectionAsc).Render(c.Request().Context(), c.Response().Writer)
 }
 
-func (r *Roster) getNewPlayer(c echo.Context) (err error) {
-	teamSlug := c.PathParam("teamSlug")
-
-	return view.PlayerDialogContent(c, "New Player", view.PlayerData{TeamSlug: teamSlug}).Render(c.Request().Context(), c.Response().Writer)
-}
-
 func (r *Roster) createPlayer(c echo.Context) (err error) {
 	var (
 		payload models.PlayerPayload
+		player  *modelspb.Players
 	)
 	if err = models.BindPlayer(c, &payload); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error binding player: %s", err))
 		return component.RenderToastError(c, "unexpected error")
 	}
-	defer renderPlayerDialogContent(c, "New Player", &payload)
+	defer renderPlayerForm(c, &payload)
+
+	if !validation.IsFormValid(c) {
+		return
+	}
+
+	if team, err := r.TeamRepo.GetOneBySlug(payload.TeamSlug); err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("error fetching team by slug: %s", err))
+		validation.AddFormError(c, fmt.Errorf("unexpected error"))
+	} else if player, err = r.PlayerRepo.Create(team, payload.Name, payload.Order); err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("error creating player: %s", err))
+		validation.AddFormError(c, fmt.Errorf("unexpected error creating player, try refreshing"))
+	}
 
 	if validation.IsFormValid(c) {
 		MarkFormSuccess(c)
-		return 
+		payload.Order += 1
+		payload.Name = ""
+		return view.NewPlayerRow(c, player).Render(c.Request().Context(), c.Response().Writer)
 	}
 	return nil
 }
 
-func renderPlayerDialogContent(c echo.Context, title string, payload *models.PlayerPayload) (err error) {
-	err = view.PlayerDialogContent(c, title, payload.ToData()).Render(c.Request().Context(), c.Response().Writer)
+func renderPlayerForm(c echo.Context, payload *models.PlayerPayload) (err error) {
+	err = view.CreatePlayerRow(c, payload.ToData()).Render(c.Request().Context(), c.Response().Writer)
 	if err != nil {
-		c.Echo().Logger.Error(fmt.Errorf("error rendering PlayerDialogContent: %s", err))
+		c.Echo().Logger.Error(fmt.Errorf("error rendering CreatePlayerRow: %s", err))
 	}
 	return
 }

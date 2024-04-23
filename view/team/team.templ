@@ -5,13 +5,14 @@ import "ultigamecast/view/layout"
 import "strings"
 import "github.com/labstack/echo/v5"
 import "ultigamecast/view/util"
+import "ultigamecast/view/icon"
 
 templ Team(e echo.Context, team *modelspb.Teams) {
 	@layout.Root() {
 		<div class="w-full flex flex-col">
 			<div class="w-full flex items-start gap-4 p-4">
 				<img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/nba/500/gs.png&h=200&w=200" alt={ team.GetName() } class="row-span-full w-20 h-20"/>
-				<div class="flex flex-col justify-between">
+				<div class="flex flex-col justify-between flex-grow">
 					<span class="text-3xl">
 						{ strings.ToUpper(team.GetName()) }
 					</span>
@@ -21,8 +22,32 @@ templ Team(e echo.Context, team *modelspb.Teams) {
 						</span>
 					}
 				</div>
+				<div class="h-full flex items-center">
+					<div class="dropdown dropdown-end">
+						<div tabindex="0" role="button" class="btn m-1">
+							@icon.VerticalDots()
+						</div>
+						<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+							<li>
+								<a
+									hx-get={ util.JoinSlugsString("/team", team, "manageRoster") }
+									hx-target="#team_modal_content"
+									hx-swap="innerHTML"
+									class="flex items-center gap-2"
+								>
+									@icon.HtmxLoading(icon.Person(), icon.LoadingXs())
+									<span>Manage Roster</span>
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div>
 			</div>
 			<div hx-get={ string(util.JoinSlugs("/team", team, "tournaments")) } hx-trigger="load" hx-target="this" hx-swap="innerHTML"></div>
+			<dialog id="team_modal" class="modal" hx-on::after-settle="this.showModal()" hx-on:formsuccess="this.close()">
+				<div id="team_modal_content" class="modal-box"></div>
+				<form method="dialog" class="modal-backdrop"><button>close</button></form>
+			</dialog>
 		</div>
 	}
 }

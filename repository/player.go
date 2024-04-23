@@ -5,11 +5,14 @@ import (
 	"ultigamecast/modelspb"
 
 	"github.com/pocketbase/dbx"
+	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/daos"
+	"github.com/pocketbase/pocketbase/forms"
 	"github.com/pocketbase/pocketbase/models"
 )
 
 type Player struct {
+	app                   core.App
 	dao                   *daos.Dao
 	collection            *models.Collection
 	tournamentSummaryView *models.Collection
@@ -17,7 +20,8 @@ type Player struct {
 	gameSummaryView       *models.Collection
 }
 
-func NewPlayer(dao *daos.Dao) *Player {
+func NewPlayer(app core.App) *Player {
+	dao := app.Dao()
 	collection, err := dao.FindCollectionByNameOrId("players")
 	if err != nil {
 		panic(err)
@@ -36,6 +40,7 @@ func NewPlayer(dao *daos.Dao) *Player {
 	}
 
 	return &Player{
+		app:                   app,
 		dao:                   dao,
 		collection:            collection,
 		tournamentSummaryView: tournamentSummaryView,
@@ -50,6 +55,20 @@ func (p *Player) GetAllByTeamSlug(slug string) ([]*modelspb.Players, error) {
 		return nil, err
 	}
 	return toArr(records, toPlayer), nil
+}
+
+func (p *Player) Create(team *modelspb.Teams, name string, order int) (*modelspb.Players, error) {
+	player := toPlayer(models.NewRecord(p.collection))
+	player.SetTeam(team.Record.Id)
+	player.SetName(name)
+	player.SetOrder(order)
+
+	form := forms.NewRecordUpsert(p.app, player.Record)
+
+	if err := form.Submit(); err != nil {
+		return nil, err
+	}
+	return player, nil
 }
 
 type PlayerSummaryType string

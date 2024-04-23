@@ -22,12 +22,12 @@ func main() {
 		setup.RegisterDevParams(e)
 
 		teamRepo := repository.NewTeam(app.Dao())
-		playerRepo := repository.NewPlayer(app.Dao())
+		playerRepo := repository.NewPlayer(app)
 		tournamentRepo := repository.NewTournament(app.Dao())
 
 		teamHandler := handlers.NewTeam(teamRepo, playerRepo, tournamentRepo)
 		tournamentHandler := handlers.NewTournaments(tournamentRepo, teamRepo)
-		rosterHandler := handlers.NewRoster(playerRepo)
+		rosterHandler := handlers.NewRoster(playerRepo, teamRepo)
 
 		baseGroup := e.Router.Group("")
 		teamGroup := teamHandler.Routes(baseGroup)

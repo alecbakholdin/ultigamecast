@@ -6,7 +6,6 @@ import "ultigamecast/view/util"
 import "strconv"
 import "fmt"
 import "ultigamecast/view/icon"
-import "ultigamecast/view/component"
 
 templ TeamRoster(e echo.Context, teamSlug string) {
 	<div role="tablist" class="tabs tabs-bordered" aria-controls="tab-content">
@@ -28,43 +27,6 @@ templ TeamRoster(e echo.Context, teamSlug string) {
 		<div id="player_modal_content"></div>
 		<form method="dialog" class="modal-backdrop"><button>close</button></form>
 	</dialog>
-}
-
-type PlayerData struct {
-	TeamSlug   string
-	PlayerID   string
-	PlayerName string
-}
-
-templ PlayerDialogContent(c echo.Context, title string, data PlayerData) {
-	<div id="player_modal_content">
-		<h3 class="font-bold text-lg">{ title }</h3>
-		<form
-			if data.PlayerID == "" {
-				hx-post={ util.JoinSlugsString("/team", data.TeamSlug, "roster") }
-			} else {
-				hx-put={ util.JoinSlugsString("/team", data.TeamSlug, "roster", data.PlayerID) }
-			}
-			hx-boost="true"
-			hx-disabled-elt="#player_modal_submit"
-		>
-			@component.InputWrapperLabel(c, "name", "player_name", "Name") {
-				<input
-					type="text"
-					id="player_name"
-					class="input input-bordered"
-					placeholder="Name"
-					value={ data.PlayerName }
-				/>
-			}
-		</form>
-		<div class="modal-body">
-			<div class="modal-action">
-				<form method="dialog"><button type="button" class="btn">Close</button></form>
-				<button id="player_modal_submit" form="player_modal_form" class="btn btn-primary">Submit</button>
-			</div>
-		</div>
-	</div>
 }
 
 templ RosterTable(teamSlug string, summaryType string, players []modelspb.PlayerSummary, orderByField string, orderByAsc bool) {

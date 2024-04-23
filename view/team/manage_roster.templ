@@ -1,0 +1,95 @@
+package view
+
+import "github.com/labstack/echo/v5"
+import "ultigamecast/modelspb"
+import "ultigamecast/view/util"
+import "ultigamecast/view/component"
+import "ultigamecast/view/icon"
+import "fmt"
+import "strconv"
+
+templ ManageRosterDialogContent(c echo.Context, players []*modelspb.Players) {
+	<div id="manage_roster_dialog_content">
+		<h3 class="font-bold text-lg">Manage Roster</h3>
+		<div class="flex flex-col gap-2">
+			<div id="manage_roster_players" class="flex flex-col gap-2">
+				for _, player := range players {
+					@PlayerRow(c, player)
+				}
+			</div>
+			@CreatePlayerRow(c, PlayerData{
+				PlayerOrder: len(players),
+			})
+		</div>
+		<div class="modal-action">
+			<form method="dialog"><button class="btn">Close</button></form>
+		</div>
+	</div>
+}
+
+templ PlayerRow(c echo.Context, player *modelspb.Players) {
+	<div id={ fmt.Sprintf("manage_roster_player_%s", player.Record.GetId()) } class="manage-roster-row flex items-center" >
+		<span class="flex-grow">
+			{ player.GetName() }
+		</span>
+		<div>
+            <button
+                hx-get={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "roster", player.Record.GetId(), "edit") }
+                        hx-target="closest .manage-roster-row"
+                        hx-swap="outerHTML"
+                class="btn btn-icon btn-sm"
+            >
+                @icon.HtmxLoading(icon.Edit(), icon.LoadingXs())
+            </button>
+        </div>
+	</div>
+}
+
+
+type PlayerData struct {
+	TeamSlug    string
+	PlayerID    string
+	PlayerName  string
+	PlayerOrder int
+}
+
+templ EditPlayerRow(c echo.Context, data PlayerData) {
+	<form
+		hx-boost="true"
+		hx-put={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "roster", data.PlayerID) }
+		hx-target="this"
+	></form>
+}
+
+templ CreatePlayerRow(c echo.Context, data PlayerData) {
+	<form
+		hx-boost="true"
+		hx-post={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "roster") }
+		hx-target="this"
+		hx-disabled-elt="#create_player_button"
+		class="flex flex-col mb-0"
+	>
+		<div class="flex gap-1">
+			@component.InputWrapper(c, "name") {
+				<input
+					type="text"
+					name="name"
+					placeholder="Name"
+					class="input input-bordered"
+					value={ data.PlayerName }
+				/>
+			}
+			<input type="hidden" name="order" value={ strconv.Itoa(data.PlayerOrder) }/>
+			<button id="create_player_button" class="btn btn-icon btn-primary">
+				@icon.HtmxLoading(icon.Add(), icon.LoadingSm())
+			</button>
+		</div>
+		@component.FormError(c)
+	</form>
+}
+
+templ NewPlayerRow(c echo.Context, player *modelspb.Players) {
+	<div hx-swap-oob="beforeend:#manage_roster_players">
+		@PlayerRow(c, player)
+	</div>
+}
