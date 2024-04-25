@@ -5,7 +5,6 @@ import "ultigamecast/view/util"
 import "ultigamecast/view/component"
 import "strconv"
 import "ultigamecast/modelspb/dto"
-import "cmp"
 
 templ CreateEditGameDialogContent(c echo.Context, isNew bool, data dto.Games) {
 	<div id="game_dialog_content">
@@ -50,10 +49,10 @@ templ GameForm(c echo.Context, isNew bool, data dto.Games) {
 			/>
 		}
 		@component.InputWrapperLabel(c, "status", "game_dialog_status", "Status") {
-			<select name="status" id="game_dialog_status" class={ "input input-bordered", templ.KV("hidden", isNew) } value={ cmp.Or(data.GamesStatus, "scheduled") }>
-				<option value="scheduled">Scheduled</option>
-				<option value="live">Live</option>
-				<option value="completed">Completed</option>
+			<select name="status" id="game_dialog_status" class={ "select select-bordered", templ.KV("hidden", isNew) }>
+				<option value="scheduled" selected?={ isNew || data.GamesStatus == "scheduled" }>Scheduled</option>
+				<option value="live" selected?={ data.GamesStatus == "live" }>Live</option>
+				<option value="completed" selected?={ data.GamesStatus == "completed" }>Completed</option>
 			</select>
 		}
 		@component.InputWrapperLabel(c, "start_time", "game_dialog_start_time", "Start Time") {

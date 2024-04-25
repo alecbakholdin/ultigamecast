@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"log"
 	"strings"
 	"ultigamecast/modelspb"
 	"ultigamecast/modelspb/dto"
@@ -15,13 +16,28 @@ type Game struct {
 	app        core.App
 	dao        *daos.Dao
 	collection *models.Collection
+	liveGame   *LiveGame
+	allEvents  []string
 }
 
-func NewGame(app core.App) *Game {
+func NewGame(app core.App, l *LiveGame) *Game {
+	dao := app.Dao()
+	collection := mustGetCollection(app.Dao(), "games")
+
+	events := make([]string, len(collection.Schema.AsMap()))
+	i := 0
+	for key := range collection.Schema.AsMap() {
+		events[i] = key
+		i++
+	}
+	log.Printf("%v\n", events)
+
 	return &Game{
 		app:        app,
-		dao:        app.Dao(),
-		collection: mustGetCollection(app.Dao(), "games"),
+		dao:        dao,
+		collection: collection,
+		liveGame:   l,
+		allEvents:  events,
 	}
 }
 
@@ -51,14 +67,13 @@ func (g *Game) Create(tournament *modelspb.Tournaments, gameDto *dto.Games) (*mo
 	if err := g.dao.SaveRecord(game.Record); err != nil {
 		return nil, err
 	}
+	g.liveGame.trigger(g.allEvents, game)
 	return game, nil
 }
 
 func (g *Game) Update(id string, gameDto *dto.Games) (game *modelspb.Games, err error) {
-	if record, err := g.dao.FindRecordById(g.collection.Id, id); err != nil {
+	if game, err = g.GetOneById(id); err != nil {
 		return nil, err
-	} else {
-		game = toGame(record)
 	}
 
 	game.SetOpponent(gameDto.GameOpponent)
@@ -75,7 +90,12 @@ func (g *Game) Update(id string, gameDto *dto.Games) (game *modelspb.Games, err 
 	if err := g.dao.SaveRecord(game.Record); err != nil {
 		return nil, err
 	}
+	g.liveGame.trigger(g.allEvents, game)
 	return game, nil
+}
+
+func (g *Game) UpdateField(id string, field string, value any) (err error) {
+	return nil
 }
 
 func (g *Game) GetAllByTeamAndTournamentSlugs(teamSlug string, tournamentSlug string) ([]*modelspb.Games, error) {

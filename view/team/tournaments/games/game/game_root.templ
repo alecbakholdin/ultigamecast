@@ -1,10 +1,16 @@
 package game
 
-import "github.com/labstack/echo/v5"
 import "ultigamecast/view/layout"
+import "ultigamecast/modelspb/dto"
+import "ultigamecast/view/util"
 
-templ GameRoot(c echo.Context) {
-    @layout.Root() {
-        
-    }
+templ GameRoot(game dto.Games) {
+	@layout.Root() {
+		<div
+			hx-ext="sse"
+			sse-connect={ util.JoinSlugsString("/team", game.TeamSlug, "tournaments", game.TournamentSlug, "games", game.GameID, "sse") }
+		>
+            @GameScore(game)
+        </div>
+	}
 }

@@ -1,0 +1,24 @@
+package game
+
+import "ultigamecast/modelspb/dto"
+import "strconv"
+
+templ GameScore(game dto.Games) {
+	<div class="flex items-center gap-2" sse-swap="score">
+		@GameTeamScore(game)
+		-
+		@GameOpponentScore(game)
+	</div>
+}
+
+templ GameTeamScore(game dto.Games) {
+	<div sse-swap="team_score">
+		{ strconv.Itoa(game.GameTeamScore) }
+	</div>
+}
+
+templ GameOpponentScore(game dto.Games) {
+	<div sse-swap="opponent_score">
+		{ strconv.Itoa(game.GameOpponentScore) }
+	</div>
+}

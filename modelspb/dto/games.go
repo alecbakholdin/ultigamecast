@@ -47,9 +47,11 @@ func BindGameDto(c echo.Context, dto *Games) (err error) {
 	return nil
 }
 
-func DtoFromGame(game *modelspb.Games) *Games {
+func DtoFromGame(c echo.Context, game *modelspb.Games) *Games {
 	return &Games{
 		GameID:            game.Record.GetId(),
+		TeamSlug:          c.PathParam("teamSlug"),
+		TournamentSlug:    c.PathParam("tournamentSlug"),
 		GameOpponent:      game.GetOpponent(),
 		GameTeamScore:     game.GetTeamScore(),
 		GameOpponentScore: game.GetOpponentScore(),

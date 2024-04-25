@@ -68,7 +68,7 @@ func (g *Games) getEditGameModal(c echo.Context) (err error) {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "unexpected error")
 	} else {
 		TriggerOpenModal(c)
-		return view.CreateEditGameDialogContent(c, false, *dto.DtoFromGame(game)).Render(c.Request().Context(), c.Response().Writer)
+		return view.CreateEditGameDialogContent(c, false, *dto.DtoFromGame(c, game)).Render(c.Request().Context(), c.Response().Writer)
 	}
 }
 
