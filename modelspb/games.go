@@ -2,8 +2,8 @@
 package modelspb
 
 import (
-    "github.com/pocketbase/pocketbase/tools/types"
     "github.com/pocketbase/pocketbase/models"
+    "github.com/pocketbase/pocketbase/tools/types"
 )
 
 // Games is a wrapper around models.Record for type safe operations on the collection games.
@@ -113,12 +113,14 @@ func (m *Games) SetStartTime(val types.DateTime)  {
     m.Record.Set("start_time", val)
 }
 
-// GetIsCompleted returns the value of the "is_completed" field
-func (m *Games) GetIsCompleted() bool {
-    return m.Record.GetBool("is_completed")
+// GetStatus returns the value of the "status" field
+// Possible values: [scheduled live completed]
+func (m *Games) GetStatus() string {
+    return m.Record.GetString("status")
 }
 
-// SetIsCompleted sets the value of the "is_completed" field
-func (m *Games) SetIsCompleted(val bool)  {
-    m.Record.Set("is_completed", val)
+// SetStatus sets the value of the "status" field
+// Possible values: [scheduled live completed]
+func (m *Games) SetStatus(val string)  {
+    m.Record.Set("status", val)
 }

@@ -46,7 +46,7 @@ func (g *Game) Create(tournament *modelspb.Tournaments, gameDto *dto.Games) (*mo
 	game.SetWindMph(gameDto.GameWindMph)
 	game.SetTempF(gameDto.GameTempF)
 	game.SetStartTime(gameDto.GameStartTimeDt)
-	game.SetIsCompleted(gameDto.GamesIsCompleted)
+	game.SetStatus(gameDto.GamesStatus)
 
 	if err := g.dao.SaveRecord(game.Record); err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (g *Game) Update(id string, gameDto *dto.Games) (game *modelspb.Games, err 
 	game.SetWindMph(gameDto.GameWindMph)
 	game.SetTempF(gameDto.GameTempF)
 	game.SetStartTime(gameDto.GameStartTimeDt)
-	game.SetIsCompleted(gameDto.GamesIsCompleted)
+	game.SetStatus(gameDto.GamesStatus)
 
 	if err := g.dao.SaveRecord(game.Record); err != nil {
 		return nil, err

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"ultigamecast/modelspb"
 
@@ -93,9 +94,13 @@ func (t *Tournament) GetAllWithGamesByTeamSlug(slug string) ([]*modelspb.Tournam
 
 	tournaments := make([]*modelspb.TournamentWithGames, len(records))
 	for i, r := range records {
+		arr := r.ExpandedAll("games_via_tournament")
+		slices.SortStableFunc(arr, func(a, b *models.Record) int {
+			return a.GetDateTime("start_time").Time().Compare(b.GetDateTime("start_time").Time())
+		})
 		tournaments[i] = &modelspb.TournamentWithGames{
 			Tournament: toTournament(r),
-			Games: toArr(r.ExpandedAll("games_via_tournament"), toGame),
+			Games:      toArr(arr, toGame),
 		}
 	}
 	return tournaments, nil

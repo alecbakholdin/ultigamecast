@@ -5,6 +5,7 @@ import "ultigamecast/view/util"
 import "ultigamecast/view/component"
 import "strconv"
 import "ultigamecast/modelspb/dto"
+import "cmp"
 
 templ CreateEditGameDialogContent(c echo.Context, isNew bool, data dto.Games) {
 	<div id="game_dialog_content">
@@ -47,6 +48,13 @@ templ GameForm(c echo.Context, isNew bool, data dto.Games) {
 				placeholder="Opponent"
 				value={ data.GameOpponent }
 			/>
+		}
+		@component.InputWrapperLabel(c, "status", "game_dialog_status", "Status") {
+			<select name="status" id="game_dialog_status" class={ "input input-bordered", templ.KV("hidden", isNew) } value={ cmp.Or(data.GamesStatus, "scheduled") }>
+				<option value="scheduled">Scheduled</option>
+				<option value="live">Live</option>
+				<option value="completed">Completed</option>
+			</select>
 		}
 		@component.InputWrapperLabel(c, "start_time", "game_dialog_start_time", "Start Time") {
 			<input
@@ -126,25 +134,6 @@ templ GameForm(c echo.Context, isNew bool, data dto.Games) {
 				}
 			</div>
 		</div>
-		if !isNew {
-			<div>
-				@component.InputWrapper(c, "is_completed") {
-					<label for="game_modal_is_completed" class="label">
-						<input
-							type="checkbox"
-							class="checkbox"
-							name="is_completed"
-							id="game_modal_is_completed"
-							value="true"
-							if data.GamesIsCompleted {
-								checked
-							}
-						/>
-						Is Completed
-					</label>
-				}
-			</div>
-		}
 		@component.FormError(c)
 	</form>
 }

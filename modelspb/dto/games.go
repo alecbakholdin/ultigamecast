@@ -24,7 +24,7 @@ type Games struct {
 	GameStartTime     string `form:"start_time"`
 	GameStartTimeDt   types.DateTime
 	GameStartTimezone string `form:"start_timezone"`
-	GamesIsCompleted  bool   `form:"is_completed"`
+	GamesStatus       string `form:"status"`
 }
 
 func BindGameDto(c echo.Context, dto *Games) (err error) {
@@ -60,6 +60,6 @@ func DtoFromGame(game *modelspb.Games) *Games {
 		GameTempF:         game.GetTempF(),
 		GameStartTimeDt:   game.GetStartTime(),
 		GameStartTime:     game.GetStartTime().String(),
-		GamesIsCompleted:  game.GetIsCompleted(),
+		GamesStatus:       game.GetStatus(),
 	}
 }

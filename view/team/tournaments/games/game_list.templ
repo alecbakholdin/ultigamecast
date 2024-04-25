@@ -79,13 +79,21 @@ templ TournamentGameRow(teamSlug string, tournamentSlug string, game *modelspb.G
 }
 
 templ gameStatus(game *modelspb.Games) {
-	if game.GetIsCompleted() && game.GetTeamScore() > game.GetOpponentScore() {
+	if game.GetStatus() == "completed" && game.GetTeamScore() > game.GetOpponentScore() {
 		<div class="badge badge-outline badge-success">
-			{ strconv.Itoa(game.GetTeamScore()) } - { strconv.Itoa(game.GetOpponentScore()) } Win
+			Win
+			{ strconv.Itoa(game.GetTeamScore()) } - { strconv.Itoa(game.GetOpponentScore()) }
 		</div>
-	} else if game.GetIsCompleted() && game.GetTeamScore() < game.GetOpponentScore() {
+	} else if game.GetStatus() == "completed" && game.GetTeamScore() < game.GetOpponentScore() {
 		<div class="badge badge-outline badge-error">
 			Loss
+			{ strconv.Itoa(game.GetTeamScore()) } - { strconv.Itoa(game.GetOpponentScore()) }
+		</div>
+	} else if game.GetStatus() == "live" {
+		<div class="badge badge-outline badge-error flex items-center gap-1">
+			<div class="mt-[1px] w-2 h-2 bg-error rounded-full animate-pulse"></div>
+			Live
+			{ strconv.Itoa(game.GetTeamScore()) } - { strconv.Itoa(game.GetOpponentScore()) }
 		</div>
 	} else {
 		<div class="badge badge-outline">
