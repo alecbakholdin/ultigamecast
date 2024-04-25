@@ -3,6 +3,7 @@ package repository
 import (
 	"strings"
 	"ultigamecast/modelspb"
+	"ultigamecast/modelspb/dto"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -22,6 +23,51 @@ func NewGame(app core.App) *Game {
 		dao:        app.Dao(),
 		collection: mustGetCollection(app.Dao(), "games"),
 	}
+}
+
+func (g *Game) Create(tournament *modelspb.Tournaments, gameDto *dto.Games) (*modelspb.Games, error) {
+	game := toGame(models.NewRecord(g.collection))
+
+	game.SetTournament(tournament.Record.GetId())
+	game.SetOpponent(gameDto.GameOpponent)
+	game.SetTeamScore(gameDto.GameTeamScore)
+	game.SetOpponentScore(gameDto.GameOpponentScore)
+	game.SetHalfCap(gameDto.GameHalfCap)
+	game.SetSoftCap(gameDto.GameSoftCap)
+	game.SetHardCap(gameDto.GameHardCap)
+	game.SetWindMph(gameDto.GameWindMph)
+	game.SetTempF(gameDto.GameTempF)
+	game.SetStartTime(gameDto.GameStartTimeDt)
+	game.SetIsCompleted(gameDto.GamesIsCompleted)
+
+	if err := g.dao.SaveRecord(game.Record); err != nil {
+		return nil, err
+	}
+	return game, nil
+}
+
+func (g *Game) Update(id string, gameDto *dto.Games) (game *modelspb.Games, err error) {
+	if record, err := g.dao.FindRecordById(g.collection.Id, id); err != nil {
+		return nil, err
+	} else {
+		game = toGame(record)
+	}
+
+	game.SetOpponent(gameDto.GameOpponent)
+	game.SetTeamScore(gameDto.GameTeamScore)
+	game.SetOpponentScore(gameDto.GameOpponentScore)
+	game.SetHalfCap(gameDto.GameHalfCap)
+	game.SetSoftCap(gameDto.GameSoftCap)
+	game.SetHardCap(gameDto.GameHardCap)
+	game.SetWindMph(gameDto.GameWindMph)
+	game.SetTempF(gameDto.GameTempF)
+	game.SetStartTime(gameDto.GameStartTimeDt)
+	game.SetIsCompleted(gameDto.GamesIsCompleted)
+
+	if err := g.dao.SaveRecord(game.Record); err != nil {
+		return nil, err
+	}
+	return game, nil
 }
 
 func (g *Game) GetAllByTeamAndTournamentSlugs(teamSlug string, tournamentSlug string) ([]*modelspb.Games, error) {

@@ -1,9 +1,75 @@
 package handlers
 
-import "ultigamecast/repository"
+import (
+	"fmt"
+	"net/http"
+	"ultigamecast/modelspb"
+	"ultigamecast/modelspb/dto"
+	"ultigamecast/repository"
+	"ultigamecast/validation"
+	view "ultigamecast/view/team"
+
+	"github.com/labstack/echo/v5"
+)
 
 type Games struct {
-	TeamRepo *repository.Team
-	TouramentRepo *repository.Tournament
+	teamRepo      *repository.Team
+	touramentRepo *repository.Tournament
+	gameRepo      *repository.Game
+}
 
+func NewGames(te *repository.Team, to *repository.Tournament, g *repository.Game) *Games {
+	return &Games{
+		teamRepo:      te,
+		touramentRepo: to,
+		gameRepo:      g,
+	}
+}
+
+func (g *Games) Routes(tournamentGroup *echo.Group) *echo.Group {
+	tournamentGroup.GET("/newGame", g.getNewGameModal)
+	tournamentGroup.POST("/games", g.createGame)
+
+	gameGroup := tournamentGroup.Group("/games/:gameId")
+	gameGroup.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if c.PathParam("gameId") == "" {
+				return echo.NewHTTPError(http.StatusBadRequest, "missing game in request")
+			}
+			return next(c)
+		}
+	})
+	return gameGroup
+}
+
+func (g *Games) getNewGameModal(c echo.Context) (err error) {
+	TriggerOpenModal(c)
+	return view.CreateEditGameDialogContent(c, true, dto.Games{}).Render(c.Request().Context(), c.Response().Writer)
+}
+
+func (g *Games) createGame(c echo.Context) (err error) {
+	var (
+		payload    dto.Games
+		tournament *modelspb.Tournaments
+	)
+	if err = dto.BindGameDto(c, &payload); err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("error binding game dto: %s", err))
+		return err
+	}
+
+	if tournament, err = g.touramentRepo.GetOneBySlug(payload.TeamSlug, payload.TournamentSlug); err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("error finding tournament [%s, %s]: %s", payload.TeamSlug, payload.TournamentSlug, err))
+		validation.AddFormErrorString(c, "could not find associated tournament")
+	}
+
+	if !validation.IsFormValid(c) {
+		return view.GameForm(c, true, payload).Render(c.Request().Context(), c.Response().Writer)
+	} else if _, err := g.gameRepo.Create(tournament, &payload); err != nil {
+		c.Echo().Logger.Error(fmt.Errorf("error creating game: %s", err))
+		validation.AddFormErrorString(c, "could not create game")
+	} else {
+		TriggerCloseModal(c)
+	}
+
+	return view.GameForm(c, true, payload).Render(c.Request().Context(), c.Response().Writer)
 }

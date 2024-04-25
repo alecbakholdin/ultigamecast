@@ -1,0 +1,131 @@
+package view
+
+import "github.com/labstack/echo/v5"
+import "ultigamecast/view/util"
+import "ultigamecast/view/component"
+import "strconv"
+import "ultigamecast/modelspb/dto"
+
+templ CreateEditGameDialogContent(c echo.Context, isNew bool, data dto.Games) {
+	<div id="game_dialog_content">
+		<h3 class="font-bold text-lg">
+			if isNew {
+				New Game
+			} else {
+				Edit { data.GameOpponent }
+			}
+		</h3>
+		@GameForm(c, isNew, data)
+		<div class="modal-action">
+			<form method="dialog"><button class="btn">Close</button></form>
+			<button form="game_dialog_form" class="btn btn-primary">
+				Submit
+			</button>
+		</div>
+	</div>
+}
+
+templ GameForm(c echo.Context, isNew bool, data dto.Games) {
+	<form
+		id="game_dialog_form"
+		if isNew {
+			hx-post={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "tournaments", c.PathParam("tournamentSlug"), "games") }
+		} else {
+			hx-put={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "tournaments", c.PathParam("tournamentSlug"), "games", data.GameID) }
+		}
+		hx-boost="true"
+		hx-swap="outerHTML"
+		hx-target="this"
+		hx-disabled-elt=".modal-action button"
+	>
+		@component.InputWrapperLabel(c, "opponent", "game_dialog_opponent", "Opponent") {
+			<input
+				id="game_dialog_opponent"
+				type="text"
+				class="input input-bordered"
+				name="opponent"
+				placeholder="Opponent"
+				value={ data.GameOpponent }
+			/>
+		}
+		@component.InputWrapperLabel(c, "start_time", "game_dialog_start_time", "Start Time") {
+			<input
+				id="game_dialog_start_time"
+				type="datetime-local"
+				class="input input-bordered"
+				name="start_time"
+				value={ data.GameStartTime }
+			/>
+			<input type="hidden" name="start_timezone" value="EST"/>
+		}
+		if !isNew {
+			<div class="flex flex-col sm:flex w-full gap-1 [&>div]:flex-grow">
+				@component.InputWrapperLabel(c, "team_score", "game_dialog_team_score", "Team Score") {
+					<input
+						id="game_dialog_team_score"
+						type="number"
+						inputmode="numeric"
+						class="input input-bordered"
+						name="team_score"
+						placeholder=""
+						value={ strconv.Itoa(data.GameTeamScore) }
+						min="0"
+					/>
+				}
+				@component.InputWrapperLabel(c, "opponent_score", "game_dialog_opponent_score", "Opponent Score") {
+					<input
+						id="game_dialog_opponent_score"
+						type="number"
+						inputmode="numeric"
+						class="input input-bordered"
+						name="opponent_score"
+						placeholder=""
+						value={ strconv.Itoa(data.GameOpponentScore) }
+						min="0"
+					/>
+				}
+			</div>
+		}
+		<div class="flex flex-col gap-1">
+			<span class="label">Caps (in minutes)</span>
+			<div class="flex flex-col gap-1 max-w-full w-full flex-nowrap">
+				@component.InputWrapper(c, "half_cap") {
+					<label for="game_dialog_half_cap" class="input input-bordered flex items-center gap-2">
+						Half
+						<input type="number" min="0" inputmode="numeric" class="flex-grow" name="half_cap" id="game_dialog_half_cap" value={ strconv.Itoa(data.GameHalfCap) }/>
+					</label>
+				}
+				@component.InputWrapper(c, "soft_cap") {
+					<label for="game_dialog_soft_cap" class="input input-bordered flex items-center gap-2">
+						Soft
+						<input type="number" min="0" inputmode="numeric" class="flex-grow" name="soft_cap" id="game_dialog_soft_cap" value={ strconv.Itoa(data.GameSoftCap) }/>
+					</label>
+				}
+				@component.InputWrapper(c, "hard_cap") {
+					<label for="game_dialog_hard_cap" class="input input-bordered flex items-center gap-2">
+						Hard
+						<input type="number" min="0" inputmode="numeric" class="flex-grow" name="hard_cap" id="game_dialog_hard_cap" value={ strconv.Itoa(data.GameHardCap) }/>
+					</label>
+				}
+			</div>
+		</div>
+		<div class="flex flex-col gap-1">
+			<span class="label">Weather</span>
+			<div class="flex flex-col gap-1 w-full">
+				@component.InputWrapper(c, "wind_mph") {
+					<label for="game_dialog_wind_mph" class="input input-bordered flex items-center gap-2">
+						Wind
+						<input type="number" min="0" inputmode="numeric" class="flex-grow" name="wind_mph" id="game_dialog_wind_mph" value={ strconv.Itoa(data.GameWindMph) }/>
+					</label>
+				}
+				@component.InputWrapper(c, "temp_f") {
+					<label for="game_dialog_temp_f" class="input input-bordered flex items-center gap-2">
+						Temp
+						<input type="number" inputmode="numeric" class="flex-grow" name="temp_f" id="game_dialog_temp_f" value={ strconv.Itoa(data.GameTempF) }/>
+					</label>
+				}
+			</div>
+		</div>
+		@component.FormError(c)
+	</form>
+}

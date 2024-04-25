@@ -1,0 +1,22 @@
+package view
+
+import "github.com/labstack/echo/v5"
+import "ultigamecast/modelspb/dto"
+import "fmt"
+
+templ TournamentGameList(c echo.Context, tournamentId string, games []dto.Games) {
+	<div id={ fmt.Sprintf("tournament_%s_game_list") }>
+		for _, game := range games {
+            @tournamentGameRow(c, game)
+		}
+	</div>
+}
+
+templ tournamentGameRow(c echo.Context, game dto.Games) {
+	<div class="relative">
+		{ game.GameOpponent }
+	</div>
+}
+
+templ NewTournamentGameRow() {
+}

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"net/http"
 	"regexp"
 	"strings"
 
@@ -12,9 +11,8 @@ type Handler interface {
 	Routes(g *echo.Group) *echo.Group
 }
 
-func MarkFormSuccess(c echo.Context) {
-	c.Response().Header().Set("HX-Trigger", "formsuccess")
-	c.Response().WriteHeader(http.StatusOK)
+func TriggerCloseModal(c echo.Context) {
+	c.Response().Header().Set("HX-Trigger", "closemodal")
 }
 
 func TriggerOpenModal(c echo.Context) {

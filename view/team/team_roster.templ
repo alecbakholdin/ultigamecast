@@ -23,10 +23,6 @@ templ TeamRoster(e echo.Context, teamSlug string) {
 		@icon.LoadingLg()
 		<span>Loading stats...</span>
 	</div>
-	<dialog class="modal" id="player_modal" hx-on::afterSwap="this.showModal()" hx-on:formsuccess="setTimeout(() => this.close())">
-		<div id="player_modal_content"></div>
-		<form method="dialog" class="modal-backdrop"><button>close</button></form>
-	</dialog>
 }
 
 templ RosterTable(teamSlug string, summaryType string, players []modelspb.PlayerSummary, orderByField string, orderByAsc bool) {

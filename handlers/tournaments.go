@@ -31,7 +31,7 @@ func (t *Tournaments) Routes(g *echo.Group) *echo.Group {
 	g.GET("/newTournament", t.getNewTournament)
 	g.POST("/tournaments", t.createNewTournament)
 
-	tournamentGroup := g.Group("/tournaments/:tournamentId")
+	tournamentGroup := g.Group("/tournaments/:tournamentSlug")
 	tournamentGroup.GET("/edit", t.getEditTournament)
 	tournamentGroup.PUT("", t.updateTournament)
 	tournamentGroup.DELETE("", t.deleteTournament)
@@ -40,7 +40,9 @@ func (t *Tournaments) Routes(g *echo.Group) *echo.Group {
 }
 
 func (t *Tournaments) getTournaments(c echo.Context) (err error) {
-	teamSlug := c.PathParam("teamSlug")
+	var (
+		teamSlug = c.PathParam("teamSlug")
+	)
 
 	if tournaments, err := t.TournamentRepo.GetAllByTeamSlug(teamSlug); err != nil {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "Unexpected error")
@@ -86,7 +88,7 @@ func (t *Tournaments) createNewTournament(c echo.Context) (err error) {
 		c.Echo().Logger.Error(fmt.Errorf("error creating tournament"))
 		validation.AddFormErrorString(c, "unexpected error creating tournament")
 	} else {
-		MarkFormSuccess(c)
+		TriggerCloseModal(c)
 		return view.NewTournamentRow(payload.TeamSlug, tournament).Render(c.Request().Context(), c.Response().Writer)
 	}
 	return
@@ -94,13 +96,13 @@ func (t *Tournaments) createNewTournament(c echo.Context) (err error) {
 
 func (t *Tournaments) getEditTournament(c echo.Context) (err error) {
 	teamSlug := c.PathParam("teamSlug")
-	tournamentId := c.PathParam("tournamentId")
-	if teamSlug == "" || tournamentId == "" {
-		c.Echo().Logger.Error(fmt.Errorf("teamSlug [%s] or tournamentId [%s] is empty", teamSlug, tournamentId))
+	tournamentSlug := c.PathParam("tournamentSlug")
+	if teamSlug == "" || tournamentSlug == "" {
+		c.Echo().Logger.Error(fmt.Errorf("teamSlug [%s] or tournamentId [%s] is empty", teamSlug, tournamentSlug))
 		return component.RenderToastError(c, "unexpected error")
 	}
 
-	if tournament, err := t.TournamentRepo.GetOneById(tournamentId); err != nil {
+	if tournament, err := t.TournamentRepo.GetOneBySlug(teamSlug, tournamentSlug); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error finding tournament: %s", err))
 		return component.RenderToastError(c, "could not find tournament")
 	} else {
@@ -147,7 +149,7 @@ func (t *Tournaments) updateTournament(c echo.Context) (err error) {
 	}
 
 	if validation.IsFormValid(c) {
-		MarkFormSuccess(c)
+		TriggerCloseModal(c)
 		return view.EditedTournamentRow(payload.TeamSlug, tournament).Render(c.Request().Context(), c.Response().Writer)
 	}
 	return
@@ -166,6 +168,6 @@ func (t *Tournaments) deleteTournament(c echo.Context) (err error) {
 		c.Echo().Logger.Error(fmt.Errorf("could not delete tournament: %s", err))
 		return component.RenderToastError(c, "unexpected error")
 	}
-	MarkFormSuccess(c)
+	TriggerCloseModal(c)
 	return
 }

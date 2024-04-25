@@ -152,7 +152,6 @@ func (r *Roster) createPlayer(c echo.Context) (err error) {
 	}
 
 	if validation.IsFormValid(c) {
-		MarkFormSuccess(c)
 		payload.Order += 1
 		payload.Name = ""
 		return view.NewPlayerRow(c, player).Render(c.Request().Context(), c.Response().Writer)

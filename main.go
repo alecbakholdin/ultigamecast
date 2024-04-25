@@ -24,15 +24,18 @@ func main() {
 		teamRepo := repository.NewTeam(app.Dao())
 		playerRepo := repository.NewPlayer(app)
 		tournamentRepo := repository.NewTournament(app.Dao())
+		gameRepo := repository.NewGame(app)
 
 		teamHandler := handlers.NewTeam(teamRepo, playerRepo, tournamentRepo)
 		tournamentHandler := handlers.NewTournaments(tournamentRepo, teamRepo)
 		rosterHandler := handlers.NewRoster(playerRepo, teamRepo)
+		gameHandler := handlers.NewGames(teamRepo, tournamentRepo, gameRepo)
 
 		baseGroup := e.Router.Group("")
 		teamGroup := teamHandler.Routes(baseGroup)
-		tournamentHandler.Routes(teamGroup)
 		rosterHandler.Routes(teamGroup)
+		tournamentGroup := tournamentHandler.Routes(teamGroup)
+		gameHandler.Routes(tournamentGroup)
 
 		return nil
 	})

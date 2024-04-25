@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"strings"
 	"ultigamecast/modelspb"
 
@@ -68,6 +69,30 @@ func (t *Tournament) GetAllByTeamSlug(slug string) ([]*modelspb.Tournaments, err
 		return nil, err
 	}
 	return toArr(records, toTournament), nil
+}
+
+func (t *Tournament) GetAllWithGamesByTeamSlug(slug string) ([]*modelspb.TournamentWithGames, error) {
+	records, err := t.dao.FindRecordsByFilter(
+		t.collection.Name,
+		"team.slug = {:teamSlug}",
+		"-start",
+		0,
+		0,
+		dbx.Params{"teamSlug": strings.ToLower(slug)},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if errs := t.dao.ExpandRecords(records, []string{"games(tournament)"}, nil); len(errs) > 0{
+		return nil, fmt.Errorf("failed to expand: %s", errs)
+	}
+
+	tournaments := make([]*modelspb.TournamentWithGames, len(records))
+	for _, r := range records {
+		r.Expand()
+	}
+	return tournaments, nil
 }
 
 func (t *Tournament) Update(id string, name string, slug string, start types.DateTime, end types.DateTime, location string) (*modelspb.Tournaments, error) {

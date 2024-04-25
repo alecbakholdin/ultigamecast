@@ -1,13 +1,15 @@
-package modelspb
+package dto
 
 import (
+	"fmt"
+	"ultigamecast/modelspb"
 	"ultigamecast/validation"
 
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
-type GamesDto struct {
+type Games struct {
 	TeamSlug          string `param:"teamSlug"`
 	TournamentSlug    string `param:"tournamentSlug"`
 	GameID            string `param:"gameId"`
@@ -21,25 +23,31 @@ type GamesDto struct {
 	GameTempF         int    `form:"temp_f"`
 	GameStartTime     string `form:"start_time"`
 	GameStartTimeDt   types.DateTime
-	GamesIsCompleted  bool `form:"is_completed"`
+	GameStartTimezone string `form:"start_timezone"`
+	GamesIsCompleted  bool   `form:"is_completed"`
 }
 
-func BindGameDto(c echo.Context, dto *GamesDto) (err error) {
+func BindGameDto(c echo.Context, dto *Games) (err error) {
 	if err := c.Bind(dto); err != nil {
 		return err
 	}
 
 	if dto.GameStartTime != "" {
-		if dto.GameStartTimeDt, err = types.ParseDateTime(dto.GameStartTime); err != nil {
+		if dto.GameStartTimeDt, err = types.ParseDateTime(dto.GameStartTime + dto.GameStartTimezone); err != nil {
+			c.Echo().Logger.Error(fmt.Errorf("error parsing %s: %s", dto.GameStartTime+dto.GameStartTimezone, err))
 			validation.AddFieldErrorString(c, "start_time", "invalid date format")
 		}
+	}
+
+	if dto.GameOpponent == "" {
+		validation.AddFieldErrorString(c, "opponent", "cannot be empty")
 	}
 
 	return nil
 }
 
-func DtoFromGame(game *Games) *GamesDto {
-	return &GamesDto{
+func DtoFromGame(game *modelspb.Games) *Games {
+	return &Games{
 		GameID:            game.Record.GetId(),
 		GameOpponent:      game.GetOpponent(),
 		GameTeamScore:     game.GetTeamScore(),
@@ -49,5 +57,8 @@ func DtoFromGame(game *Games) *GamesDto {
 		GameHardCap:       game.GetHardCap(),
 		GameWindMph:       game.GetWindMph(),
 		GameTempF:         game.GetTempF(),
+		GamesIsCompleted:  game.GetIsCompleted(),
+		GameStartTimeDt:   game.GetStartTime(),
+		GameStartTime:     game.GetStartTime().String(),
 	}
 }
