@@ -87,13 +87,16 @@ func (t *Tournament) GetAllWithGamesByTeamSlug(slug string) ([]*modelspb.Tournam
 		return nil, err
 	}
 
-	if errs := t.dao.ExpandRecords(records, []string{"games(tournament)"}, nil); len(errs) > 0 {
+	if errs := t.dao.ExpandRecords(records, []string{"games_via_tournament"}, nil); len(errs) > 0 {
 		return nil, fmt.Errorf("failed to expand: %s", errs)
 	}
 
 	tournaments := make([]*modelspb.TournamentWithGames, len(records))
-	for _, r := range records {
-		r.Expand()
+	for i, r := range records {
+		tournaments[i] = &modelspb.TournamentWithGames{
+			Tournament: toTournament(r),
+			Games: toArr(r.ExpandedAll("games_via_tournament"), toGame),
+		}
 	}
 	return tournaments, nil
 }

@@ -1,9 +1,6 @@
 package handlers
 
 import (
-	"regexp"
-	"strings"
-
 	"github.com/labstack/echo/v5"
 )
 
@@ -12,16 +9,9 @@ type Handler interface {
 }
 
 func TriggerCloseModal(c echo.Context) {
-	c.Response().Header().Set("HX-Trigger", "closemodal")
+	c.Response().Header().Add("HX-Trigger", "closemodal")
 }
 
 func TriggerOpenModal(c echo.Context) {
-	c.Response().Header().Set("HX-Trigger", "openmodal")
-}
-
-var whitespaceRegex = regexp.MustCompile(`[\s+]`)
-
-func ConvertToSlug(s string) string {
-	noWhitespace := whitespaceRegex.ReplaceAllString(s, "-")
-	return strings.ToLower(noWhitespace)
+	c.Response().Header().Add("HX-Trigger", "openmodal")
 }

@@ -54,9 +54,9 @@ templ GameForm(c echo.Context, isNew bool, data dto.Games) {
 				type="datetime-local"
 				class="input input-bordered"
 				name="start_time"
-				value={ data.GameStartTime }
+				value={ formatTime(data.GameStartTimeDt, "2006-01-02T15:04") }
 			/>
-			<input type="hidden" name="start_timezone" value="EST"/>
+			<input type="hidden" name="start_timezone" value="-04:00"/>
 		}
 		if !isNew {
 			<div class="flex flex-col sm:flex w-full gap-1 [&>div]:flex-grow">
@@ -126,6 +126,25 @@ templ GameForm(c echo.Context, isNew bool, data dto.Games) {
 				}
 			</div>
 		</div>
+		if !isNew {
+			<div>
+				@component.InputWrapper(c, "is_completed") {
+					<label for="game_modal_is_completed" class="label">
+						<input
+							type="checkbox"
+							class="checkbox"
+							name="is_completed"
+							id="game_modal_is_completed"
+							value="true"
+							if data.GamesIsCompleted {
+								checked
+							}
+						/>
+						Is Completed
+					</label>
+				}
+			</div>
+		}
 		@component.FormError(c)
 	</form>
 }

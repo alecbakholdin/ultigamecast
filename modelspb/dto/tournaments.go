@@ -63,9 +63,11 @@ func DtoFromTournament(t *modelspb.Tournaments) *Tournament {
 	}
 }
 
-var whitespaceRegex = regexp.MustCompile(`[\s+]`)
+var whitespaceRegex = regexp.MustCompile(`\s+`)
+var nonAlphaRegex = regexp.MustCompile(`[^\w-_]`)
 
 func convertToSlug(s string) string {
 	noWhitespace := whitespaceRegex.ReplaceAllString(s, "-")
-	return strings.ToLower(noWhitespace)
+	noNonAlpha := nonAlphaRegex.ReplaceAllString(noWhitespace, "")
+	return strings.ToLower(noNonAlpha)
 }

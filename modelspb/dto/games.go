@@ -33,10 +33,11 @@ func BindGameDto(c echo.Context, dto *Games) (err error) {
 	}
 
 	if dto.GameStartTime != "" {
-		if dto.GameStartTimeDt, err = types.ParseDateTime(dto.GameStartTime + dto.GameStartTimezone); err != nil {
+		if dto.GameStartTimeDt, err = types.ParseDateTime(dto.GameStartTime + ":00" + dto.GameStartTimezone); err != nil {
 			c.Echo().Logger.Error(fmt.Errorf("error parsing %s: %s", dto.GameStartTime+dto.GameStartTimezone, err))
 			validation.AddFieldErrorString(c, "start_time", "invalid date format")
 		}
+		fmt.Println(dto.GameStartTimeDt)
 	}
 
 	if dto.GameOpponent == "" {
@@ -57,8 +58,8 @@ func DtoFromGame(game *modelspb.Games) *Games {
 		GameHardCap:       game.GetHardCap(),
 		GameWindMph:       game.GetWindMph(),
 		GameTempF:         game.GetTempF(),
-		GamesIsCompleted:  game.GetIsCompleted(),
 		GameStartTimeDt:   game.GetStartTime(),
 		GameStartTime:     game.GetStartTime().String(),
+		GamesIsCompleted:  game.GetIsCompleted(),
 	}
 }

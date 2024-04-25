@@ -25,6 +25,14 @@ func NewGame(app core.App) *Game {
 	}
 }
 
+func (g *Game) GetOneById(id string) (*modelspb.Games, error) {
+	if record, err := g.dao.FindRecordById(g.collection.Id, id); err != nil {
+		return nil, err
+	} else {
+		return toGame(record), nil
+	}
+}
+
 func (g *Game) Create(tournament *modelspb.Tournaments, gameDto *dto.Games) (*modelspb.Games, error) {
 	game := toGame(models.NewRecord(g.collection))
 
@@ -74,7 +82,7 @@ func (g *Game) GetAllByTeamAndTournamentSlugs(teamSlug string, tournamentSlug st
 	records, err := g.dao.FindRecordsByFilter(
 		g.collection.Id,
 		"tournament.slug = {:tournamentSlug} && tournament.team.slug = {:teamSlug}",
-		"-start",
+		"+start_time",
 		0,
 		0,
 		dbx.Params{

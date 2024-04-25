@@ -5,8 +5,9 @@ import "github.com/labstack/echo/v5"
 import "ultigamecast/view/util"
 import "fmt"
 import "ultigamecast/view/icon"
+import games "ultigamecast/view/team/tournaments/games"
 
-templ TeamTournaments(c echo.Context, teamSlug string, tournaments []*modelspb.Tournaments) {
+templ TeamTournaments(c echo.Context, teamSlug string, tournaments []*modelspb.TournamentWithGames) {
 	<div role="tablist" class="tabs tabs-bordered" aria-controls="tab-content">
 		<button hx-get={ string(util.JoinSlugs("/team", teamSlug, "tournaments")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab tab-active">Tournaments</button>
 		<button hx-get={ string(util.JoinSlugs("/team", teamSlug, "roster")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab">Roster</button>
@@ -14,13 +15,14 @@ templ TeamTournaments(c echo.Context, teamSlug string, tournaments []*modelspb.T
 	@tournamentList(c, teamSlug, tournaments)
 }
 
-templ tournamentList(c echo.Context, teamSlug string, tournaments []*modelspb.Tournaments) {
+templ tournamentList(c echo.Context, teamSlug string, tournaments []*modelspb.TournamentWithGames) {
 	<div class="mx-auto max-w-screen-lg px-8 py-4 mt-4 relative">
 		<div id="tournament_list_wrapper" class="relative">
 			<div class="bg-primary w-1 h-full absolute left-0 top-0 -translate-x-1/2"></div>
 			<ul id="tournament_list">
 				for _, t := range tournaments {
-					@tournamentRow(teamSlug, t)
+					@tournamentRow(teamSlug, t.Tournament)
+					@games.TournamentGameList(teamSlug, t.Tournament.GetSlug(), t.Games)
 				}
 			</ul>
 			<div class="absolute -left-4 -top-1">
@@ -78,7 +80,7 @@ templ tournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
 				</div>
 				<div>
 					<div class="dropdown dropdown-end">
-						<div tabindex="0" role="button" class="btn m-1">
+						<div tabindex="0" role="button" class="btn btn-sm btn-icon m-1">
 							@icon.VerticalDots()
 						</div>
 						<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
