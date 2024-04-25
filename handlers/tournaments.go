@@ -3,12 +3,12 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"ultigamecast/handlers/models"
 	"ultigamecast/modelspb"
+	"ultigamecast/modelspb/dto"
 	"ultigamecast/repository"
 	"ultigamecast/validation"
 	"ultigamecast/view/component"
-	view "ultigamecast/view/team"
+	view "ultigamecast/view/team/tournaments"
 
 	"github.com/labstack/echo/v5"
 )
@@ -54,22 +54,24 @@ func (t *Tournaments) getTournaments(c echo.Context) (err error) {
 func (t *Tournaments) getNewTournament(c echo.Context) (err error) {
 	teamSlug := c.PathParam("teamSlug")
 	TriggerOpenModal(c)
-	return view.TournamentDialog(c, "New Tournament", teamSlug, view.TournamentData{}).Render(c.Request().Context(), c.Response().Writer)
+	return view.TournamentDialog(c, true, dto.Tournament{
+		TeamSlug: teamSlug,
+	}).Render(c.Request().Context(), c.Response().Writer)
 }
 
 func (t *Tournaments) createNewTournament(c echo.Context) (err error) {
 	var (
-		payload    models.TournamentPayload
+		payload    dto.Tournament
 		team       *modelspb.Teams
 		tournament *modelspb.Tournaments
 	)
-	if err := models.BindTournament(c, &payload); err != nil {
+	if err := dto.BindTournament(c, &payload); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error binding tournament: %s", err))
 		return component.RenderToastError(c, "unexpected error")
 	}
-	defer renderForm(c, &payload)
+	defer renderForm(c, true, &payload)
 
-	if exists, err := t.TournamentRepo.ExistsBySlug(payload.TeamSlug, payload.TournamentSlug); err != nil {
+	if exists, err := t.TournamentRepo.ExistsBySlug(payload.TeamSlug, payload.TournamentSlugNew); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error determining if tournament exists: %s", err))
 		return component.RenderToastError(c, "unexpected error")
 	} else if exists {
@@ -84,7 +86,7 @@ func (t *Tournaments) createNewTournament(c echo.Context) (err error) {
 	if team, err = t.TeamRepo.GetOneBySlug(payload.TeamSlug); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error finding team %s: %s", payload.TeamSlug, err))
 		validation.AddFormErrorString(c, "unexpected error finding team")
-	} else if tournament, err = t.TournamentRepo.Create(team, payload.Name, payload.TournamentSlug, payload.StartDt, payload.EndDt, payload.Location); err != nil {
+	} else if tournament, err = t.TournamentRepo.Create(team, payload.Name, payload.TournamentSlugNew, payload.StartDt, payload.EndDt, payload.Location); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error creating tournament"))
 		validation.AddFormErrorString(c, "unexpected error creating tournament")
 	} else {
@@ -107,42 +109,38 @@ func (t *Tournaments) getEditTournament(c echo.Context) (err error) {
 		return component.RenderToastError(c, "could not find tournament")
 	} else {
 		TriggerOpenModal(c)
-		data := view.TournamentData{
-			ID:       tournament.Record.GetId(),
-			Name:     tournament.GetName(),
-			Start:    tournament.GetStart().Time().Format("2006-01-02"),
-			End:      tournament.GetEnd().Time().Format("2006-01-02"),
-			Location: tournament.GetLocation(),
-		}
-		return view.TournamentDialog(c, "Edit Tournament", teamSlug, data).Render(c.Request().Context(), c.Response().Writer)
+		data := dto.DtoFromTournament(tournament)
+		data.TeamSlug = teamSlug
+		return view.TournamentDialog(c, false, *data).Render(c.Request().Context(), c.Response().Writer)
 	}
 }
 
 func (t *Tournaments) updateTournament(c echo.Context) (err error) {
 	var (
-		payload    models.TournamentPayload
+		payload    dto.Tournament
 		tournament *modelspb.Tournaments
 	)
-	if err = models.BindTournament(c, &payload); err != nil {
+	if err = dto.BindTournament(c, &payload); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error binding tournament: %s", err))
 		return component.RenderToastError(c, "unexpected error")
 	}
-	defer renderForm(c, &payload)
+	defer renderForm(c, false, &payload)
 
-	if payload.TournamentID == "" {
-		validation.AddFormErrorString(c, "missing tournament in request")
-	} else if to, err := t.TournamentRepo.GetOneBySlug(payload.TeamSlug, payload.TournamentSlug); err != nil && !repository.IsNotFound(err) {
-		c.Echo().Logger.Error(fmt.Errorf("error determining if tournament exists: %s", err))
-		validation.AddFormErrorString(c, "unexpected error")
-	} else if to != nil && to.Record.GetId() != payload.TournamentID {
-		validation.AddFieldErrorString(c, "name", "name is already taken")
+	if payload.TournamentSlug != payload.TournamentSlugNew {
+		if exists, err := t.TournamentRepo.ExistsBySlug(payload.TeamSlug, payload.TournamentSlugNew); err != nil {
+			c.Echo().Logger.Error(fmt.Errorf("error determining if tournament exists: %s", err))
+			validation.AddFormErrorString(c, "unexpected error")
+		} else if exists {
+			validation.AddFieldErrorString(c, "name", "name is already taken")
+		}
+
 	}
 
 	if !validation.IsFormValid(c) {
 		return
 	}
 
-	tournament, err = t.TournamentRepo.Update(payload.TournamentID, payload.Name, payload.TournamentSlug, payload.StartDt, payload.EndDt, payload.Location)
+	tournament, err = t.TournamentRepo.UpdateBySlug(payload.TeamSlug, payload.TournamentSlug, payload.Name, payload.TournamentSlugNew, payload.StartDt, payload.EndDt, payload.Location)
 	if err != nil {
 		validation.AddFormErrorString(c, "could not save tournament")
 		return
@@ -155,16 +153,17 @@ func (t *Tournaments) updateTournament(c echo.Context) (err error) {
 	return
 }
 
-func renderForm(c echo.Context, payload *models.TournamentPayload) {
-	if err := view.TournamentForm(c, payload.TeamSlug, payload.ToData()).Render(c.Request().Context(), c.Response().Writer); err != nil {
+func renderForm(c echo.Context, isNew bool, payload *dto.Tournament) {
+	if err := view.TournamentForm(c, isNew, *payload).Render(c.Request().Context(), c.Response().Writer); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error rendering form: %s", err))
 		component.RenderToast(c, "unexpected error returning form", component.ToastSeverityError)
 	}
 }
 
 func (t *Tournaments) deleteTournament(c echo.Context) (err error) {
-	tournamentId := c.PathParam("tournamentId")
-	if err = t.TournamentRepo.Delete(tournamentId); err != nil {
+	teamSlug := c.PathParam("teamSlug")
+	tournamentSlug := c.PathParam("tournamentSlug")
+	if err = t.TournamentRepo.DeleteBySlug(teamSlug, tournamentSlug); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("could not delete tournament: %s", err))
 		return component.RenderToastError(c, "unexpected error")
 	}

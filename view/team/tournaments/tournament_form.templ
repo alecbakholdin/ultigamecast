@@ -1,0 +1,84 @@
+package view
+
+import "ultigamecast/view/util"
+import "ultigamecast/validation"
+import "ultigamecast/view/component"
+
+import "github.com/labstack/echo/v5"
+import "ultigamecast/modelspb/dto"
+
+templ TournamentDialog(c echo.Context, isNew bool, values dto.Tournament) {
+	<div id="tournament_modal_content">
+		<h3 class="font-bold text-lg">
+			if isNew {
+				New Tournament
+			} else {
+				Edit Tournament
+			}
+		</h3>
+		@TournamentForm(c, isNew, values)
+		<div class="modal-action">
+			<form method="dialog"><button class="btn">Close</button></form>
+			<button id="tournament_modal_button" class="btn btn-primary" form="tournament_modal_form">Submit</button>
+		</div>
+	</div>
+	<form method="dialog" class="modal-backdrop"><button>close</button></form>
+}
+
+templ TournamentForm(c echo.Context, isNew bool, values dto.Tournament) {
+	<form
+		id="tournament_modal_form"
+		class="flex flex-col gap-2"
+		hx-boost="true"
+		hx-swap="outerHTML"
+		hx-target="this"
+		hx-disabled-elt="#tournament_modal_button"
+		if isNew {
+			hx-post={ util.JoinSlugsString("/team", values.TeamSlug, "tournaments") }
+		} else {
+			hx-put={ util.JoinSlugsString("/team", values.TeamSlug, "tournaments", values.TournamentSlug) }
+		}
+	>
+		@component.InputWrapperLabel(c, "name", "tournament_modal_name", "Name") {
+			<input
+				type=""
+				id="tournament_modal_name"
+				name="name"
+				class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "start")) }
+				placeholder="Name"
+				value={ values.Name }
+			/>
+		}
+		<div class="flex flex-col sm:flex-row gap-2 w-full [&_.input-wrapper]:flex-grow">
+			@component.InputWrapperLabel(c, "start", "tournament_modal_start", "Start") {
+				<input
+					type="date"
+					name="start"
+					id="tournament_modal_start"
+					class="input input-bordered"
+					value={ values.Start }
+				/>
+			}
+			@component.InputWrapperLabel(c, "end", "tournament_modal_end", "End") {
+				<input
+					type="date"
+					name="end"
+					id="tournament_modal_end"
+					class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "end")) }
+					value={ values.End }
+				/>
+			}
+		</div>
+		@component.InputWrapperLabel(c, "location", "tournament_modal_location", "Location") {
+			<input
+				type="text"
+				id="tournament_modal_location"
+				class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "location")) }
+				name="location"
+				placeholder="Location"
+				value={ values.Location }
+			/>
+		}
+		@component.FormError(c)
+	</form>
+}

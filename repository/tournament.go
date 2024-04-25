@@ -6,20 +6,23 @@ import (
 	"ultigamecast/modelspb"
 
 	"github.com/pocketbase/dbx"
+	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/daos"
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 type Tournament struct {
+	app        core.App
 	dao        *daos.Dao
 	collection *models.Collection
 }
 
-func NewTournament(dao *daos.Dao) *Tournament {
+func NewTournament(app core.App) *Tournament {
 	return &Tournament{
-		dao:        dao,
-		collection: mustGetCollection(dao, "tournaments"),
+		app:        app,
+		dao:        app.Dao(),
+		collection: mustGetCollection(app.Dao(), "tournaments"),
 	}
 }
 
@@ -84,7 +87,7 @@ func (t *Tournament) GetAllWithGamesByTeamSlug(slug string) ([]*modelspb.Tournam
 		return nil, err
 	}
 
-	if errs := t.dao.ExpandRecords(records, []string{"games(tournament)"}, nil); len(errs) > 0{
+	if errs := t.dao.ExpandRecords(records, []string{"games(tournament)"}, nil); len(errs) > 0 {
 		return nil, fmt.Errorf("failed to expand: %s", errs)
 	}
 
@@ -95,13 +98,10 @@ func (t *Tournament) GetAllWithGamesByTeamSlug(slug string) ([]*modelspb.Tournam
 	return tournaments, nil
 }
 
-func (t *Tournament) Update(id string, name string, slug string, start types.DateTime, end types.DateTime, location string) (*modelspb.Tournaments, error) {
-	var tournament *modelspb.Tournaments
+func (t *Tournament) UpdateBySlug(teamSlug string, currentSlug string, name string, slug string, start types.DateTime, end types.DateTime, location string) (tournament *modelspb.Tournaments, err error) {
 
-	if record, err := t.dao.FindRecordById(t.collection.Name, id); err != nil {
+	if tournament, err = t.GetOneBySlug(teamSlug, currentSlug); err != nil {
 		return nil, err
-	} else {
-		tournament = toTournament(record)
 	}
 
 	tournament.SetName(name)
@@ -110,7 +110,7 @@ func (t *Tournament) Update(id string, name string, slug string, start types.Dat
 	tournament.SetEnd(end)
 	tournament.SetLocation(location)
 
-	if err := t.dao.Save(tournament.Record); err != nil {
+	if err = t.dao.Save(tournament.Record); err != nil {
 		return nil, err
 	}
 	return tournament, nil
@@ -138,6 +138,14 @@ func (t *Tournament) Delete(id string) error {
 		return err
 	}
 	return nil
+}
+
+func (t *Tournament) DeleteBySlug(teamSlug string, tournamentSlug string) error {
+	if tournament, err := t.GetOneBySlug(teamSlug, tournamentSlug); err != nil {
+		return err
+	} else {
+		return t.dao.DeleteRecord(tournament.Record)
+	}
 }
 
 func toTournament(record *models.Record) *modelspb.Tournaments {

@@ -8,7 +8,7 @@ import "ultigamecast/view/util"
 import "ultigamecast/view/icon"
 import "ultigamecast/view/component"
 
-templ Team(e echo.Context, team *modelspb.Teams) {
+templ Team(c echo.Context, team *modelspb.Teams) {
 	@layout.Root()
 	<div class="w-full flex flex-col">
 		<div class="w-full flex items-start gap-4 p-4">
@@ -29,7 +29,8 @@ templ Team(e echo.Context, team *modelspb.Teams) {
 						@icon.VerticalDots()
 					</div>
 					<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-						<li class="hidden"> // TODO: finish editing teams. Working with files is hard so don't wanna do it right now...
+						<li class="hidden">
+							// TODO: finish editing teams. Working with files is hard so don't wanna do it right now...
 							<a
 								hx-get={ util.JoinSlugsString("/team", team, "edit") }
 								hx-target="#modal_content"

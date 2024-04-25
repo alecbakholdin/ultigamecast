@@ -23,7 +23,7 @@ func main() {
 
 		teamRepo := repository.NewTeam(app.Dao())
 		playerRepo := repository.NewPlayer(app)
-		tournamentRepo := repository.NewTournament(app.Dao())
+		tournamentRepo := repository.NewTournament(app)
 		gameRepo := repository.NewGame(app)
 
 		teamHandler := handlers.NewTeam(teamRepo, playerRepo, tournamentRepo)

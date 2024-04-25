@@ -7,7 +7,7 @@ import (
 	"ultigamecast/modelspb/dto"
 	"ultigamecast/repository"
 	"ultigamecast/validation"
-	view "ultigamecast/view/team"
+	view "ultigamecast/view/team/tournaments/games"
 
 	"github.com/labstack/echo/v5"
 )
