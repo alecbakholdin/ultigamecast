@@ -21,7 +21,7 @@ func main() {
 
 		setup.RegisterDevParams(e)
 
-		teamRepo := repository.NewTeam(app.Dao())
+		teamRepo := repository.NewTeam(app)
 		playerRepo := repository.NewPlayer(app)
 		tournamentRepo := repository.NewTournament(app)
 		liveGameRepo := repository.NewLiveGame()

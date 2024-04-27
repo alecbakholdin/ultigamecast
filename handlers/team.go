@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"io"
 	"net/http"
 	"ultigamecast/modelspb"
 	"ultigamecast/repository"
@@ -28,7 +29,7 @@ func NewTeam(t *repository.Team, p *repository.Player, to *repository.Tournament
 	}
 }
 
-func (t *Team) Routes(g *echo.Group) (*echo.Group) {
+func (t *Team) Routes(g *echo.Group) *echo.Group {
 	group := g.Group("/team/:teamSlug")
 	group.GET("", t.getTeam)
 
@@ -40,6 +41,7 @@ func (t *Team) Routes(g *echo.Group) (*echo.Group) {
 			return next(c)
 		}
 	})
+	group.GET("/logo", t.getLogo)
 	return group
 }
 
@@ -55,4 +57,14 @@ func (t *Team) getTeam(c echo.Context) (err error) {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, unexpectedErrorMessage)
 	}
 	return view.Team(c, team).Render(c.Request().Context(), c.Response().Writer)
+}
+
+func (t *Team) getLogo(c echo.Context) (err error) {
+	teamSlug := c.PathParam("teamSlug")
+	if reader, err := t.TeamRepo.GetLogo(teamSlug); err != nil {
+		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "error fetching logo")
+	} else if _, err := io.Copy(c.Response(), reader); err != nil {
+		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "error fetching logo")
+	}
+	return
 }

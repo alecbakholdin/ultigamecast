@@ -2,23 +2,41 @@ package game
 
 import "ultigamecast/modelspb/dto"
 import "strconv"
+import "github.com/labstack/echo/v5"
+import "ultigamecast/view/util"
 
-templ GameScore(game dto.Games) {
-	<div class="flex items-center gap-2" sse-swap="score">
-		@GameTeamScore(game)
-		-
-		@GameOpponentScore(game)
+templ GameScore(c echo.Context, game dto.Games) {
+	<div class="max-w-screen-sm mx-auto pt-8 flex flex-col items-center">
+		<div class="w-full grid grid-cols-[1fr_auto_1fr] gap-2" sse-swap="score">
+			<div class="w-full flex justify-end items-center gap-1">
+				<div class="flex flex-col items-center">
+					<img src={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "logo") } class="w-20 h-20"/>
+				</div>
+				@GameTeamScore(game)
+			</div>
+			<span class="place-self-center">:</span>
+			<div class="flex items-center gap-1">
+				@GameOpponentScore(game)
+				<div class="flex flex-col items-center">
+					<img src={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "logo") } class="w-20 h-20"/>
+				</div>
+			</div>
+		</div>
 	</div>
 }
 
 templ GameTeamScore(game dto.Games) {
-	<div sse-swap="team_score">
+	<span sse-swap="team_score" class="w-12 font-bold text-3xl place-self-end text-right [&.htmx-added]:text-success transition-all duration-1000">
 		{ strconv.Itoa(game.GameTeamScore) }
-	</div>
+	</span>
 }
 
 templ GameOpponentScore(game dto.Games) {
-	<div sse-swap="opponent_score">
+	<div sse-swap="opponent_score" class="w-12 font-bold text-3xl place-self-start [&.htmx-added]:text-error transition-all duration-1000">
 		{ strconv.Itoa(game.GameOpponentScore) }
 	</div>
+}
+
+templ OpponentTitle(game dto.Games) {
+	<div sse-swap="opponent" class=""></div>
 }

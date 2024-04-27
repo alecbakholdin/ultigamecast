@@ -39,7 +39,7 @@ func (g *GameDetails) getGame(c echo.Context) (err error) {
 	} else if err != nil {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "Unexpected error")
 	} else {
-		return gameview.GameRoot(*dto.DtoFromGame(c, game)).Render(c.Request().Context(), c.Response())
+		return gameview.GameRoot(c, *dto.DtoFromGame(c, game)).Render(c.Request().Context(), c.Response())
 	}
 }
 

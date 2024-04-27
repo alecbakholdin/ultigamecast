@@ -74,9 +74,7 @@ templ GameForm(c echo.Context, isNew bool, data dto.Games) {
 						inputmode="numeric"
 						class="input input-bordered"
 						name="team_score"
-						placeholder=""
 						value={ strconv.Itoa(data.GameTeamScore) }
-						min="0"
 					/>
 				}
 				@component.InputWrapperLabel(c, "opponent_score", "game_dialog_opponent_score", "Opponent Score") {
@@ -86,9 +84,7 @@ templ GameForm(c echo.Context, isNew bool, data dto.Games) {
 						inputmode="numeric"
 						class="input input-bordered"
 						name="opponent_score"
-						placeholder=""
 						value={ strconv.Itoa(data.GameOpponentScore) }
-						min="0"
 					/>
 				}
 			</div>
