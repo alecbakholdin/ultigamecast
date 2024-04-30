@@ -3,7 +3,6 @@ package repository
 import (
 	"fmt"
 	"strings"
-	"ultigamecast/modelspb"
 	"ultigamecast/pbmodels"
 
 	"github.com/pocketbase/dbx"
@@ -24,14 +23,6 @@ func NewTeam(app core.App) *Team {
 		app:        app,
 		dao:        app.Dao(),
 		collection: mustGetCollection(app.Dao(), "teams"),
-	}
-}
-
-func (t *Team) GetOneBySlug(slug string) (*modelspb.Teams, error) {
-	if record, err := t.dao.FindFirstRecordByData(t.collection.Id, "slug", slug); err != nil {
-		return nil, err
-	} else {
-		return toTeam(record), nil
 	}
 }
 
@@ -60,11 +51,5 @@ func (t *Team) GetLogo(slug string) (*blob.Reader, error) {
 		return nil, err
 	} else {
 		return reader, nil
-	}
-}
-
-func toTeam(record *models.Record) *modelspb.Teams {
-	return &modelspb.Teams{
-		Record: record,
 	}
 }
