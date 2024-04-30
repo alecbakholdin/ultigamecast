@@ -71,7 +71,7 @@ type TeamData struct {
 templ EditTeamDialogContent(c echo.Context, team pbmodels.Teams) {
 	<div id="team_dialog_content">
 		<form
-			hx-put={ util.JoinSlugsString("/team", c.PathParam("teamSlug")) }
+			hx-put={ util.JoinSlugsString("/team", c.PathParam("teamsSlug")) }
 			hx-target="this"
 			hx-swap="outerHTML"
 			enctype="multipart/form-data"

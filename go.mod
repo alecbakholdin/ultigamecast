@@ -3,13 +3,17 @@ module ultigamecast
 go 1.22.2
 
 require (
+	github.com/a-h/templ v0.2.663
+	github.com/google/uuid v1.6.0
 	github.com/labstack/echo/v5 v5.0.0-20230722203903-ec5b858dab61
+	github.com/pocketbase/dbx v1.10.1
 	github.com/pocketbase/pocketbase v0.22.9
+	github.com/spf13/cobra v1.8.0
+	gocloud.dev v0.37.0
 )
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7 // indirect
-	github.com/a-h/templ v0.2.663 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.26.1 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.2 // indirect
@@ -37,33 +41,25 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/ganigeorgiev/fexpr v0.4.0 // indirect
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0 // indirect
-	github.com/go-playground/locales v0.14.1 // indirect
-	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator v9.31.0+incompatible // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.3 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
-	github.com/pocketbase/dbx v1.10.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/spf13/cast v1.6.0 // indirect
-	github.com/spf13/cobra v1.8.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	gocloud.dev v0.37.0 // indirect
 	golang.org/x/crypto v0.22.0 // indirect
 	golang.org/x/image v0.15.0 // indirect
 	golang.org/x/net v0.24.0 // indirect

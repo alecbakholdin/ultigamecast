@@ -1,13 +1,13 @@
 package view
 
-import "ultigamecast/modelspb"
 import "github.com/labstack/echo/v5"
 import "ultigamecast/view/util"
 import "fmt"
 import "ultigamecast/view/icon"
+import "ultigamecast/pbmodels"
 import games "ultigamecast/view/team/tournaments/games"
 
-templ TeamTournaments(c echo.Context, teamSlug string, tournaments []*modelspb.TournamentWithGames) {
+templ TeamTournaments(c echo.Context, teamSlug string, tournaments []*pbmodels.TournamentsWithGames) {
 	<div role="tablist" class="tabs tabs-bordered" aria-controls="tab-content">
 		<button hx-get={ string(util.JoinSlugs("/team", teamSlug, "tournaments")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab tab-active">Tournaments</button>
 		<button hx-get={ string(util.JoinSlugs("/team", teamSlug, "roster")) } role="tab" aria-controls="tab-content" aria-selected="false" class="tab">Roster</button>
@@ -15,14 +15,14 @@ templ TeamTournaments(c echo.Context, teamSlug string, tournaments []*modelspb.T
 	@tournamentList(c, teamSlug, tournaments)
 }
 
-templ tournamentList(c echo.Context, teamSlug string, tournaments []*modelspb.TournamentWithGames) {
+templ tournamentList(c echo.Context, teamSlug string, tournaments []*pbmodels.TournamentsWithGames) {
 	<div class="mx-auto max-w-screen-lg px-8 py-4 mt-4 relative">
 		<div id="tournament_list_wrapper" class="relative">
 			<div class="bg-primary w-1 h-full absolute left-0 top-0 -translate-x-1/2"></div>
 			<ul id="tournament_list">
 				for _, t := range tournaments {
 					@tournamentRow(teamSlug, t.Tournament)
-					@games.TournamentGameList(teamSlug, t.Tournament.GetSlug(), t.Games)
+					@games.TournamentGameList(teamSlug, t.Tournament.Slug, t.Games)
 				}
 			</ul>
 			<div class="absolute -left-4 -top-1">
@@ -46,35 +46,35 @@ templ tournamentList(c echo.Context, teamSlug string, tournaments []*modelspb.To
 	</div>
 }
 
-templ tournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
-	<li id={ fmt.Sprintf("tournament_%s", tournament.Record.GetId()) } class="first:pt-8">
+templ tournamentRow(teamSlug string, tournament *pbmodels.Tournaments) {
+	<li id={ fmt.Sprintf("tournament_%s", tournament.Id) } class="first:pt-8">
 		<div class="p-4 relative">
 			<div class="h-4 w-4 rounded-full bg-white border-4 border-primary absolute left-0 -translate-x-1/2 top-6"></div>
 			<div class="flex justify-between">
 				<div class="flex flex-col gap-1">
-					<h3 class="font-bold text-lg">{ tournament.GetName() }</h3>
-					if !tournament.GetStart().IsZero() || !tournament.GetEnd().IsZero() {
+					<h3 class="font-bold text-lg">{ tournament.Name }</h3>
+					if !tournament.Start.IsZero() || !tournament.End.IsZero() {
 						<div class="flex items-center gap-2 text-gray-400">
 							@icon.Date()
 							<div class="gap-1">
-								if tournament.GetStart().IsZero() {
+								if tournament.Start.IsZero() {
 									<span>?</span>
 								} else {
-									<span>{ tournament.GetStart().Time().Format("Jan 2, 06") }</span>
+									<span>{ tournament.GetStartStr("Jan 2, 06") }</span>
 								}
 								<span>-</span>
-								if tournament.GetEnd().IsZero() {
+								if tournament.End.IsZero() {
 									<span>?</span>
 								} else {
-									<span>{ tournament.GetEnd().Time().Format("Jan 2, 06") }</span>
+									<span>{ tournament.GetEndStr("Jan 2, 06") }</span>
 								}
 							</div>
 						</div>
 					}
-					if tournament.GetLocation() != "" {
+					if tournament.Location != "" {
 						<div class="flex items-center gap-2 text-gray-400">
 							@icon.Location()
-							<span>{ tournament.GetLocation() }</span>
+							<span>{ tournament.Location }</span>
 						</div>
 					}
 				</div>
@@ -86,7 +86,7 @@ templ tournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
 						<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
 							<li>
 								<a
-									hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournament.GetSlug(), "newGame") }
+									hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournament.Slug, "newGame") }
 									hx-target="#modal_content"
 									hx-swap="innerHTML"
 								>
@@ -96,7 +96,7 @@ templ tournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
 							</li>
 							<li>
 								<a
-									hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournament.GetSlug(), "edit") }
+									hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournament.Slug, "edit") }
 									hx-target="#modal_content"
 									hx-swap="innerHTML"
 								>
@@ -105,7 +105,7 @@ templ tournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
 								</a>
 							</li>
 							<li>
-								<a role="button" onclick={ showDeleteModal(tournament.Record.GetId()) }>
+								<a role="button" onclick={ showDeleteModal(tournament.Id) }>
 									@icon.TrashCan()
 									Delete
 								</a>
@@ -115,17 +115,17 @@ templ tournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
 				</div>
 			</div>
 		</div>
-		<dialog class="modal" id={ deleteModalId(tournament.Record.GetId()) }>
+		<dialog class="modal" id={ deleteModalId(tournament.Id) }>
 			<div class="modal-box">
 				<h3 class="font-bold text-xl">Are you sure?</h3>
-				<p class="text-sm py-2">Are you sure you want to delete <span class="text-primary">{ tournament.GetName() }</span>? This will remove all data associated with this tournament, including statistics and games. This cannot be undone.</p>
+				<p class="text-sm py-2">Are you sure you want to delete <span class="text-primary">{ tournament.Name }</span>? This will remove all data associated with this tournament, including statistics and games. This cannot be undone.</p>
 				<div class="modal-action">
 					<form method="dialog"><button class="btn">Cancel</button></form>
 					<button
 						class="btn btn-primary"
-						hx-delete={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournament.GetSlug()) }
+						hx-delete={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournament.Slug) }
 						hx-disabled-elt="this"
-						hx-on::beforeSwap={ closeDeleteModal(tournament.Record.GetId()) }
+						hx-on::beforeSwap={ closeDeleteModal(tournament.Id) }
 						hx-target="closest li"
 					>
 						Confirm
@@ -150,14 +150,14 @@ func deleteModalId(tournamentId string) string {
 	return fmt.Sprintf("delete_tournament_%s", tournamentId)
 }
 
-templ NewTournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
+templ NewTournamentRow(teamSlug string, tournament *pbmodels.Tournaments) {
 	<div hx-swap-oob="afterbegin:#tournament_list">
 		@tournamentRow(teamSlug, tournament)
 	</div>
 }
 
-templ EditedTournamentRow(teamSlug string, tournament *modelspb.Tournaments) {
-	<div hx-swap-oob={ fmt.Sprintf("outerHTML:#tournament_%s", tournament.Record.GetId()) }>
+templ EditedTournamentRow(teamSlug string, tournament *pbmodels.Tournaments) {
+	<div hx-swap-oob={ fmt.Sprintf("outerHTML:#tournament_%s", tournament.Id) }>
 		@tournamentRow(teamSlug, tournament)
 	</div>
 }

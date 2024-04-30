@@ -3,8 +3,8 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"ultigamecast/modelspb"
 	"ultigamecast/modelspb/dto"
+	"ultigamecast/pbmodels"
 	"ultigamecast/repository"
 	"ultigamecast/validation"
 	view "ultigamecast/view/team/tournaments/games"
@@ -40,14 +40,14 @@ func (g *Games) Routes(tournamentGroup *echo.Group) *echo.Group {
 			return next(c)
 		}
 	})
-	gameGroup.GET("/edit", g.getEditGameModal);
-	gameGroup.PUT("", g.updateGame);
+	gameGroup.GET("/edit", g.getEditGameModal)
+	gameGroup.PUT("", g.updateGame)
 	return gameGroup
 }
 
 func (g *Games) getGames(c echo.Context) (err error) {
-	teamSlug := c.PathParam("teamSlug")
-	tournamentSlug := c.PathParam("tournamentSlug")
+	teamSlug := c.PathParam("teamsSlug")
+	tournamentSlug := c.PathParam("tournamentsSlug")
 
 	if games, err := g.gameRepo.GetAllByTeamAndTournamentSlugs(teamSlug, tournamentSlug); err != nil {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "could not get tournament games")
@@ -75,14 +75,14 @@ func (g *Games) getEditGameModal(c echo.Context) (err error) {
 func (g *Games) createGame(c echo.Context) (err error) {
 	var (
 		payload    dto.Games
-		tournament *modelspb.Tournaments
+		tournament *pbmodels.Tournaments
 	)
 	if err = dto.BindGameDto(c, &payload); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error binding game dto: %s", err))
 		return err
 	}
 
-	if tournament, err = g.touramentRepo.GetOneBySlug(payload.TeamSlug, payload.TournamentSlug); err != nil {
+	if _, err := g.touramentRepo.GetOneBySlug(payload.TeamSlug, payload.TournamentSlug); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error finding tournament [%s, %s]: %s", payload.TeamSlug, payload.TournamentSlug, err))
 		validation.AddFormErrorString(c, "could not find associated tournament")
 	}
@@ -100,9 +100,9 @@ func (g *Games) createGame(c echo.Context) (err error) {
 	return view.GameForm(c, true, payload).Render(c.Request().Context(), c.Response().Writer)
 }
 
-func (g *Games) updateGame(c echo.Context) (err error){ 
+func (g *Games) updateGame(c echo.Context) (err error) {
 	var (
-		payload    dto.Games
+		payload dto.Games
 	)
 	if err = dto.BindGameDto(c, &payload); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error binding game dto: %s", err))

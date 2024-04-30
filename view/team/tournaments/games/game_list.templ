@@ -1,15 +1,15 @@
 package view
 
 import "fmt"
-import "ultigamecast/modelspb"
 import "ultigamecast/view/icon"
 import "ultigamecast/view/util"
 import "ultigamecast/view/component"
 import "strconv"
 import "github.com/pocketbase/pocketbase/tools/types"
 import "time"
+import "ultigamecast/pbmodels"
 
-templ TournamentGameList(teamSlug string, tournamentSlug string, games []*modelspb.Games) {
+templ TournamentGameList(teamSlug string, tournamentSlug string, games []*pbmodels.Games) {
 	<div
 		id={ fmt.Sprintf("tournament_%s_game_list", tournamentSlug) }
 		hx-trigger={ fmt.Sprintf("refreshgames-%s from:body", tournamentSlug) }
@@ -31,28 +31,28 @@ func formatTime(dt types.DateTime, format string) string {
 	return dt.Time().In(loc).Format(format)
 }
 
-templ TournamentGameRow(teamSlug string, tournamentSlug string, game *modelspb.Games) {
-	<div class="p-4 relative" id={ fmt.Sprintf("tournament_game_%s", game.Record.GetId()) }>
+templ TournamentGameRow(teamSlug string, tournamentSlug string, game *pbmodels.Games) {
+	<div class="p-4 relative" id={ fmt.Sprintf("tournament_game_%s", game.Id) }>
 		<div class="h-2 w-2 rounded-full bg-primary absolute left-0 -translate-x-1/2 top-6"></div>
 		<div class="flex w-full">
 			<div class="flex-grow flex flex-col gap-1">
 				<span class="font-semibold flex items-center gap-2">
 					@gameStatus(game)
-					vs. { game.GetOpponent() }
-					<a href={ util.JoinSlugs("/team", teamSlug, "tournaments", tournamentSlug, "games", game.Record.GetId()) }>
+					vs. { game.Opponent }
+					<a href={ util.JoinSlugs("/team", teamSlug, "tournaments", tournamentSlug, "games", game.GetId()) }>
 						@icon.ExternalLink()
 					</a>
 				</span>
-				@component.IconBlurbConditional(icon.Clock(), !game.GetStartTime().IsZero()) {
-					<span>{ formatTime(game.GetStartTime(), "Jan 2, 3:04 PM") }</span>
+				@component.IconBlurbConditional(icon.Clock(), !game.StartTime.IsZero()) {
+					<span>{ formatTime(game.StartTime, "Jan 2, 3:04 PM") }</span>
 				}
-				if game.GetTempF() != 0 || game.GetWindMph() != 0 {
+				if game.TempF != 0 || game.WindMph != 0 {
 					<div class="flex items-center gap-4">
-						@component.IconBlurbConditional(icon.Thermometer(), game.GetTempF() != 0) {
-							{ strconv.Itoa(game.GetTempF()) } &degF
+						@component.IconBlurbConditional(icon.Thermometer(), game.TempF != 0) {
+							{ fmt.Sprintf("%.1", game.TempF) } &degF
 						}
-						@component.IconBlurbConditional(icon.Wind(), game.GetWindMph() != 0) {
-							{ strconv.Itoa(game.GetWindMph()) } mph
+						@component.IconBlurbConditional(icon.Wind(), game.WindMph != 0) {
+							{ fmt.Sprintf("%.1", game.WindMph) } mph
 						}
 					</div>
 				}
@@ -64,7 +64,7 @@ templ TournamentGameRow(teamSlug string, tournamentSlug string, game *modelspb.G
 				<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
 					<li>
 						<a
-							hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournamentSlug, "games", game.Record.GetId(), "edit") }
+							hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournamentSlug, "games", game.GetId(), "edit") }
 							hx-target="#modal_content"
 							hx-swap="innerHTML"
 						>
@@ -78,22 +78,22 @@ templ TournamentGameRow(teamSlug string, tournamentSlug string, game *modelspb.G
 	</div>
 }
 
-templ gameStatus(game *modelspb.Games) {
-	if game.GetStatus() == "completed" && game.GetTeamScore() > game.GetOpponentScore() {
+templ gameStatus(game *pbmodels.Games) {
+	if game.Status == "completed" && game.TeamScore > game.OpponentScore {
 		<div class="badge badge-outline badge-success">
 			Win
-			{ strconv.Itoa(game.GetTeamScore()) } - { strconv.Itoa(game.GetOpponentScore()) }
+			{ strconv.Itoa(game.TeamScore) } - { strconv.Itoa(game.OpponentScore) }
 		</div>
-	} else if game.GetStatus() == "completed" && game.GetTeamScore() < game.GetOpponentScore() {
+	} else if game.Status == "completed" && game.TeamScore < game.OpponentScore {
 		<div class="badge badge-outline badge-error">
 			Loss
-			{ strconv.Itoa(game.GetTeamScore()) } - { strconv.Itoa(game.GetOpponentScore()) }
+			{ strconv.Itoa(game.TeamScore) } - { strconv.Itoa(game.OpponentScore) }
 		</div>
-	} else if game.GetStatus() == "live" {
+	} else if game.Status == "live" {
 		<div class="badge badge-outline badge-error flex items-center gap-1">
 			<div class="mt-[1px] w-2 h-2 bg-error rounded-full animate-pulse"></div>
 			Live
-			{ strconv.Itoa(game.GetTeamScore()) } - { strconv.Itoa(game.GetOpponentScore()) }
+			{ strconv.Itoa(game.TeamScore) } - { strconv.Itoa(game.OpponentScore) }
 		</div>
 	} else {
 		<div class="badge badge-outline">

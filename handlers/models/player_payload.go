@@ -8,7 +8,7 @@ import (
 )
 
 type PlayerPayload struct {
-	TeamSlug string `param:"teamSlug"`
+	TeamSlug string `param:"teamsSlug"`
 	PlayerID string `param:"playerId"`
 	Name     string `form:"name"`
 	Order    int    `form:"order"`

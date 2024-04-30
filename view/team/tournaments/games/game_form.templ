@@ -29,9 +29,9 @@ templ GameForm(c echo.Context, isNew bool, data dto.Games) {
 	<form
 		id="game_dialog_form"
 		if isNew {
-			hx-post={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "tournaments", c.PathParam("tournamentSlug"), "games") }
+			hx-post={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "tournaments", c.PathParam("tournamentsSlug"), "games") }
 		} else {
-			hx-put={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "tournaments", c.PathParam("tournamentSlug"), "games", data.GameID) }
+			hx-put={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "tournaments", c.PathParam("tournamentsSlug"), "games", data.GameID) }
 		}
 		hx-boost="true"
 		hx-swap="outerHTML"

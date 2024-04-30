@@ -30,12 +30,12 @@ func NewTeam(t *repository.Team, p *repository.Player, to *repository.Tournament
 }
 
 func (t *Team) Routes(g *echo.Group) *echo.Group {
-	group := g.Group("/team/:teamSlug")
+	group := g.Group("/team/:teamsSlug")
 	group.GET("", t.getTeam)
 
 	group.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if c.PathParam("teamSlug") == "" {
+			if c.PathParam("teamsSlug") == "" {
 				return echo.NewHTTPError(http.StatusBadRequest, "No team provided in request")
 			}
 			return next(c)
@@ -48,7 +48,7 @@ func (t *Team) Routes(g *echo.Group) *echo.Group {
 func (t *Team) getTeam(c echo.Context) (err error) {
 	var (
 		team     *pbmodels.Teams
-		teamSlug = c.PathParam("teamSlug")
+		teamSlug = c.PathParam("teamsSlug")
 	)
 
 	if team, err = t.TeamRepo.FindOneBySlug(teamSlug); repository.IsNotFound(err) {
@@ -60,7 +60,7 @@ func (t *Team) getTeam(c echo.Context) (err error) {
 }
 
 func (t *Team) getLogo(c echo.Context) (err error) {
-	teamSlug := c.PathParam("teamSlug")
+	teamSlug := c.PathParam("teamsSlug")
 	if reader, err := t.TeamRepo.GetLogo(teamSlug); err != nil {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "error fetching logo")
 	} else if _, err := io.Copy(c.Response(), reader); err != nil {

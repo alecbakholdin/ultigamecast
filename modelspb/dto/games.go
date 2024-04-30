@@ -10,8 +10,8 @@ import (
 )
 
 type Games struct {
-	TeamSlug          string `param:"teamSlug"`
-	TournamentSlug    string `param:"tournamentSlug"`
+	TeamSlug          string `param:"teamsSlug"`
+	TournamentSlug    string `param:"tournamentsSlug"`
 	GameID            string `param:"gameId"`
 	GameOpponent      string `form:"opponent"`
 	GameTeamScore     int    `form:"team_score"`
@@ -50,8 +50,8 @@ func BindGameDto(c echo.Context, dto *Games) (err error) {
 func DtoFromGame(c echo.Context, game *modelspb.Games) *Games {
 	return &Games{
 		GameID:            game.Record.GetId(),
-		TeamSlug:          c.PathParam("teamSlug"),
-		TournamentSlug:    c.PathParam("tournamentSlug"),
+		TeamSlug:          c.PathParam("teamsSlug"),
+		TournamentSlug:    c.PathParam("tournamentsSlug"),
 		GameOpponent:      game.GetOpponent(),
 		GameTeamScore:     game.GetTeamScore(),
 		GameOpponentScore: game.GetOpponentScore(),

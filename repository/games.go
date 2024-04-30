@@ -5,6 +5,7 @@ import (
 	"strings"
 	"ultigamecast/modelspb"
 	"ultigamecast/modelspb/dto"
+	"ultigamecast/pbmodels"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -49,10 +50,25 @@ func (g *Game) GetOneById(id string) (*modelspb.Games, error) {
 	}
 }
 
-func (g *Game) Create(tournament *modelspb.Tournaments, gameDto *dto.Games) (*modelspb.Games, error) {
+func (g *Game) GetAllForTeamBySlug(teamSlug string) ([]*pbmodels.Games, error) {
+	q := g.gameQuery()
+	q.InnerJoin("tournaments", dbx.NewExp("tournaments.id = games.tournament"))
+	q.InnerJoin("teams", dbx.NewExp("teams.id = tournaments.team"))
+	q.Where(dbx.HashExp{"teams.slug": strings.ToLower(teamSlug)})
+	q.OrderBy("start DESC")
+	
+	games := make([]*pbmodels.Games, 0)
+	if err := q.All(&games); err != nil {
+		return nil, err
+	}
+	return games, nil
+}
+
+func (g *Game) Create(tournament *pbmodels.Tournaments, gameDto *dto.Games) (*modelspb.Games, error) {
+
 	game := toGame(models.NewRecord(g.collection))
 
-	game.SetTournament(tournament.Record.GetId())
+	game.SetTournament(tournament.Id)
 	game.SetOpponent(gameDto.GameOpponent)
 	game.SetTeamScore(gameDto.GameTeamScore)
 	game.SetOpponentScore(gameDto.GameOpponentScore)
@@ -98,22 +114,24 @@ func (g *Game) UpdateField(id string, field string, value any) (err error) {
 	return nil
 }
 
-func (g *Game) GetAllByTeamAndTournamentSlugs(teamSlug string, tournamentSlug string) ([]*modelspb.Games, error) {
-	records, err := g.dao.FindRecordsByFilter(
-		g.collection.Id,
-		"tournament.slug = {:tournamentSlug} && tournament.team.slug = {:teamSlug}",
-		"+start_time",
-		0,
-		0,
-		dbx.Params{
-			"teamSlug":       strings.ToLower(teamSlug),
-			"tournamentSlug": strings.ToLower(tournamentSlug),
-		},
-	)
+func (g *Game) GetAllByTeamAndTournamentSlugs(teamSlug string, tournamentSlug string) ([]*pbmodels.Games, error) {
+	games := make([]*pbmodels.Games, 0)
+	err := g.gameQuery().InnerJoin(
+		"tournaments", dbx.NewExp("tournaments.id = games.tournament"),
+	).InnerJoin(
+		"teams", dbx.NewExp("tournaments.team = teams.id"),
+	).Where(dbx.HashExp{
+		"teams.slug":       strings.ToLower(teamSlug),
+		"tournaments.slug": strings.ToLower(tournamentSlug),
+	}).All(&games)
 	if err != nil {
-		return []*modelspb.Games{}, err
+		return nil, err
 	}
-	return toArr(records, toGame), nil
+	return games, nil
+}
+
+func (g *Game) gameQuery() *dbx.SelectQuery {
+	return g.dao.ModelQuery(&pbmodels.Games{})
 }
 
 func toGame(record *models.Record) *modelspb.Games {

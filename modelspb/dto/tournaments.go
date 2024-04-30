@@ -11,8 +11,8 @@ import (
 )
 
 type Tournament struct {
-	TeamSlug          string `param:"teamSlug"`
-	TournamentSlug    string `param:"tournamentSlug"`
+	TeamSlug          string `param:"teamsSlug"`
+	TournamentSlug    string `param:"tournamentsSlug"`
 	TournamentSlugNew string
 	Name              string `form:"name"`
 	Start             string `form:"start"`

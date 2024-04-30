@@ -10,7 +10,7 @@ templ GameScore(c echo.Context, game dto.Games) {
 		<div class="w-full grid grid-cols-[1fr_auto_1fr] gap-2" sse-swap="score">
 			<div class="w-full flex justify-end items-center gap-1">
 				<div class="flex flex-col items-center">
-					<img src={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "logo") } class="w-20 h-20"/>
+					<img src={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "logo") } class="w-20 h-20"/>
 				</div>
 				@GameTeamScore(game)
 			</div>
@@ -18,7 +18,7 @@ templ GameScore(c echo.Context, game dto.Games) {
 			<div class="flex items-center gap-1">
 				@GameOpponentScore(game)
 				<div class="flex flex-col items-center">
-					<img src={ util.JoinSlugsString("/team", c.PathParam("teamSlug"), "logo") } class="w-20 h-20"/>
+					<img src={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "logo") } class="w-20 h-20"/>
 				</div>
 			</div>
 		</div>

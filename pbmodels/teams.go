@@ -8,11 +8,11 @@ import (
 type Teams struct {
 	models.BaseModel
 
-	Slug         string `json:"slug" param:"teamsSlug" db:"slug"`
-	Managers     string `db:"managers" json:"managers" form:"managers"`
-	Logo         string `json:"logo" form:"logo" db:"logo"`
-	Organization string `db:"organization" json:"organization" form:"organization"`
-	Name         string `db:"name" json:"name" form:"name"`
+	Name         string `json:"name" form:"name" db:"name"`
+	Slug         string `db:"slug" json:"slug" param:"teamsSlug"`
+	Managers     string `json:"managers" form:"managers" db:"managers"`
+	Logo         string `db:"logo" json:"logo" form:"logo"`
+	Organization string `json:"organization" form:"organization" db:"organization"`
 }
 
 func (m *Teams) TableName() string {

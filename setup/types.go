@@ -38,6 +38,7 @@ type CollectionData struct {
 	Fields       []*CollectionField
 	Enums        []*CollectionEnum
 	Files        []*CollectionFile
+	Dates        []*CollectionField
 	IncludesDate bool
 }
 
@@ -66,6 +67,7 @@ func processCollection(c *models.Collection) {
 		Fields: make([]*CollectionField, 0),
 		Enums:  make([]*CollectionEnum, 0),
 		Files:  make([]*CollectionFile, 0),
+		Dates:  make([]*CollectionField, 0),
 	}
 	for _, fieldSchema := range c.Schema.AsMap() {
 		if f := getCollectionField(&data, fieldSchema, c); f != nil {
@@ -132,6 +134,7 @@ func getCollectionField(c *CollectionData, f *schema.SchemaField, pbc *models.Co
 					"json": fmt.Sprintf("%s_datetime", cf.DbName),
 				},
 			})
+		c.Dates = append(c.Dates, &cf)
 		c.IncludesDate = true
 	case "relation":
 		cf.GoType = "string"
@@ -184,6 +187,7 @@ func writeCollectionToFile(c *CollectionData) {
 	file := mustGetCollectionFile(c)
 	defer file.Close()
 	writer := bufio.NewWriter(file)
+	defer writer.Flush()
 	imports := defaultImports
 	if c.IncludesDate {
 		imports = append(imports, pbTypesImport)
@@ -217,7 +221,7 @@ func writeCollectionToFile(c *CollectionData) {
 			return len(a) - len(b)
 		}))
 		for _, val := range enum.Values {
-			writer.WriteString(fmt.Sprintf("\t%s%s %s = \"%s\"\n", enum.Name, padToLength(formatEnumValForType(val), enumValLen - 1), enum.Name, val))
+			writer.WriteString(fmt.Sprintf("\t%s%s %s = \"%s\"\n", enum.Name, padToLength(formatEnumValForType(val), enumValLen-1), enum.Name, val))
 		}
 		writer.WriteString(")\n\n")
 	}
@@ -237,7 +241,28 @@ func writeCollectionToFile(c *CollectionData) {
 
 `, c.GoName, file.GoFieldName, file.GoFieldName, file.BaseFilepath, file.GoFieldName))
 	}
-	writer.Flush()
+
+	for _, dateField := range c.Dates {
+		writer.WriteString(fmt.Sprintf(`func (m *%s) Get%sStr(format string) string {
+	if dt, err := m.Get%sDt(); err != nil || dt.IsZero() {
+		return ""
+	} else {
+		return dt.Time().Format(format)
+	}
+}
+
+func (m *%s) Get%sDt() (types.DateTime, error) {
+	if m.%sDatetime != "" && m.%sTimezone != "" {
+		return types.ParseDateTime(m.%sDatetime + ":00" + m.%sTimezone)
+	} else if m.%sDatetime != "" {
+		return types.ParseDateTime(m.%sDatetime + ":00")
+	} else {
+		return m.%s, nil
+	}
+}
+
+`, c.GoName, dateField.GoName, dateField.GoName, c.GoName, dateField.GoName, dateField.GoName, dateField.GoName, dateField.GoName, dateField.GoName, dateField.GoName, dateField.GoName, dateField.GoName))
+	}
 }
 
 func padToLength(s string, targetLen int) string {

@@ -5,6 +5,7 @@ import (
 	"os"
 	"ultigamecast/handlers"
 	"ultigamecast/repository"
+	"ultigamecast/service"
 	"ultigamecast/setup"
 
 	"github.com/pocketbase/pocketbase"
@@ -28,8 +29,10 @@ func main() {
 		liveGameRepo := repository.NewLiveGame()
 		gameRepo := repository.NewGame(app, liveGameRepo)
 
+		tournamentsService := service.NewTournaments(tournamentRepo, gameRepo, teamRepo)
+
 		teamHandler := handlers.NewTeam(teamRepo, playerRepo, tournamentRepo)
-		tournamentHandler := handlers.NewTournaments(tournamentRepo, teamRepo)
+		tournamentHandler := handlers.NewTournaments(tournamentsService, tournamentRepo, gameRepo, teamRepo)
 		rosterHandler := handlers.NewRoster(playerRepo, teamRepo)
 		gameHandler := handlers.NewGames(teamRepo, tournamentRepo, gameRepo)
 		gameDetailsHandler := handlers.NewGameDetails(gameRepo, liveGameRepo)

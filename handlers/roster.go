@@ -51,7 +51,7 @@ func (r *Roster) Routes(g *echo.Group) *echo.Group {
 }
 
 func (r *Roster) getManageRoster(c echo.Context) (err error) {
-	teamSlug := c.PathParam("teamSlug")
+	teamSlug := c.PathParam("teamsSlug")
 
 	if players, err := r.PlayerRepo.GetAllByTeamSlug(teamSlug); err != nil {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "")
@@ -62,7 +62,7 @@ func (r *Roster) getManageRoster(c echo.Context) (err error) {
 }
 
 func (r *Roster) getPlayers(c echo.Context) (err error) {
-	teamSlug := c.PathParam("teamSlug")
+	teamSlug := c.PathParam("teamsSlug")
 
 	return view.TeamRoster(c, teamSlug).Render(c.Request().Context(), c.Response().Writer)
 }
@@ -94,7 +94,7 @@ func (r *Roster) getPlayerRow(c echo.Context) (err error) {
 
 func (r *Roster) getRosterTable(c echo.Context) (err error) {
 	var (
-		teamSlug        = c.PathParam("teamSlug")
+		teamSlug        = c.PathParam("teamsSlug")
 		summaryType     = c.QueryParamDefault("type", "team")
 		orderByField    = c.QueryParamDefault("orderby", "player_name")
 		direction       = c.QueryParamDefault("dir", "asc")
@@ -205,7 +205,7 @@ func (r *Roster) updateRosterOrder(c echo.Context) (err error) {
 		form      *multipart.Form
 		playerIds []string
 		players   []*modelspb.Players
-		teamSlug  = c.PathParam("teamSlug")
+		teamSlug  = c.PathParam("teamsSlug")
 		ok        bool
 	)
 	if form, err = c.MultipartForm(); err != nil {
