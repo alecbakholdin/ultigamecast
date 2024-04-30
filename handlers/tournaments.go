@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"ultigamecast/modelspb"
 	"ultigamecast/modelspb/dto"
+	"ultigamecast/pbmodels"
 	"ultigamecast/repository"
 	"ultigamecast/validation"
 	"ultigamecast/view/component"
@@ -62,7 +63,7 @@ func (t *Tournaments) getNewTournament(c echo.Context) (err error) {
 func (t *Tournaments) createNewTournament(c echo.Context) (err error) {
 	var (
 		payload    dto.Tournament
-		team       *modelspb.Teams
+		team       *pbmodels.Teams
 		tournament *modelspb.Tournaments
 	)
 	if err := dto.BindTournament(c, &payload); err != nil {
@@ -83,10 +84,10 @@ func (t *Tournaments) createNewTournament(c echo.Context) (err error) {
 		return nil
 	}
 
-	if team, err = t.TeamRepo.GetOneBySlug(payload.TeamSlug); err != nil {
+	if team, err = t.TeamRepo.FindOneBySlug(payload.TeamSlug); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error finding team %s: %s", payload.TeamSlug, err))
 		validation.AddFormErrorString(c, "unexpected error finding team")
-	} else if tournament, err = t.TournamentRepo.Create(team, payload.Name, payload.TournamentSlugNew, payload.StartDt, payload.EndDt, payload.Location); err != nil {
+	} else if tournament, err = t.TournamentRepo.Create(team.Id, payload.Name, payload.TournamentSlugNew, payload.StartDt, payload.EndDt, payload.Location); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error creating tournament"))
 		validation.AddFormErrorString(c, "unexpected error creating tournament")
 	} else {

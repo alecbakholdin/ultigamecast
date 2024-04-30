@@ -1,25 +1,25 @@
 package view
 
-import "ultigamecast/modelspb"
 import "ultigamecast/view/layout"
 import "strings"
 import "github.com/labstack/echo/v5"
 import "ultigamecast/view/util"
 import "ultigamecast/view/icon"
 import "ultigamecast/view/component"
+import "ultigamecast/pbmodels"
 
-templ Team(c echo.Context, team *modelspb.Teams) {
+templ Team(c echo.Context, team *pbmodels.Teams) {
 	@layout.Root()
 	<div class="w-full flex flex-col">
 		<div class="w-full flex items-start gap-4 p-4">
-			<img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/nba/500/gs.png&h=200&w=200" alt={ team.GetName() } class="row-span-full w-20 h-20"/>
+			<img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/nba/500/gs.png&h=200&w=200" alt={ team.Name } class="row-span-full w-20 h-20"/>
 			<div class="flex flex-col justify-between flex-grow">
 				<span class="text-3xl">
-					{ strings.ToUpper(team.GetName()) }
+					{ strings.ToUpper(team.Name) }
 				</span>
-				if team.GetOrganization() != "" {
+				if team.Organization != "" {
 					<span class="text-xl text-gray-400">
-						{ team.GetOrganization() }
+						{ team.Organization }
 					</span>
 				}
 			</div>
@@ -56,7 +56,7 @@ templ Team(c echo.Context, team *modelspb.Teams) {
 				</div>
 			</div>
 		</div>
-		<div hx-get={ string(util.JoinSlugs("/team", team, "tournaments")) } hx-trigger="load" hx-target="this" hx-swap="innerHTML"></div>
+		<div hx-get={ string(util.JoinSlugs("/team", team.Slug, "tournaments")) } hx-trigger="load" hx-target="this" hx-swap="innerHTML"></div>
 	</div>
 }
 
@@ -68,7 +68,7 @@ type TeamData struct {
 	TeamOrganization string
 }
 
-templ EditTeamDialogContent(c echo.Context, data TeamData) {
+templ EditTeamDialogContent(c echo.Context, team pbmodels.Teams) {
 	<div id="team_dialog_content">
 		<form
 			hx-put={ util.JoinSlugsString("/team", c.PathParam("teamSlug")) }
@@ -93,7 +93,7 @@ templ EditTeamDialogContent(c echo.Context, data TeamData) {
 					class="input input-bordered"
 					placeholder="Name"
 					name="name"
-					value={ data.TeamName }
+					value={ team.Name }
 				/>
 			}
 			@component.InputWrapperLabel(c, "slug", "team_dialog_slug", "URL") {
@@ -103,7 +103,7 @@ templ EditTeamDialogContent(c echo.Context, data TeamData) {
 					class="input input-bordered"
 					placeholder="URL"
 					name="slug"
-					value={ data.TeamSlug }
+					value={ team.Slug }
 				/>
 			}
 			@component.InputWrapperLabel(c, "organization", "team_dialog_organization", "Organization") {
@@ -113,7 +113,7 @@ templ EditTeamDialogContent(c echo.Context, data TeamData) {
 					class="input input-bordered"
 					placeholder="Organization"
 					name="organization"
-					value={ data.TeamOrganization }
+					value={ team.Organization }
 				/>
 			}
 		</form>

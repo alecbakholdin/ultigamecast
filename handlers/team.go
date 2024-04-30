@@ -3,7 +3,7 @@ package handlers
 import (
 	"io"
 	"net/http"
-	"ultigamecast/modelspb"
+	"ultigamecast/pbmodels"
 	"ultigamecast/repository"
 	view "ultigamecast/view/team"
 
@@ -47,11 +47,11 @@ func (t *Team) Routes(g *echo.Group) *echo.Group {
 
 func (t *Team) getTeam(c echo.Context) (err error) {
 	var (
-		team     *modelspb.Teams
+		team     *pbmodels.Teams
 		teamSlug = c.PathParam("teamSlug")
 	)
 
-	if team, err = t.TeamRepo.GetOneBySlug(teamSlug); repository.IsNotFound(err) {
+	if team, err = t.TeamRepo.FindOneBySlug(teamSlug); repository.IsNotFound(err) {
 		return echo.NewHTTPErrorWithInternal(http.StatusNotFound, err, teamNotFoundMessage)
 	} else if err != nil {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, unexpectedErrorMessage)

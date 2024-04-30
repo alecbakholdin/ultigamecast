@@ -10,6 +10,7 @@ import (
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/spf13/cobra"
 )
 
 func main() {
@@ -41,6 +42,13 @@ func main() {
 		gameDetailsHandler.Routes(gameGroup)
 
 		return nil
+	})
+
+	app.RootCmd.AddCommand(&cobra.Command{
+		Use: "types",
+		Run: func(cmd *cobra.Command, args []string) {
+			setup.CreateTypes(app)
+		},
 	})
 
 	if err := app.Start(); err != nil {

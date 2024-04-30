@@ -2,9 +2,11 @@ package repository
 
 import (
 	"fmt"
-	"path"
+	"strings"
 	"ultigamecast/modelspb"
+	"ultigamecast/pbmodels"
 
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/daos"
 	"github.com/pocketbase/pocketbase/models"
@@ -33,14 +35,28 @@ func (t *Team) GetOneBySlug(slug string) (*modelspb.Teams, error) {
 	}
 }
 
-func (t *Team) GetLogo(slug string) (*blob.Reader, error) {
-	if team, err := t.GetOneBySlug(slug); err != nil {
+func (t *Team) FindOneBySlug(slug string) (*pbmodels.Teams, error) {
+	team := &pbmodels.Teams{}
+	fmt.Println("slug", slug)
+	err := t.teamQuery().Where(dbx.HashExp{"slug": strings.ToLower(slug)}).Limit(1).One(team)
+	if err != nil {
 		return nil, err
-	} else if logo := team.GetLogo(); logo == "" {
+	}
+	return team, nil
+}
+
+func (t *Team) teamQuery() *dbx.SelectQuery {
+	return t.dao.ModelQuery(&pbmodels.Teams{})
+}
+
+func (t *Team) GetLogo(slug string) (*blob.Reader, error) {
+	if team, err := t.FindOneBySlug(slug); err != nil {
+		return nil, err
+	} else if logoPath := team.GetLogoPath(); logoPath == "" {
 		return nil, fmt.Errorf("logo doesnt exist")
 	} else if filesystem, err := t.app.NewFilesystem(); err != nil {
 		return nil, err
-	} else if reader, err := filesystem.GetFile(path.Join(team.Record.BaseFilesPath(), logo)); err != nil {
+	} else if reader, err := filesystem.GetFile(logoPath); err != nil {
 		return nil, err
 	} else {
 		return reader, nil

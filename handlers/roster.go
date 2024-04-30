@@ -143,10 +143,10 @@ func (r *Roster) createPlayer(c echo.Context) (err error) {
 		return
 	}
 
-	if team, err := r.TeamRepo.GetOneBySlug(payload.TeamSlug); err != nil {
+	if team, err := r.TeamRepo.FindOneBySlug(payload.TeamSlug); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error fetching team by slug: %s", err))
 		validation.AddFormError(c, fmt.Errorf("unexpected error"))
-	} else if player, err = r.PlayerRepo.Create(team, payload.Name, payload.Order); err != nil {
+	} else if player, err = r.PlayerRepo.Create(team.Id, payload.Name, payload.Order); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error creating player: %s", err))
 		validation.AddFormError(c, fmt.Errorf("unexpected error creating player, try refreshing"))
 	}

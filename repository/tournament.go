@@ -124,9 +124,9 @@ func (t *Tournament) UpdateBySlug(teamSlug string, currentSlug string, name stri
 	return tournament, nil
 }
 
-func (t *Tournament) Create(team *modelspb.Teams, name string, slug string, start types.DateTime, end types.DateTime, location string) (*modelspb.Tournaments, error) {
+func (t *Tournament) Create(teamId string, name string, slug string, start types.DateTime, end types.DateTime, location string) (*modelspb.Tournaments, error) {
 	tournament := toTournament(models.NewRecord(t.collection))
-	tournament.SetTeam(team.Record.GetId())
+	tournament.SetTeam(teamId)
 	tournament.SetName(name)
 	tournament.SetSlug(slug)
 	tournament.SetStart(start)

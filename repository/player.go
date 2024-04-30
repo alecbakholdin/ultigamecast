@@ -48,9 +48,9 @@ func (p *Player) GetAllByTeamSlug(slug string) ([]*modelspb.Players, error) {
 	return toArr(records, toPlayer), nil
 }
 
-func (p *Player) Create(team *modelspb.Teams, name string, order int) (*modelspb.Players, error) {
+func (p *Player) Create(teamId string, name string, order int) (*modelspb.Players, error) {
 	player := toPlayer(models.NewRecord(p.collection))
-	player.SetTeam(team.Record.Id)
+	player.SetTeam(teamId)
 	player.SetName(name)
 	player.SetOrder(order)
 
