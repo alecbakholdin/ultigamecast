@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"slices"
 	"strings"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -194,19 +195,29 @@ func writeCollectionToFile(c *CollectionData) {
 	writer.WriteString("package pbmodels\n\n")
 	writer.WriteString(fmt.Sprintf("import (\n\t%s\n)\n\n", strings.Join(imports, "\n\t")))
 	writer.WriteString(fmt.Sprintf("type %s struct {\n\tmodels.BaseModel\n\n", c.GoName))
+
+	nameLen := len(slices.MaxFunc(c.Fields, func(a, b *CollectionField) int {
+		return len(a.GoName) - len(b.GoName)
+	}).GoName)
+	typeLen := len(slices.MaxFunc(c.Fields, func(a, b *CollectionField) int {
+		return len(a.GoType) - len(b.GoType)
+	}).GoType)
 	for _, field := range c.Fields {
 		attrs := make([]string, 0)
 		for key, val := range field.Attributes {
 			attrs = append(attrs, fmt.Sprintf(`%s:"%s"`, key, val))
 		}
-		writer.WriteString(fmt.Sprintf("\t%s %s `%s`\n", field.GoName, field.GoType, strings.Join(attrs, " ")))
+		writer.WriteString(fmt.Sprintf("\t%s %s `%s`\n", padToLength(field.GoName, nameLen), padToLength(field.GoType, typeLen), strings.Join(attrs, " ")))
 	}
 	writer.WriteString("}\n\n")
 	for _, enum := range c.Enums {
-		writer.WriteString(fmt.Sprintf("type %s string\n", enum.Name))
+		writer.WriteString(fmt.Sprintf("type %s string\n\n", enum.Name))
 		writer.WriteString("const (\n")
+		enumValLen := len(slices.MaxFunc(enum.Values, func(a, b string) int {
+			return len(a) - len(b)
+		}))
 		for _, val := range enum.Values {
-			writer.WriteString(fmt.Sprintf("\t%s%s %s = \"%s\"\n", enum.Name, formatEnumValForType(val), enum.Name, val))
+			writer.WriteString(fmt.Sprintf("\t%s%s %s = \"%s\"\n", enum.Name, padToLength(formatEnumValForType(val), enumValLen - 1), enum.Name, val))
 		}
 		writer.WriteString(")\n\n")
 	}
@@ -227,6 +238,13 @@ func writeCollectionToFile(c *CollectionData) {
 `, c.GoName, file.GoFieldName, file.GoFieldName, file.BaseFilepath, file.GoFieldName))
 	}
 	writer.Flush()
+}
+
+func padToLength(s string, targetLen int) string {
+	for len(s) < targetLen {
+		s += " "
+	}
+	return s
 }
 
 func formatEnumValForType(val string) string {
