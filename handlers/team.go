@@ -29,20 +29,11 @@ func NewTeam(t *repository.Team, p *repository.Player, to *repository.Tournament
 	}
 }
 
-func (t *Team) Routes(g *echo.Group) *echo.Group {
-	group := g.Group("/team/:teamsSlug")
-	group.GET("", t.getTeam)
-
-	group.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			if c.PathParam("teamsSlug") == "" {
-				return echo.NewHTTPError(http.StatusBadRequest, "No team provided in request")
-			}
-			return next(c)
-		}
-	})
-	group.GET("/logo", t.getLogo)
-	return group
+func (t *Team) Routes(baseGroup *echo.Group) *echo.Group {
+	teamGroup := baseGroup.Group("/team/:teamsSlug")
+	teamGroup.GET("", t.getTeam)
+	teamGroup.GET("/logo", t.getLogo)
+	return teamGroup
 }
 
 func (t *Team) getTeam(c echo.Context) (err error) {

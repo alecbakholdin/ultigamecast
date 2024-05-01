@@ -32,14 +32,6 @@ func (g *Games) Routes(tournamentGroup *echo.Group) *echo.Group {
 	tournamentGroup.POST("/games", g.createGame)
 
 	gameGroup := tournamentGroup.Group("/games/:gameId")
-	gameGroup.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			if c.PathParam("gameId") == "" {
-				return echo.NewHTTPError(http.StatusBadRequest, "missing game in request")
-			}
-			return next(c)
-		}
-	})
 	gameGroup.GET("/edit", g.getEditGameModal)
 	gameGroup.PUT("", g.updateGame)
 	return gameGroup

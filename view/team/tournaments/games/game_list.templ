@@ -49,10 +49,10 @@ templ TournamentGameRow(teamSlug string, tournamentSlug string, game *pbmodels.G
 				if game.TempF != 0 || game.WindMph != 0 {
 					<div class="flex items-center gap-4">
 						@component.IconBlurbConditional(icon.Thermometer(), game.TempF != 0) {
-							{ fmt.Sprintf("%.1", game.TempF) } &degF
+							{ strconv.Itoa(game.TempF) } &degF
 						}
 						@component.IconBlurbConditional(icon.Wind(), game.WindMph != 0) {
-							{ fmt.Sprintf("%.1", game.WindMph) } mph
+							{strconv.Itoa(game.WindMph)} mph
 						}
 					</div>
 				}

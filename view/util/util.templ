@@ -11,7 +11,11 @@ func JoinSlugs(base string, elem ...interface{}) templ.SafeURL {
 	for i, el := range elem {
 		if slug, ok := el.(modelspb.WithSlug); ok {
 			arr[i] = slug.GetSlug()
-		} else if str, ok := el.(string); ok {
+		} else if str, ok := el.(string); !ok {
+			continue
+		} else if str == "" {
+			arr[i] = "_"
+		} else {
 			arr[i] = str
 		}
 	}

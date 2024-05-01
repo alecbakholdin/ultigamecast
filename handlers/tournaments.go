@@ -101,7 +101,7 @@ func (t *Tournaments) createNewTournament(c echo.Context) (err error) {
 		validation.AddFormErrorString(c, "unexpected error creating tournament")
 	} else {
 		TriggerCloseModal(c)
-		return view.NewTournamentRow(tournament.Slug, tournament).Render(c.Request().Context(), c.Response().Writer)
+		return view.NewTournamentRow(c, tournament).Render(c.Request().Context(), c.Response().Writer)
 	}
 	return
 }
@@ -157,13 +157,9 @@ func (t *Tournaments) updateTournament(c echo.Context) (err error) {
 
 	if validation.IsFormValid(c) {
 		TriggerCloseModal(c)
-		return view.EditedTournamentRow(teamSlug, tournament).Render(c.Request().Context(), c.Response().Writer)
+		return view.EditedTournamentRow(c, tournament).Render(c.Request().Context(), c.Response().Writer)
 	}
 	return
-}
-
-func validateTournament(c echo.Context, t *pbmodels.Tournaments) {
-
 }
 
 func renderForm(c echo.Context, isNew bool, payload *pbmodels.Tournaments) {
