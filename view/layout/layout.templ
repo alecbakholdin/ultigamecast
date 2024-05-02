@@ -49,7 +49,7 @@ templ Root() {
 			<link href="/tailwind.css" rel="stylesheet" type="text/css"/>
 			<title></title>
 		</head>
-		<body class="relative" hx-on:openmodal="modal_dialog.showModal()" hx-on:closemodal="modal_dialog.close()">
+		<body class="relative pb-8" hx-on:openmodal="modal_dialog.showModal()" hx-on:closemodal="modal_dialog.close()">
 			{ children... }
 			<dialog id="modal_dialog" class="modal">
 				<div id="modal_content" class="modal-box"></div>

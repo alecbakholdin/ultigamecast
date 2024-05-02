@@ -11,7 +11,6 @@ import (
 	view "ultigamecast/view/team/tournaments"
 
 	"github.com/labstack/echo/v5"
-	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 type Tournaments struct {
@@ -125,41 +124,31 @@ func (t *Tournaments) getEditTournament(c echo.Context) (err error) {
 
 func (t *Tournaments) updateTournament(c echo.Context) (err error) {
 	var (
-		tournament *pbmodels.Tournaments = &pbmodels.Tournaments{}
-		teamSlug                         = c.PathParam("teamsSlug")
-		startDt    types.DateTime
-		endDt      types.DateTime
+		tournament        pbmodels.Tournaments
+		teamSlug          = c.PathParam("teamsSlug")
+		oldTournamentSlug = c.PathParam("tournamentsSlug")
 	)
-	if err = c.Bind(tournament); err != nil {
+	if err = c.Bind(&tournament); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error binding tournament: %s", err))
 		return component.RenderToastError(c, "unexpected error")
 	}
-	defer renderForm(c, false, tournament)
+	defer renderForm(c, false, &tournament)
 
-	newSlug := ConvertToSlug(tournament.Name)
-	if tournament.Slug != ConvertToSlug(tournament.Name) {
-		if exists, err := t.TournamentRepo.ExistsBySlug(teamSlug, newSlug); err != nil {
-			c.Echo().Logger.Error(fmt.Errorf("error determining if tournament exists: %s", err))
-			validation.AddFormErrorString(c, "unexpected error")
-		} else if exists {
-			validation.AddFieldErrorString(c, "name", "name is already taken")
-		}
-	}
+	tournament.Slug = ConvertToSlug(tournament.Name)
+	t.TournamentService.ValidateBasicFields(c, &tournament)
+	t.TournamentService.ValidateSlugChange(c, teamSlug, oldTournamentSlug, tournament.Slug)
 
 	if !validation.IsFormValid(c) {
 		return
 	}
-	tournament, err = t.TournamentRepo.UpdateBySlug(teamSlug, tournament.Slug, tournament.Name, newSlug, startDt, endDt, tournament.Location)
-	if err != nil {
+
+	if err = t.TournamentService.UpdateBySlug(teamSlug, oldTournamentSlug, &tournament); err != nil {
 		validation.AddFormErrorString(c, "could not save tournament")
 		return
 	}
 
-	if validation.IsFormValid(c) {
-		TriggerCloseModal(c)
-		return view.EditedTournamentRow(c, tournament).Render(c.Request().Context(), c.Response().Writer)
-	}
-	return
+	TriggerCloseModal(c)
+	return view.EditedTournamentRow(c, &tournament).Render(c.Request().Context(), c.Response().Writer)
 }
 
 func renderForm(c echo.Context, isNew bool, payload *pbmodels.Tournaments) {

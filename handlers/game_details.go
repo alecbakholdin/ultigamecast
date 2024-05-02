@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"ultigamecast/modelspb/dto"
 	"ultigamecast/repository"
 
@@ -33,14 +32,7 @@ func (g *GameDetails) Routes(gameGroup *echo.Group) *echo.Group {
 }
 
 func (g *GameDetails) getGame(c echo.Context) (err error) {
-	gameId := c.PathParam("gameId")
-	if game, err := g.gameRepo.GetOneById(gameId); repository.IsNotFound(err) {
-		return echo.NewHTTPErrorWithInternal(http.StatusNotFound, err, "Game not found")
-	} else if err != nil {
-		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "Unexpected error")
-	} else {
-		return gameview.GameRoot(c, *dto.DtoFromGame(c, game)).Render(c.Request().Context(), c.Response())
-	}
+	return nil
 }
 
 func (g *GameDetails) sseGame(c echo.Context) (err error) {

@@ -43,15 +43,17 @@ type CollectionData struct {
 }
 
 type CollectionField struct {
-	GoName     string
-	DbName     string
-	GoType     string
-	Attributes map[string]string
+	GoName         string
+	DbName         string
+	GoType         string
+	Attributes     map[string]string
+	CollectionData *CollectionData
 }
 
 type CollectionFile struct {
-	BaseFilepath string
-	GoFieldName  string
+	BaseFilepath   string
+	GoFieldName    string
+	CollectionData *CollectionData
 }
 
 type CollectionEnum struct {
@@ -86,6 +88,7 @@ func getCollectionField(c *CollectionData, f *schema.SchemaField, pbc *models.Co
 			"db":   f.Name,
 			"json": f.Name,
 		},
+		CollectionData: c,
 	}
 	fields[0] = &cf
 	switch f.Type {
@@ -123,7 +126,9 @@ func getCollectionField(c *CollectionData, f *schema.SchemaField, pbc *models.Co
 				Attributes: map[string]string{
 					"form": fmt.Sprintf("%s_timezone", cf.DbName),
 					"json": fmt.Sprintf("%s_timezone", cf.DbName),
+					"db":   "-",
 				},
+				CollectionData: c,
 			},
 			&CollectionField{
 				GoName: fmt.Sprintf("%sDatetime", cf.GoName),
@@ -132,7 +137,9 @@ func getCollectionField(c *CollectionData, f *schema.SchemaField, pbc *models.Co
 				Attributes: map[string]string{
 					"form": fmt.Sprintf("%s_datetime", cf.DbName),
 					"json": fmt.Sprintf("%s_datetime", cf.DbName),
+					"db":   "-",
 				},
+				CollectionData: c,
 			})
 		c.Dates = append(c.Dates, &cf)
 		c.IncludesDate = true
@@ -141,8 +148,9 @@ func getCollectionField(c *CollectionData, f *schema.SchemaField, pbc *models.Co
 	case "file":
 		cf.GoType = "string"
 		c.Files = append(c.Files, &CollectionFile{
-			BaseFilepath: pbc.BaseFilesPath(),
-			GoFieldName:  cf.GoName,
+			BaseFilepath:   pbc.BaseFilesPath(),
+			GoFieldName:    cf.GoName,
+			CollectionData: c,
 		})
 	default:
 		fmt.Printf("Unsupported type %s for field %s\n", f.Type, f.Name)
@@ -181,7 +189,7 @@ func snakeToPascalCase(s string) string {
 }
 
 var defaultImports = []string{"\"github.com/pocketbase/pocketbase/models\""}
-var pbTypesImport = "\"github.com/pocketbase/pocketbase/tools/types\""
+var dateImports = []string{"\"time\"", "\"cmp\"", "\"github.com/pocketbase/pocketbase/tools/types\""}
 
 func writeCollectionToFile(c *CollectionData) {
 	file := mustGetCollectionFile(c)
@@ -190,7 +198,7 @@ func writeCollectionToFile(c *CollectionData) {
 	defer writer.Flush()
 	imports := defaultImports
 	if c.IncludesDate {
-		imports = append(imports, pbTypesImport)
+		imports = append(imports, dateImports...)
 	}
 	if len(c.Files) > 0 {
 		imports = append(imports, "\"path\"")
@@ -231,37 +239,11 @@ func writeCollectionToFile(c *CollectionData) {
 
 `, c.GoName, c.DbName))
 	for _, file := range c.Files {
-		writer.WriteString(fmt.Sprintf(`func (m *%s) Get%sPath() string {
-	if m.%s == "" || m.GetId() == "" {
-		return ""
-	} else {
-		return path.Join("%s", m.GetId(), m.%s)
-	}
-}
-
-`, c.GoName, file.GoFieldName, file.GoFieldName, file.BaseFilepath, file.GoFieldName))
+		fileFieldFunctionTemplate.Execute(writer, file)
 	}
 
 	for _, dateField := range c.Dates {
-		writer.WriteString(fmt.Sprintf(`func (m *%s) Get%sStr(format string) string {
-	if dt, err := m.Get%sDt(); err != nil || dt.IsZero() {
-		return ""
-	} else {
-		return dt.Time().Format(format)
-	}
-}
-
-func (m *%s) Get%sDt() (types.DateTime, error) {
-	if m.%sDatetime != "" && m.%sTimezone != "" {
-		return types.ParseDateTime(m.%sDatetime + ":00" + m.%sTimezone)
-	} else if m.%sDatetime != "" {
-		return types.ParseDateTime(m.%sDatetime + ":00")
-	} else {
-		return m.%s, nil
-	}
-}
-
-`, c.GoName, dateField.GoName, dateField.GoName, c.GoName, dateField.GoName, dateField.GoName, dateField.GoName, dateField.GoName, dateField.GoName, dateField.GoName, dateField.GoName, dateField.GoName))
+		fieldDateTimeTemplate.Execute(writer, dateField)
 	}
 }
 

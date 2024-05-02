@@ -7,7 +7,7 @@ import (
 type Players struct {
 	models.BaseModel
 
-	Team  string `db:"team" json:"team" form:"team"`
+	Team  string `form:"team" db:"team" json:"team"`
 	Name  string `db:"name" json:"name" form:"name"`
 	Order int    `db:"order" json:"order" form:"order"`
 }

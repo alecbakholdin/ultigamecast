@@ -4,15 +4,15 @@ import "github.com/labstack/echo/v5"
 import "ultigamecast/view/util"
 import "ultigamecast/view/component"
 import "strconv"
-import "ultigamecast/modelspb/dto"
+import "ultigamecast/pbmodels"
 
-templ CreateEditGameDialogContent(c echo.Context, isNew bool, data dto.Games) {
+templ CreateEditGameDialogContent(c echo.Context, isNew bool, data *pbmodels.Games) {
 	<div id="game_dialog_content">
 		<h3 class="font-bold text-lg">
 			if isNew {
 				New Game
 			} else {
-				Edit { data.GameOpponent }
+				Edit { data.Opponent }
 			}
 		</h3>
 		@GameForm(c, isNew, data)
@@ -25,13 +25,13 @@ templ CreateEditGameDialogContent(c echo.Context, isNew bool, data dto.Games) {
 	</div>
 }
 
-templ GameForm(c echo.Context, isNew bool, data dto.Games) {
+templ GameForm(c echo.Context, isNew bool, data *pbmodels.Games) {
 	<form
 		id="game_dialog_form"
 		if isNew {
 			hx-post={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "tournaments", c.PathParam("tournamentsSlug"), "games") }
 		} else {
-			hx-put={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "tournaments", c.PathParam("tournamentsSlug"), "games", data.GameID) }
+			hx-put={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "tournaments", c.PathParam("tournamentsSlug"), "games", data.Id) }
 		}
 		hx-boost="true"
 		hx-swap="outerHTML"
@@ -45,14 +45,14 @@ templ GameForm(c echo.Context, isNew bool, data dto.Games) {
 				class="input input-bordered"
 				name="opponent"
 				placeholder="Opponent"
-				value={ data.GameOpponent }
+				value={ data.Opponent }
 			/>
 		}
 		@component.InputWrapperLabel(c, "status", "game_dialog_status", "Status") {
 			<select name="status" id="game_dialog_status" class={ "select select-bordered", templ.KV("hidden", isNew) }>
-				<option value="scheduled" selected?={ isNew || data.GamesStatus == "scheduled" }>Scheduled</option>
-				<option value="live" selected?={ data.GamesStatus == "live" }>Live</option>
-				<option value="completed" selected?={ data.GamesStatus == "completed" }>Completed</option>
+				<option value="scheduled" selected?={ isNew || data.Status == "scheduled" }>Scheduled</option>
+				<option value="live" selected?={ data.Status == "live" }>Live</option>
+				<option value="completed" selected?={ data.Status == "completed" }>Completed</option>
 			</select>
 		}
 		@component.InputWrapperLabel(c, "start_time", "game_dialog_start_time", "Start Time") {
@@ -60,10 +60,10 @@ templ GameForm(c echo.Context, isNew bool, data dto.Games) {
 				id="game_dialog_start_time"
 				type="datetime-local"
 				class="input input-bordered"
-				name="start_time"
-				value={ formatTime(data.GameStartTimeDt, "2006-01-02T15:04") }
+				name="start_time_datetime"
+				value={ data.GetStartTimeStr("2006-01-02T15:04", "America/New_York") }
 			/>
-			<input type="hidden" name="start_timezone" value="-04:00"/>
+			<input type="hidden" name="start_time_timezone" value="America/New_York"/>
 		}
 		if !isNew {
 			<div class="flex flex-col sm:flex w-full gap-1 [&>div]:flex-grow">
@@ -74,7 +74,7 @@ templ GameForm(c echo.Context, isNew bool, data dto.Games) {
 						inputmode="numeric"
 						class="input input-bordered"
 						name="team_score"
-						value={ strconv.Itoa(data.GameTeamScore) }
+						value={ strconv.Itoa(data.TeamScore) }
 					/>
 				}
 				@component.InputWrapperLabel(c, "opponent_score", "game_dialog_opponent_score", "Opponent Score") {
@@ -84,7 +84,7 @@ templ GameForm(c echo.Context, isNew bool, data dto.Games) {
 						inputmode="numeric"
 						class="input input-bordered"
 						name="opponent_score"
-						value={ strconv.Itoa(data.GameOpponentScore) }
+						value={ strconv.Itoa(data.OpponentScore) }
 					/>
 				}
 			</div>
@@ -95,19 +95,19 @@ templ GameForm(c echo.Context, isNew bool, data dto.Games) {
 				@component.InputWrapper(c, "half_cap") {
 					<label for="game_dialog_half_cap" class="input input-bordered flex items-center gap-2">
 						Half
-						<input type="number" min="0" inputmode="numeric" class="flex-grow" name="half_cap" id="game_dialog_half_cap" value={ strconv.Itoa(data.GameHalfCap) }/>
+						<input type="number" min="0" inputmode="numeric" class="flex-grow" name="half_cap" id="game_dialog_half_cap" value={ strconv.Itoa(data.HalfCap) }/>
 					</label>
 				}
 				@component.InputWrapper(c, "soft_cap") {
 					<label for="game_dialog_soft_cap" class="input input-bordered flex items-center gap-2">
 						Soft
-						<input type="number" min="0" inputmode="numeric" class="flex-grow" name="soft_cap" id="game_dialog_soft_cap" value={ strconv.Itoa(data.GameSoftCap) }/>
+						<input type="number" min="0" inputmode="numeric" class="flex-grow" name="soft_cap" id="game_dialog_soft_cap" value={ strconv.Itoa(data.SoftCap) }/>
 					</label>
 				}
 				@component.InputWrapper(c, "hard_cap") {
 					<label for="game_dialog_hard_cap" class="input input-bordered flex items-center gap-2">
 						Hard
-						<input type="number" min="0" inputmode="numeric" class="flex-grow" name="hard_cap" id="game_dialog_hard_cap" value={ strconv.Itoa(data.GameHardCap) }/>
+						<input type="number" min="0" inputmode="numeric" class="flex-grow" name="hard_cap" id="game_dialog_hard_cap" value={ strconv.Itoa(data.HardCap) }/>
 					</label>
 				}
 			</div>
@@ -118,13 +118,13 @@ templ GameForm(c echo.Context, isNew bool, data dto.Games) {
 				@component.InputWrapper(c, "wind_mph") {
 					<label for="game_dialog_wind_mph" class="input input-bordered flex items-center gap-2">
 						Wind
-						<input type="number" min="0" inputmode="numeric" class="flex-grow" name="wind_mph" id="game_dialog_wind_mph" value={ strconv.Itoa(data.GameWindMph) }/>
+						<input type="number" min="0" inputmode="numeric" class="flex-grow" name="wind_mph" id="game_dialog_wind_mph" value={ strconv.Itoa(data.WindMph) }/>
 					</label>
 				}
 				@component.InputWrapper(c, "temp_f") {
 					<label for="game_dialog_temp_f" class="input input-bordered flex items-center gap-2">
 						Temp
-						<input type="number" inputmode="numeric" class="flex-grow" name="temp_f" id="game_dialog_temp_f" value={ strconv.Itoa(data.GameTempF) }/>
+						<input type="number" inputmode="numeric" class="flex-grow" name="temp_f" id="game_dialog_temp_f" value={ strconv.Itoa(data.TempF) }/>
 					</label>
 				}
 			</div>

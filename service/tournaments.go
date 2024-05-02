@@ -34,7 +34,7 @@ func (t *Tournaments) GetTournamentsWithGamesByTeamSlug(teamSlug string) ([]*pbm
 
 	if tournaments, err = t.TournamentRepo.GetAllByTeamSlug(teamSlug); err != nil {
 		return nil, fmt.Errorf("error fetching tournaments by slug: %s", err)
-	} else if games, err = t.GameRepo.GetAllForTeamBySlug(teamSlug); err != nil {
+	} else if games, err = t.GameRepo.GetAllByTeamSlug(teamSlug); err != nil {
 		return nil, fmt.Errorf("error fetching teams by slug: %s", err)
 	}
 
@@ -52,6 +52,14 @@ func (t *Tournaments) GetTournamentsWithGamesByTeamSlug(teamSlug string) ([]*pbm
 		}
 	}
 	return tg, nil
+}
+
+func (t *Tournaments) UpdateBySlug(teamSlug, tournamentSlug string, tournament *pbmodels.Tournaments) (err error) {
+	_, err = t.TournamentRepo.GetOneBySlug(teamSlug, tournamentSlug)
+	if err != nil {
+		return fmt.Errorf("error fetching tournament by slug: %s", err)
+	}
+	return nil
 }
 
 func (t *Tournaments) ValidateBasicFields(c echo.Context, to *pbmodels.Tournaments) {

@@ -69,6 +69,10 @@ func (t *Tournament) GetAllByTeamSlug(slug string) ([]*pbmodels.Tournaments, err
 	return tournaments, nil
 }
 
+func (t *Tournament) Update(to *pbmodels.Tournaments) (err error) {
+	return t.dao.DB().Model(to).Exclude("Id", "Team").Update()
+}
+
 func (t *Tournament) UpdateBySlug(teamSlug string, currentSlug string, name string, slug string, start types.DateTime, end types.DateTime, location string) (*pbmodels.Tournaments, error) {
 	currentModel, err := t.GetOneBySlug(teamSlug, currentSlug)
 	if err != nil {

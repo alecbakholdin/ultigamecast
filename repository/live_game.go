@@ -3,7 +3,6 @@ package repository
 import (
 	"log"
 	"slices"
-	"ultigamecast/modelspb"
 	"ultigamecast/modelspb/dto"
 
 	"github.com/google/uuid"
@@ -51,21 +50,5 @@ func (l *LiveGame) Unsubscribe(subscriptionId string) {
 	if targetIdx >= 0 {
 		log.Printf("Unsubscribing %s for game %s\n", subscriptionId, l.subscriptions[targetIdx].gameId)
 		l.subscriptions = append(l.subscriptions[0:targetIdx], l.subscriptions[targetIdx+1:]...)
-	}
-}
-
-func (l *LiveGame) trigger(e []string, game *modelspb.Games) {
-	id := game.Record.GetId()
-	log.Printf("Triggering events %v for game %s\n", e, game.Record.GetId())
-	for _, sub := range l.subscriptions {
-		if sub.gameId == id {
-			dto := dto.DtoFromGame(sub.context, game)
-			for _, event := range e {
-				sub.EventChan <- LiveGameEvent{
-					Event:   event,
-					GameDto: dto,
-				}
-			}
-		}
 	}
 }

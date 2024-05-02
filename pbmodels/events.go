@@ -7,13 +7,20 @@ import (
 type Events struct {
 	models.BaseModel
 
+	Game       string          `db:"game" json:"game" form:"game"`
+	PointType  EventsPointType `db:"point_type" json:"point_type" form:"point_type"`
+	IsOpponent bool            `db:"is_opponent" json:"is_opponent" form:"is_opponent"`
 	Type       EventsType      `db:"type" json:"type" form:"type"`
 	Player     string          `db:"player" json:"player" form:"player"`
 	Message    string          `db:"message" json:"message" form:"message"`
-	Game       string          `db:"game" json:"game" form:"game"`
-	PointType  EventsPointType `form:"point_type" db:"point_type" json:"point_type"`
-	IsOpponent bool            `db:"is_opponent" json:"is_opponent" form:"is_opponent"`
 }
+
+type EventsPointType string
+
+const (
+	EventsPointTypeO EventsPointType = "O"
+	EventsPointTypeD EventsPointType = "D"
+)
 
 type EventsType string
 
@@ -33,13 +40,6 @@ const (
 	EventsTypeSoftCap      EventsType = "Soft Cap"
 	EventsTypeHardCap      EventsType = "Hard Cap"
 	EventsTypeGameEnd      EventsType = "Game End"
-)
-
-type EventsPointType string
-
-const (
-	EventsPointTypeO EventsPointType = "O"
-	EventsPointTypeD EventsPointType = "D"
 )
 
 func (m *Events) TableName() string {

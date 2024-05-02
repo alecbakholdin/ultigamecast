@@ -3,8 +3,6 @@ package repository
 import (
 	"log"
 	"strings"
-	"ultigamecast/modelspb"
-	"ultigamecast/modelspb/dto"
 	"ultigamecast/pbmodels"
 
 	"github.com/pocketbase/dbx"
@@ -42,21 +40,22 @@ func NewGame(app core.App, l *LiveGame) *Game {
 	}
 }
 
-func (g *Game) GetOneById(id string) (*modelspb.Games, error) {
-	if record, err := g.dao.FindRecordById(g.collection.Id, id); err != nil {
+func (g *Game) GetOneById(id string) (*pbmodels.Games, error) {
+	game := &pbmodels.Games{}
+	err := g.gameQuery().Where(dbx.HashExp{"id": id}).Limit(1).One(game)
+	if err != nil {
 		return nil, err
-	} else {
-		return toGame(record), nil
 	}
+	return game, err
 }
 
-func (g *Game) GetAllForTeamBySlug(teamSlug string) ([]*pbmodels.Games, error) {
+func (g *Game) GetAllByTeamSlug(teamSlug string) ([]*pbmodels.Games, error) {
 	q := g.gameQuery()
 	q.InnerJoin("tournaments", dbx.NewExp("tournaments.id = games.tournament"))
 	q.InnerJoin("teams", dbx.NewExp("teams.id = tournaments.team"))
 	q.Where(dbx.HashExp{"teams.slug": strings.ToLower(teamSlug)})
 	q.OrderBy("start DESC")
-	
+
 	games := make([]*pbmodels.Games, 0)
 	if err := q.All(&games); err != nil {
 		return nil, err
@@ -64,53 +63,17 @@ func (g *Game) GetAllForTeamBySlug(teamSlug string) ([]*pbmodels.Games, error) {
 	return games, nil
 }
 
-func (g *Game) Create(tournament *pbmodels.Tournaments, gameDto *dto.Games) (*modelspb.Games, error) {
-
-	game := toGame(models.NewRecord(g.collection))
-
-	game.SetTournament(tournament.Id)
-	game.SetOpponent(gameDto.GameOpponent)
-	game.SetTeamScore(gameDto.GameTeamScore)
-	game.SetOpponentScore(gameDto.GameOpponentScore)
-	game.SetHalfCap(gameDto.GameHalfCap)
-	game.SetSoftCap(gameDto.GameSoftCap)
-	game.SetHardCap(gameDto.GameHardCap)
-	game.SetWindMph(gameDto.GameWindMph)
-	game.SetTempF(gameDto.GameTempF)
-	game.SetStartTime(gameDto.GameStartTimeDt)
-	game.SetStatus(gameDto.GamesStatus)
-
-	if err := g.dao.SaveRecord(game.Record); err != nil {
-		return nil, err
+func (g *Game) Create(game *pbmodels.Games) error {
+	if err := g.dao.DB().Model(game).Insert(); err != nil {
+		return err
 	}
-	g.liveGame.trigger(g.allEvents, game)
-	return game, nil
+	return nil
 }
 
-func (g *Game) Update(id string, gameDto *dto.Games) (game *modelspb.Games, err error) {
-	if game, err = g.GetOneById(id); err != nil {
-		return nil, err
+func (g *Game) Update(game *pbmodels.Games) (err error) {
+	if err := g.dao.DB().Model(game).Exclude("Id", "Tournament").Update(); err != nil {
+		return err
 	}
-
-	game.SetOpponent(gameDto.GameOpponent)
-	game.SetTeamScore(gameDto.GameTeamScore)
-	game.SetOpponentScore(gameDto.GameOpponentScore)
-	game.SetHalfCap(gameDto.GameHalfCap)
-	game.SetSoftCap(gameDto.GameSoftCap)
-	game.SetHardCap(gameDto.GameHardCap)
-	game.SetWindMph(gameDto.GameWindMph)
-	game.SetTempF(gameDto.GameTempF)
-	game.SetStartTime(gameDto.GameStartTimeDt)
-	game.SetStatus(gameDto.GamesStatus)
-
-	if err := g.dao.SaveRecord(game.Record); err != nil {
-		return nil, err
-	}
-	g.liveGame.trigger(g.allEvents, game)
-	return game, nil
-}
-
-func (g *Game) UpdateField(id string, field string, value any) (err error) {
 	return nil
 }
 
@@ -132,10 +95,4 @@ func (g *Game) GetAllByTeamAndTournamentSlugs(teamSlug string, tournamentSlug st
 
 func (g *Game) gameQuery() *dbx.SelectQuery {
 	return g.dao.ModelQuery(&pbmodels.Games{})
-}
-
-func toGame(record *models.Record) *modelspb.Games {
-	return &modelspb.Games{
-		Record: record,
-	}
 }
