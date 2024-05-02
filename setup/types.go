@@ -232,7 +232,7 @@ func writeCollectionToFile(c *CollectionData) {
 			return len(a) - len(b)
 		}))
 		for _, val := range enum.Values {
-			writer.WriteString(fmt.Sprintf("\t%s%s %s = \"%s\"\n", enum.Name, padToLength(formatEnumValForType(val), enumValLen-1), enum.Name, val))
+			writer.WriteString(fmt.Sprintf("\t%s%s %s = \"%s\"\n", enum.Name, padToLength(formatEnumValForType(val), enumValLen), enum.Name, val))
 		}
 		writer.WriteString(")\n\n")
 	}

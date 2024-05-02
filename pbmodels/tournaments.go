@@ -10,6 +10,8 @@ import (
 type Tournaments struct {
 	models.BaseModel
 
+	Name          string         `db:"name" form:"name" json:"name"`
+	Slug          string         `db:"slug" json:"slug" param:"tournamentsSlug"`
 	Start         types.DateTime `db:"start" json:"start"`
 	StartTimezone string         `db:"-" form:"start_timezone" json:"start_timezone"`
 	StartDatetime string         `db:"-" form:"start_datetime" json:"start_datetime"`
@@ -18,8 +20,6 @@ type Tournaments struct {
 	EndDatetime   string         `db:"-" form:"end_datetime" json:"end_datetime"`
 	Location      string         `db:"location" form:"location" json:"location"`
 	Team          string         `db:"team" form:"team" json:"team"`
-	Name          string         `db:"name" form:"name" json:"name"`
-	Slug          string         `db:"slug" json:"slug" param:"tournamentsSlug"`
 }
 
 func (m *Tournaments) TableName() string {

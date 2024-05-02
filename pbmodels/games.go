@@ -10,26 +10,26 @@ import (
 type Games struct {
 	models.BaseModel
 
-	TempF             int            `db:"temp_f" form:"temp_f" json:"temp_f"`
-	Status            GamesStatus    `db:"status" form:"status" json:"status"`
-	Tournament        string         `db:"tournament" form:"tournament" json:"tournament"`
-	Opponent          string         `db:"opponent" form:"opponent" json:"opponent"`
 	HalfCap           int            `db:"half_cap" form:"half_cap" json:"half_cap"`
+	SoftCap           int            `db:"soft_cap" form:"soft_cap" json:"soft_cap"`
 	WindMph           int            `db:"wind_mph" form:"wind_mph" json:"wind_mph"`
 	StartTime         types.DateTime `db:"start_time" json:"start_time"`
 	StartTimeTimezone string         `db:"-" form:"start_time_timezone" json:"start_time_timezone"`
 	StartTimeDatetime string         `db:"-" form:"start_time_datetime" json:"start_time_datetime"`
-	TeamScore         int            `db:"team_score" form:"team_score" json:"team_score"`
+	Status            GamesStatus    `db:"status" form:"status" json:"status"`
+	Tournament        string         `db:"tournament" form:"tournament" json:"tournament"`
+	Opponent          string         `db:"opponent" form:"opponent" json:"opponent"`
 	OpponentScore     int            `db:"opponent_score" form:"opponent_score" json:"opponent_score"`
-	SoftCap           int            `db:"soft_cap" form:"soft_cap" json:"soft_cap"`
+	TeamScore         int            `db:"team_score" form:"team_score" json:"team_score"`
 	HardCap           int            `db:"hard_cap" form:"hard_cap" json:"hard_cap"`
+	TempF             int            `db:"temp_f" form:"temp_f" json:"temp_f"`
 }
 
 type GamesStatus string
 
 const (
 	GamesStatusScheduled GamesStatus = "scheduled"
-	GamesStatusLive     GamesStatus = "live"
+	GamesStatusLive      GamesStatus = "live"
 	GamesStatusCompleted GamesStatus = "completed"
 )
 
