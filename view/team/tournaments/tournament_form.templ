@@ -56,7 +56,7 @@ templ TournamentForm(c echo.Context, isNew bool, tournament *pbmodels.Tournament
 					name="start"
 					id="tournament_modal_start"
 					class="input input-bordered"
-					value={ tournament.GetStartStr("2006-01-02") }
+					value={ tournament.GetStartStr("2006-01-02", "America/New_York") }
 				/>
 			}
 			@component.InputWrapperLabel(c, "end", "tournament_modal_end", "End") {
@@ -65,7 +65,7 @@ templ TournamentForm(c echo.Context, isNew bool, tournament *pbmodels.Tournament
 					name="end"
 					id="tournament_modal_end"
 					class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "end")) }
-					value={ tournament.GetEndStr("2006-01-02") }
+					value={ tournament.GetEndStr("2006-01-02", "America/New_York") }
 				/>
 			}
 		</div>

@@ -55,18 +55,18 @@ templ tournamentRow(c echo.Context, tournament *pbmodels.Tournaments) {
 					<h3 class="font-bold text-lg">{ tournament.Name }</h3>
 					if !tournament.Start.IsZero() || !tournament.End.IsZero() {
 						<div class="flex items-center gap-2 text-gray-400">
-							@icon.Date()
+						@icon.Date()
 							<div class="gap-1">
 								if tournament.Start.IsZero() {
 									<span>?</span>
 								} else {
-									<span>{ tournament.GetStartStr("Jan 2, 06") }</span>
+									<span>{ tournament.GetStartStr("Jan 2, 06", "America/New_York") }</span>
 								}
 								<span>-</span>
 								if tournament.End.IsZero() {
 									<span>?</span>
 								} else {
-									<span>{ tournament.GetEndStr("Jan 2, 06") }</span>
+									<span>{ tournament.GetEndStr("Jan 2, 06", "America/New_York") }</span>
 								}
 							</div>
 						</div>

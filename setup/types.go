@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"slices"
+	"sort"
 	"strings"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -203,6 +204,7 @@ func writeCollectionToFile(c *CollectionData) {
 	if len(c.Files) > 0 {
 		imports = append(imports, "\"path\"")
 	}
+	sort.Strings(imports)
 
 	writer.WriteString("package pbmodels\n\n")
 	writer.WriteString(fmt.Sprintf("import (\n\t%s\n)\n\n", strings.Join(imports, "\n\t")))
@@ -219,6 +221,7 @@ func writeCollectionToFile(c *CollectionData) {
 		for key, val := range field.Attributes {
 			attrs = append(attrs, fmt.Sprintf(`%s:"%s"`, key, val))
 		}
+		sort.Strings(attrs)
 		writer.WriteString(fmt.Sprintf("\t%s %s `%s`\n", padToLength(field.GoName, nameLen), padToLength(field.GoType, typeLen), strings.Join(attrs, " ")))
 	}
 	writer.WriteString("}\n\n")
@@ -236,7 +239,6 @@ func writeCollectionToFile(c *CollectionData) {
 	writer.WriteString(fmt.Sprintf(`func (m *%s) TableName() string {
     return "%s"
 }
-
 `, c.GoName, c.DbName))
 	for _, file := range c.Files {
 		fileFieldFunctionTemplate.Execute(writer, file)

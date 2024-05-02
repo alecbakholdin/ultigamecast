@@ -7,12 +7,11 @@ import (
 type Players struct {
 	models.BaseModel
 
-	Team  string `form:"team" db:"team" json:"team"`
-	Name  string `db:"name" json:"name" form:"name"`
-	Order int    `db:"order" json:"order" form:"order"`
+	Team  string `db:"team" form:"team" json:"team"`
+	Name  string `db:"name" form:"name" json:"name"`
+	Order int    `db:"order" form:"order" json:"order"`
 }
 
 func (m *Players) TableName() string {
     return "players"
 }
-

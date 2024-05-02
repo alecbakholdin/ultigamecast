@@ -2,28 +2,27 @@ package pbmodels
 
 import (
 	"cmp"
-	"time"
-
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/tools/types"
+	"time"
 )
 
 type Games struct {
 	models.BaseModel
 
-	TeamScore         int            `db:"team_score" json:"team_score" form:"team_score"`
-	HalfCap           int            `form:"half_cap" db:"half_cap" json:"half_cap"`
-	SoftCap           int            `db:"soft_cap" json:"soft_cap" form:"soft_cap"`
-	HardCap           int            `form:"hard_cap" db:"hard_cap" json:"hard_cap"`
-	WindMph           int            `db:"wind_mph" json:"wind_mph" form:"wind_mph"`
+	TempF             int            `db:"temp_f" form:"temp_f" json:"temp_f"`
+	Status            GamesStatus    `db:"status" form:"status" json:"status"`
+	Tournament        string         `db:"tournament" form:"tournament" json:"tournament"`
+	Opponent          string         `db:"opponent" form:"opponent" json:"opponent"`
+	HalfCap           int            `db:"half_cap" form:"half_cap" json:"half_cap"`
+	WindMph           int            `db:"wind_mph" form:"wind_mph" json:"wind_mph"`
 	StartTime         types.DateTime `db:"start_time" json:"start_time"`
 	StartTimeTimezone string         `db:"-" form:"start_time_timezone" json:"start_time_timezone"`
 	StartTimeDatetime string         `db:"-" form:"start_time_datetime" json:"start_time_datetime"`
-	Status            GamesStatus    `form:"status" db:"status" json:"status"`
-	Opponent          string         `db:"opponent" json:"opponent" form:"opponent"`
-	OpponentScore     int            `form:"opponent_score" db:"opponent_score" json:"opponent_score"`
-	TempF             int            `db:"temp_f" json:"temp_f" form:"temp_f"`
-	Tournament        string         `db:"tournament" json:"tournament" form:"tournament"`
+	TeamScore         int            `db:"team_score" form:"team_score" json:"team_score"`
+	OpponentScore     int            `db:"opponent_score" form:"opponent_score" json:"opponent_score"`
+	SoftCap           int            `db:"soft_cap" form:"soft_cap" json:"soft_cap"`
+	HardCap           int            `db:"hard_cap" form:"hard_cap" json:"hard_cap"`
 }
 
 type GamesStatus string
@@ -63,4 +62,3 @@ func (m *Games) GetStartTimeDt() (types.DateTime, error) {
 		return m.StartTime, nil
 	}
 }
-

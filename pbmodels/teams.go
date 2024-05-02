@@ -8,11 +8,11 @@ import (
 type Teams struct {
 	models.BaseModel
 
-	Organization string `db:"organization" json:"organization" form:"organization"`
-	Name         string `db:"name" json:"name" form:"name"`
+	Organization string `db:"organization" form:"organization" json:"organization"`
+	Name         string `db:"name" form:"name" json:"name"`
 	Slug         string `db:"slug" json:"slug" param:"teamsSlug"`
-	Managers     string `db:"managers" json:"managers" form:"managers"`
-	Logo         string `db:"logo" json:"logo" form:"logo"`
+	Managers     string `db:"managers" form:"managers" json:"managers"`
+	Logo         string `db:"logo" form:"logo" json:"logo"`
 }
 
 func (m *Teams) TableName() string {
@@ -26,4 +26,3 @@ func (m *Teams) GetLogoPath() string {
 		return path.Join("846ykkxqtaqjxst", m.GetId(), m.Logo)
 	}
 }
-
