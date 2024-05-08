@@ -32,7 +32,7 @@ templ Team(c echo.Context, team *pbmodels.Teams) {
 						<li class="hidden">
 							// TODO: finish editing teams. Working with files is hard so don't wanna do it right now...
 							<a
-								hx-get={ util.JoinSlugsString("/team", team, "edit") }
+								hx-get={ util.JoinSlugsString("/team", team.Slug, "edit") }
 								hx-target="#modal_content"
 								hx-swap="innerHTML"
 								class="flex items-center gap-2"
@@ -43,7 +43,7 @@ templ Team(c echo.Context, team *pbmodels.Teams) {
 						</li>
 						<li>
 							<a
-								hx-get={ util.JoinSlugsString("/team", team, "manageRoster") }
+								hx-get={ util.JoinSlugsString("/team", team.Slug, "manageRoster") }
 								hx-target="#modal_content"
 								hx-swap="innerHTML"
 								class="flex items-center gap-2"

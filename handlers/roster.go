@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
-	"ultigamecast/handlers/models"
-	"ultigamecast/modelspb"
+	"ultigamecast/pbmodels"
 	"ultigamecast/repository"
+	"ultigamecast/service"
 	"ultigamecast/validation"
 	"ultigamecast/view/component"
 	view "ultigamecast/view/team"
@@ -16,14 +16,12 @@ import (
 )
 
 type Roster struct {
-	PlayerRepo *repository.Player
-	TeamRepo   *repository.Team
+	PlayerService *service.Players
 }
 
-func NewRoster(p *repository.Player, t *repository.Team) *Roster {
+func NewRoster(p *service.Players) *Roster {
 	return &Roster{
-		PlayerRepo: p,
-		TeamRepo:   t,
+		PlayerService: p,
 	}
 }
 
@@ -53,7 +51,7 @@ func (r *Roster) Routes(g *echo.Group) *echo.Group {
 func (r *Roster) getManageRoster(c echo.Context) (err error) {
 	teamSlug := c.PathParam("teamsSlug")
 
-	if players, err := r.PlayerRepo.GetAllByTeamSlug(teamSlug); err != nil {
+	if players, err := r.PlayerService.GetAllBySlug(teamSlug); err != nil {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "")
 	} else {
 		TriggerOpenModal(c)
@@ -70,22 +68,18 @@ func (r *Roster) getPlayers(c echo.Context) (err error) {
 func (r *Roster) getEditPlayer(c echo.Context) (err error) {
 	playerId := c.PathParam("playerId")
 
-	if player, err := r.PlayerRepo.GetOneById(playerId); err != nil && !repository.IsNotFound(err) {
+	if player, err := r.PlayerService.GetOneById(playerId); err != nil && !repository.IsNotFound(err) {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "unexpected error")
 	} else {
 		TriggerOpenModal(c)
-		return view.EditPlayerRow(c, view.PlayerData{
-			PlayerID:    player.Record.GetId(),
-			PlayerName:  player.GetName(),
-			PlayerOrder: player.GetOrder(),
-		}).Render(c.Request().Context(), c.Response().Writer)
+		return view.EditPlayerRow(c, player).Render(c.Request().Context(), c.Response().Writer)
 	}
 }
 
 func (r *Roster) getPlayerRow(c echo.Context) (err error) {
 	playerId := c.PathParam("playerId")
 
-	if player, err := r.PlayerRepo.GetOneById(playerId); err != nil && !repository.IsNotFound(err) {
+	if player, err := r.PlayerService.GetOneById(playerId); err != nil && !repository.IsNotFound(err) {
 		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "unexpected error")
 	} else {
 		return view.PlayerRow(c, player).Render(c.Request().Context(), c.Response().Writer)
@@ -99,7 +93,7 @@ func (r *Roster) getRosterTable(c echo.Context) (err error) {
 		orderByField    = c.QueryParamDefault("orderby", "player_name")
 		direction       = c.QueryParamDefault("dir", "asc")
 		sortDirection   repository.SortDirection
-		playerSummaries []modelspb.PlayerSummary
+		playerSummaries []pbmodels.PlayerTeamSummary
 	)
 
 	if direction != "asc" && direction != "desc" {
@@ -113,27 +107,16 @@ func (r *Roster) getRosterTable(c echo.Context) (err error) {
 	} else {
 		sortDirection = repository.SortDirectionDesc
 	}
-
-	switch summaryType {
-	case "team":
-		playerSummaries, err = r.PlayerRepo.GetPlayerTeamSummariesByTeamSlug(teamSlug, orderByField, sortDirection)
-	default:
-		return echo.NewHTTPError(http.StatusNotImplemented, fmt.Sprintf("Roster table for %s is not implemented yet", summaryType))
-	}
-
-	if err != nil {
-		return echo.NewHTTPErrorWithInternal(http.StatusInternalServerError, err, "unexpected error")
-	}
-
+	// TODO: new summary service for stats
 	return view.RosterTable(teamSlug, summaryType, playerSummaries, orderByField, sortDirection == repository.SortDirectionAsc).Render(c.Request().Context(), c.Response().Writer)
 }
 
 func (r *Roster) createPlayer(c echo.Context) (err error) {
 	var (
-		payload models.PlayerPayload
-		player  *modelspb.Players
+		payload pbmodels.Players
+		teamSlug = c.PathParam("teamsSlug")
 	)
-	if err = models.BindPlayer(c, &payload); err != nil {
+	if err = c.Bind(&payload); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error binding player: %s", err))
 		return component.RenderToastError(c, "unexpected error")
 	}
@@ -143,49 +126,45 @@ func (r *Roster) createPlayer(c echo.Context) (err error) {
 		return
 	}
 
-	if team, err := r.TeamRepo.FindOneBySlug(payload.TeamSlug); err != nil {
-		c.Echo().Logger.Error(fmt.Errorf("error fetching team by slug: %s", err))
-		validation.AddFormError(c, fmt.Errorf("unexpected error"))
-	} else if player, err = r.PlayerRepo.Create(team.Id, payload.Name, payload.Order); err != nil {
-		c.Echo().Logger.Error(fmt.Errorf("error creating player: %s", err))
-		validation.AddFormError(c, fmt.Errorf("unexpected error creating player, try refreshing"))
+	if err := r.PlayerService.Create(teamSlug, &payload); err != nil {
+		validation.AddFormErrorString(c, "unexpected error creating player")
 	}
 
 	if validation.IsFormValid(c) {
 		payload.Order += 1
 		payload.Name = ""
-		return view.NewPlayerRow(c, player).Render(c.Request().Context(), c.Response().Writer)
+		return view.NewPlayerRow(c, &payload).Render(c.Request().Context(), c.Response().Writer)
 	}
 	return nil
 }
 
 func (r *Roster) updatePlayer(c echo.Context) (err error) {
 	var (
-		payload models.PlayerPayload
-		player  *modelspb.Players
+		payload pbmodels.Players
 	)
-	if err := models.BindPlayer(c, &payload); err != nil {
+	if err := c.Bind(&payload); err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error binding player: %s", err))
 		return component.RenderToastError(c, "unexpected error")
 	}
 
-	defer func(c echo.Context, payload *models.PlayerPayload, player **modelspb.Players) {
+	defer func() {
 		var component templ.Component
 		if validation.IsFormValid(c) {
-			component = view.PlayerRow(c, *player)
+			component = view.PlayerRow(c, &payload)
 		} else {
-			component = view.EditPlayerRow(c, payload.ToData())
+			component = view.EditPlayerRow(c, &payload)
 		}
 		if err := component.Render(c.Request().Context(), c.Response().Writer); err != nil {
 			c.Echo().Logger.Error(fmt.Errorf("error rendering [validForm=%t] player row: %s", validation.IsFormValid(c), err))
 		}
-	}(c, &payload, &player)
+	}()
 
 	if !validation.IsFormValid(c) {
 		return
 	}
 
-	if player, err = r.PlayerRepo.Update(payload.PlayerID, payload.Name); err != nil {
+	if err = r.PlayerService.Update(payload.Id, &payload); err != nil {
+		c.Echo().Logger.Error(err)
 		validation.AddFormError(c, err)
 	}
 	return
@@ -193,8 +172,8 @@ func (r *Roster) updatePlayer(c echo.Context) (err error) {
 
 func (r *Roster) deletePlayer(c echo.Context) (err error) {
 	playerId := c.PathParam("playerId")
-	if err := r.PlayerRepo.Delete(playerId); err != nil {
-		c.Echo().Logger.Error(fmt.Errorf("error deleting player %s: %s", playerId, err))
+	if err := r.PlayerService.Delete(playerId); err != nil {
+		c.Echo().Logger.Error(err)
 		return component.RenderToastError(c, "unexpected error")
 	}
 	return
@@ -204,8 +183,6 @@ func (r *Roster) updateRosterOrder(c echo.Context) (err error) {
 	var (
 		form      *multipart.Form
 		playerIds []string
-		players   []*modelspb.Players
-		teamSlug  = c.PathParam("teamsSlug")
 		ok        bool
 	)
 	if form, err = c.MultipartForm(); err != nil {
@@ -215,27 +192,16 @@ func (r *Roster) updateRosterOrder(c echo.Context) (err error) {
 
 	if playerIds, ok = form.Value["player_id"]; !ok {
 		return
-	} else if players, err = r.PlayerRepo.GetAllByTeamSlug(teamSlug); err != nil {
-		c.Echo().Logger.Error(fmt.Errorf("error fetching players: %s", err))
-		validation.AddFormErrorString(c, "unexpected error")
-	} else if len(players) != len(playerIds) {
-		validation.AddFormErrorString(c, "your data is stale, please refresh and try again")
-	}
-
-	if !validation.IsFormValid(c) {
-		return
-	}
-
-	if _, err = r.PlayerRepo.UpdateOrder(players, playerIds); err != nil {
-		c.Echo().Logger.Error(fmt.Errorf("error updating player order: %s", err))
-		validation.AddFormErrorString(c, "unexpected error")
+	} else if err = r.PlayerService.UpdateOrder(playerIds); err != nil {
+		c.Echo().Logger.Error(err)
+		validation.AddFormErrorString(c, "could not update order. Try refreshing")
 	}
 
 	return
 }
 
-func renderPlayerForm(c echo.Context, payload *models.PlayerPayload) (err error) {
-	err = view.CreatePlayerRow(c, payload.ToData()).Render(c.Request().Context(), c.Response().Writer)
+func renderPlayerForm(c echo.Context, payload *pbmodels.Players) (err error) {
+	err = view.CreatePlayerRow(c, payload).Render(c.Request().Context(), c.Response().Writer)
 	if err != nil {
 		c.Echo().Logger.Error(fmt.Errorf("error rendering CreatePlayerRow: %s", err))
 	}

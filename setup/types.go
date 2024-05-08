@@ -16,10 +16,19 @@ import (
 
 func CreateTypes(app core.App) {
 	dao := app.Dao()
+
 	if baseCollections, err := dao.FindCollectionsByType(models.CollectionTypeBase); err != nil {
 		panic(err)
+	} else if viewCollections, err := dao.FindCollectionsByType(models.CollectionTypeView); err != nil {
+		panic(err)
+	}else if authCollections, err := dao.FindCollectionsByType(models.CollectionTypeAuth); err != nil {
+		panic(err)
 	} else {
-		processCollections(baseCollections)
+		collections := make([]*models.Collection, 0)
+		collections = append(collections, baseCollections...)
+		collections = append(collections, viewCollections...)
+		collections = append(collections, authCollections...)
+		processCollections(collections)
 	}
 }
 

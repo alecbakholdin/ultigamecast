@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"ultigamecast/view/component"
+
+	"github.com/a-h/templ"
 	"github.com/labstack/echo/v5"
 )
 
@@ -26,7 +28,13 @@ func ErrorHandler(c echo.Context, err error) {
 	}
 
 	c.Echo().Logger.Error(err)
-	if err := component.Error(c, code, message).Render(c.Request().Context(), c.Response().Writer); err != nil {
+	var comp templ.Component
+	if c.Request().Header.Get("Hx-Request") == "true" {
+		comp = component.ErrorContent(c, code, message)
+	} else {
+		comp = component.ErrorPage(c, code, message)
+	}
+	if err := comp.Render(c.Request().Context(), c.Response().Writer); err != nil {
 		c.Echo().Logger.Error(err)
 	}
 }

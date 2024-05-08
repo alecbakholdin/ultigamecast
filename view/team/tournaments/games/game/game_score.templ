@@ -1,11 +1,11 @@
 package game
 
-import "ultigamecast/modelspb/dto"
 import "strconv"
 import "github.com/labstack/echo/v5"
 import "ultigamecast/view/util"
+import "ultigamecast/pbmodels"
 
-templ GameScore(c echo.Context, game dto.Games) {
+templ GameScore(c echo.Context, game pbmodels.Games) {
 	<div class="max-w-screen-sm mx-auto pt-8 flex flex-col items-center">
 		<div class="w-full grid grid-cols-[1fr_auto_1fr] gap-2" sse-swap="score">
 			<div class="w-full flex justify-end items-center gap-1">
@@ -25,18 +25,18 @@ templ GameScore(c echo.Context, game dto.Games) {
 	</div>
 }
 
-templ GameTeamScore(game dto.Games) {
+templ GameTeamScore(game pbmodels.Games) {
 	<span sse-swap="team_score" class="w-12 font-bold text-3xl place-self-end text-right [&.htmx-added]:text-success transition-all duration-1000">
-		{ strconv.Itoa(game.GameTeamScore) }
+		{ strconv.Itoa(game.TeamScore) }
 	</span>
 }
 
-templ GameOpponentScore(game dto.Games) {
+templ GameOpponentScore(game pbmodels.Games) {
 	<div sse-swap="opponent_score" class="w-12 font-bold text-3xl place-self-start [&.htmx-added]:text-error transition-all duration-1000">
-		{ strconv.Itoa(game.GameOpponentScore) }
+		{ strconv.Itoa(game.OpponentScore) }
 	</div>
 }
 
-templ OpponentTitle(game dto.Games) {
+templ OpponentTitle(game pbmodels.Games) {
 	<div sse-swap="opponent" class=""></div>
 }

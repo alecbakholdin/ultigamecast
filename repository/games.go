@@ -15,11 +15,10 @@ type Game struct {
 	app        core.App
 	dao        *daos.Dao
 	collection *models.Collection
-	liveGame   *LiveGame
 	allEvents  []string
 }
 
-func NewGame(app core.App, l *LiveGame) *Game {
+func NewGame(app core.App) *Game {
 	dao := app.Dao()
 	collection := mustGetCollection(app.Dao(), "games")
 
@@ -35,7 +34,6 @@ func NewGame(app core.App, l *LiveGame) *Game {
 		app:        app,
 		dao:        dao,
 		collection: collection,
-		liveGame:   l,
 		allEvents:  events,
 	}
 }

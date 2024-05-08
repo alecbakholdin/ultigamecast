@@ -7,12 +7,12 @@ import (
 type Events struct {
 	models.BaseModel
 
+	Game       string          `db:"game" form:"game" json:"game"`
 	PointType  EventsPointType `db:"point_type" form:"point_type" json:"point_type"`
 	IsOpponent bool            `db:"is_opponent" form:"is_opponent" json:"is_opponent"`
 	Type       EventsType      `db:"type" form:"type" json:"type"`
 	Player     string          `db:"player" form:"player" json:"player"`
 	Message    string          `db:"message" form:"message" json:"message"`
-	Game       string          `db:"game" form:"game" json:"game"`
 }
 
 type EventsPointType string

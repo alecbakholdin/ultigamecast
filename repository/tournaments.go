@@ -2,7 +2,6 @@ package repository
 
 import (
 	"strings"
-	"ultigamecast/modelspb"
 	"ultigamecast/pbmodels"
 
 	"github.com/pocketbase/dbx"
@@ -36,14 +35,6 @@ func (t *Tournament) GetOneBySlug(teamSlug string, tournamentSlug string) (*pbmo
 		return nil, err
 	}
 	return tournament, err
-}
-
-func (t *Tournament) GetOneById(id string) (*modelspb.Tournaments, error) {
-	if record, err := t.dao.FindRecordById(t.collection.Id, id); err != nil {
-		return nil, err
-	} else {
-		return toTournament(record), nil
-	}
 }
 
 func (t *Tournament) ExistsBySlug(teamSlug string, tournamentSlug string) (bool, error) {
@@ -121,12 +112,6 @@ func (t *Tournament) DeleteBySlug(teamSlug string, tournamentSlug string) error 
 		return err
 	} else {
 		panic("Tournament is not deletable rn") //TODO
-	}
-}
-
-func toTournament(record *models.Record) *modelspb.Tournaments {
-	return &modelspb.Tournaments{
-		Record: record,
 	}
 }
 

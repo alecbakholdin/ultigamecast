@@ -1,11 +1,10 @@
 package view
 
-import "ultigamecast/modelspb"
 import "github.com/labstack/echo/v5"
 import "ultigamecast/view/util"
-import "strconv"
 import "fmt"
 import "ultigamecast/view/icon"
+import "ultigamecast/pbmodels"
 
 templ TeamRoster(e echo.Context, teamSlug string) {
 	<div role="tablist" class="tabs tabs-bordered" aria-controls="tab-content">
@@ -25,7 +24,7 @@ templ TeamRoster(e echo.Context, teamSlug string) {
 	</div>
 }
 
-templ RosterTable(teamSlug string, summaryType string, players []modelspb.PlayerSummary, orderByField string, orderByAsc bool) {
+templ RosterTable(teamSlug string, summaryType string, players []pbmodels.PlayerTeamSummary, orderByField string, orderByAsc bool) {
 	<div id="roster_table" class="overflow-x-auto">
 		<table class="table table-zebra table-pin-rows">
 			<thead>
@@ -48,23 +47,23 @@ templ RosterTable(teamSlug string, summaryType string, players []modelspb.Player
 	</div>
 }
 
-templ PlayerSummaryRow(summaryType string, player modelspb.PlayerSummary) {
+templ PlayerSummaryRow(summaryType string, player pbmodels.PlayerTeamSummary) {
 	<tr
-		id={ fmt.Sprintf("player_%s", player.GetPlayerId()) }
+		id={ fmt.Sprintf("player_%s", player.PlayerId) }
 	>
 		<td>
 			<div class="flex items-center gap-1">
 				if summaryType == "team" {
 					<button></button>
 				}
-				{ player.GetPlayerName() }
+				{ player.PlayerName }
 			</div>
 		</td>
-		<td>{ strconv.Itoa(player.GetPoints()) }</td>
-		<td>{ strconv.Itoa(player.GetGoals()) }</td>
-		<td>{ strconv.Itoa(player.GetAssists()) }</td>
-		<td>{ strconv.Itoa(player.GetTurns()) }</td>
-		<td>{ strconv.Itoa(player.GetDrops()) }</td>
+		<td>{ fmt.Sprintf("%.0f", player.Points) }</td>
+		<td>{ fmt.Sprintf("%.0f", player.Goals) }</td>
+		<td>{ fmt.Sprintf("%.0f", player.Assists) }</td>
+		<td>{ fmt.Sprintf("%.0f", player.Turns) }</td>
+		<td>{ fmt.Sprintf("%.0f", player.Drops) }</td>
 	</tr>
 }
 

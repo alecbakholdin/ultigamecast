@@ -10,17 +10,17 @@ import (
 type Games struct {
 	models.BaseModel
 
+	Opponent          string         `db:"opponent" form:"opponent" json:"opponent"`
+	TeamScore         int            `db:"team_score" form:"team_score" json:"team_score"`
+	OpponentScore     int            `db:"opponent_score" form:"opponent_score" json:"opponent_score"`
 	HalfCap           int            `db:"half_cap" form:"half_cap" json:"half_cap"`
-	SoftCap           int            `db:"soft_cap" form:"soft_cap" json:"soft_cap"`
 	WindMph           int            `db:"wind_mph" form:"wind_mph" json:"wind_mph"`
 	StartTime         types.DateTime `db:"start_time" json:"start_time"`
 	StartTimeTimezone string         `db:"-" form:"start_time_timezone" json:"start_time_timezone"`
 	StartTimeDatetime string         `db:"-" form:"start_time_datetime" json:"start_time_datetime"`
 	Status            GamesStatus    `db:"status" form:"status" json:"status"`
 	Tournament        string         `db:"tournament" form:"tournament" json:"tournament"`
-	Opponent          string         `db:"opponent" form:"opponent" json:"opponent"`
-	OpponentScore     int            `db:"opponent_score" form:"opponent_score" json:"opponent_score"`
-	TeamScore         int            `db:"team_score" form:"team_score" json:"team_score"`
+	SoftCap           int            `db:"soft_cap" form:"soft_cap" json:"soft_cap"`
 	HardCap           int            `db:"hard_cap" form:"hard_cap" json:"hard_cap"`
 	TempF             int            `db:"temp_f" form:"temp_f" json:"temp_f"`
 }

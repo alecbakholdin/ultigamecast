@@ -7,7 +7,7 @@ build:
 kill:
 	pkill 8090
 types:
-	pb-gen models
+	go run . types
 styles:
 	npx tailwindcss -i ./public/styles.css -o ./public/tailwind.css
 clean:

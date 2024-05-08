@@ -6,17 +6,20 @@ import "strconv"
 import "net/http"
 import "ultigamecast/validation"
 
-templ Error(c echo.Context, status int, message string) {
+templ ErrorPage(c echo.Context, status int, message string) {
 	@layout.Root() {
-		<div class="mx-auto flex flex-col items-center py-8">
-			<span class="font-bold text-3xl text-error">
-				{ strconv.Itoa(status) } { http.StatusText(status) }
-			</span>
-			<span class="text-xl text-error">{ message }</span>
-		</div>
+		@ErrorContent(c, status, message)
 	}
 }
 
+templ ErrorContent(c echo.Context, status int, message string) {
+	<div class="mx-auto flex flex-col items-center py-8">
+		<span class="font-bold text-3xl text-error">
+			{ strconv.Itoa(status) } { http.StatusText(status) }
+		</span>
+		<span class="text-xl text-error">{ message }</span>
+	</div>
+}
 
 templ FormError(c echo.Context) {
 	if !validation.IsFormValid(c) {

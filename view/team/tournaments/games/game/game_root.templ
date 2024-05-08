@@ -1,15 +1,15 @@
 package game
 
 import "ultigamecast/view/layout"
-import "ultigamecast/modelspb/dto"
 import "ultigamecast/view/util"
 import "github.com/labstack/echo/v5"
+import "ultigamecast/pbmodels"
 
-templ GameRoot(c echo.Context, game dto.Games) {
+templ GameRoot(c echo.Context, game pbmodels.Games) {
 	@layout.Root() {
 		<div
 			hx-ext="sse"
-			sse-connect={ util.JoinSlugsString("/team", game.TeamSlug, "tournaments", game.TournamentSlug, "games", game.GameID, "sse") }
+			sse-connect={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "tournaments", c.PathParam("tournamentsSlug"), "games", game.Id, "sse") }
 		>
             @GameScore(c, game)
         </div>

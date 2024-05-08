@@ -62,24 +62,22 @@ func BindAppHooks(app *pocketbase.PocketBase) {
 		teamRepo := repository.NewTeam(app)
 		playerRepo := repository.NewPlayer(app)
 		tournamentRepo := repository.NewTournament(app)
-		liveGameRepo := repository.NewLiveGame()
-		gameRepo := repository.NewGame(app, liveGameRepo)
+		gameRepo := repository.NewGame(app)
 
 		tournamentsService := service.NewTournaments(tournamentRepo, gameRepo, teamRepo)
 		gamesService := service.NewGames(tournamentRepo, gameRepo)
+		playersService := service.NewPlayers(playerRepo, teamRepo)
 
 		teamHandler := handlers.NewTeam(teamRepo, playerRepo, tournamentRepo)
 		tournamentHandler := handlers.NewTournaments(tournamentsService, tournamentRepo, gameRepo, teamRepo)
-		rosterHandler := handlers.NewRoster(playerRepo, teamRepo)
+		rosterHandler := handlers.NewRoster(playersService)
 		gameHandler := handlers.NewGames(teamRepo, tournamentRepo, gamesService)
-		gameDetailsHandler := handlers.NewGameDetails(gameRepo, liveGameRepo)
 
 		baseGroup := e.Router.Group("")
 		teamGroup := teamHandler.Routes(baseGroup)
 		rosterHandler.Routes(teamGroup)
 		tournamentGroup := tournamentHandler.Routes(teamGroup)
-		gameGroup := gameHandler.Routes(tournamentGroup)
-		gameDetailsHandler.Routes(gameGroup)
+		gameHandler.Routes(tournamentGroup)
 
 		return nil
 	})

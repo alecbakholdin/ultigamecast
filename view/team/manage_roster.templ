@@ -1,14 +1,14 @@
 package view
 
 import "github.com/labstack/echo/v5"
-import "ultigamecast/modelspb"
 import "ultigamecast/view/util"
 import "ultigamecast/view/component"
 import "ultigamecast/view/icon"
 import "fmt"
 import "strconv"
+import "ultigamecast/pbmodels"
 
-templ ManageRosterDialogContent(c echo.Context, players []*modelspb.Players) {
+templ ManageRosterDialogContent(c echo.Context, players []*pbmodels.Players) {
 	<div id="manage_roster_dialog_content">
 		<h3 class="font-bold text-lg">Manage Roster</h3>
 		<div class="flex flex-col gap-2">
@@ -30,9 +30,7 @@ templ ManageRosterDialogContent(c echo.Context, players []*modelspb.Players) {
 					@PlayerRow(c, player)
 				}
 			</form>
-			@CreatePlayerRow(c, PlayerData{
-				PlayerOrder: len(players),
-			})
+			@CreatePlayerRow(c, &pbmodels.Players{Order: len(players)})
 		</div>
 		<div class="modal-action">
 			<form method="dialog"><button class="btn">Close</button></form>
@@ -40,20 +38,20 @@ templ ManageRosterDialogContent(c echo.Context, players []*modelspb.Players) {
 	</div>
 }
 
-templ PlayerRow(c echo.Context, player *modelspb.Players) {
+templ PlayerRow(c echo.Context, player *pbmodels.Players) {
 	<div
-		id={ fmt.Sprintf("manage_roster_player_%s", player.Record.GetId()) }
+		id={ fmt.Sprintf("manage_roster_player_%s", player.Id) }
 		class="manage-roster-row flex items-center gap-2"
 	>
 		<span class="handle">
 			@icon.Hamburger()
 		</span>
 		<span class="flex-grow">
-			{ player.GetName() }
+			{ player.Name }
 		</span>
 		<div>
 			<button
-				hx-get={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "roster", player.Record.GetId(), "edit") }
+				hx-get={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "roster", player.Id, "edit") }
 				hx-target="closest .manage-roster-row"
 				hx-indicator="closest .manage-roster-row"
 				hx-swap="outerHTML"
@@ -63,21 +61,14 @@ templ PlayerRow(c echo.Context, player *modelspb.Players) {
 				@icon.HtmxLoading(icon.Edit(), icon.LoadingXs())
 			</button>
 		</div>
-		<input type="hidden" name="player_id" value={ player.Record.GetId() }/>
+		<input type="hidden" name="player_id" value={ player.Id }/>
 	</div>
 }
 
-type PlayerData struct {
-	TeamSlug    string
-	PlayerID    string
-	PlayerName  string
-	PlayerOrder int
-}
-
-templ EditPlayerRow(c echo.Context, data PlayerData) {
+templ EditPlayerRow(c echo.Context, data *pbmodels.Players) {
 	<form
 		hx-boost="true"
-		hx-put={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "roster", data.PlayerID) }
+		hx-put={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "roster", data.Id) }
 		hx-target="this"
 		hx-swap="outerHTML"
 		class="mb-0"
@@ -92,14 +83,14 @@ templ EditPlayerRow(c echo.Context, data PlayerData) {
 						name="name"
 						type="text"
 						class="input input-sm"
-						value={ data.PlayerName }
+						value={ data.Name }
 					/>
 				}
 			</div>
 			<button
-                type="button"
+				type="button"
 				id="edit_player_cancel"
-				hx-get={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "roster", data.PlayerID, "row") }
+				hx-get={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "roster", data.Id, "row") }
 				hx-target="closest form"
 				hx-indicator="this"
 				class="edit-player-put edit-player-button btn btn-icon btn-sm"
@@ -107,12 +98,12 @@ templ EditPlayerRow(c echo.Context, data PlayerData) {
 				@icon.HtmxLoading(icon.Cancel(), icon.LoadingXs())
 			</button>
 			<button
-                type="button"
+				type="button"
 				id="edit_player_delete"
 				class="edit-player-button btn btn-icon btn-sm btn-error"
 				aria-label="delete"
-				hx-delete={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "roster", data.PlayerID) }
-				hx-confirm={ fmt.Sprintf("Are you sure you want to delete %s? This action cannot be undone", data.PlayerName) }
+				hx-delete={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "roster", data.Id) }
+				hx-confirm={ fmt.Sprintf("Are you sure you want to delete %s? This action cannot be undone", data.Name) }
 				hx-indicator="this"
 			>
 				@icon.HtmxLoading(icon.TrashCan(), icon.LoadingXs())
@@ -129,7 +120,7 @@ templ EditPlayerRow(c echo.Context, data PlayerData) {
 	</form>
 }
 
-templ CreatePlayerRow(c echo.Context, data PlayerData) {
+templ CreatePlayerRow(c echo.Context, data *pbmodels.Players) {
 	<form
 		hx-boost="true"
 		hx-post={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "roster") }
@@ -146,10 +137,10 @@ templ CreatePlayerRow(c echo.Context, data PlayerData) {
 					name="name"
 					placeholder="Name"
 					class="input input-bordered"
-					value={ data.PlayerName }
+					value={ data.Name }
 				/>
 			}
-			<input type="hidden" name="order" value={ strconv.Itoa(data.PlayerOrder) }/>
+			<input type="hidden" name="order" value={ strconv.Itoa(data.Order) }/>
 			<button id="create_player_button" class="btn btn-icon btn-primary">
 				@icon.HtmxLoading(icon.Add(), icon.LoadingSm())
 			</button>
@@ -158,7 +149,7 @@ templ CreatePlayerRow(c echo.Context, data PlayerData) {
 	</form>
 }
 
-templ NewPlayerRow(c echo.Context, player *modelspb.Players) {
+templ NewPlayerRow(c echo.Context, player *pbmodels.Players) {
 	<div hx-swap-oob="beforeend:#manage_roster_players">
 		@PlayerRow(c, player)
 	</div>
