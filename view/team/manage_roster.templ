@@ -122,9 +122,11 @@ templ EditPlayerRow(c echo.Context, data *pbmodels.Players) {
 
 templ CreatePlayerRow(c echo.Context, data *pbmodels.Players) {
 	<form
+		id="create-player-form"
 		hx-boost="true"
 		hx-post={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "roster") }
 		hx-target="this"
+		hx-swap="outerHTML"
 		hx-disabled-elt="#create_player_button"
 		class="flex flex-col mb-0"
 		hx-on::after-settle="setTimeout(() => create_player_name.focus())"

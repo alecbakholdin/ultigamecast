@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"cmp"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -120,10 +121,9 @@ func (r *Roster) createPlayer(c echo.Context) (err error) {
 		c.Echo().Logger.Error(fmt.Errorf("error binding player: %s", err))
 		return component.RenderToastError(c, "unexpected error")
 	}
-	defer renderPlayerForm(c, &payload)
 
 	if !validation.IsFormValid(c) {
-		return
+		return view.CreatePlayerRow(c, &payload).Render(c.Request().Context(), c.Response())
 	}
 
 	if err := r.PlayerService.Create(teamSlug, &payload); err != nil {
@@ -131,9 +131,10 @@ func (r *Roster) createPlayer(c echo.Context) (err error) {
 	}
 
 	if validation.IsFormValid(c) {
-		payload.Order += 1
-		payload.Name = ""
-		return view.NewPlayerRow(c, &payload).Render(c.Request().Context(), c.Response().Writer)
+		return cmp.Or(
+			view.NewPlayerRow(c, &payload).Render(c.Request().Context(), c.Response()),
+			view.CreatePlayerRow(c, &pbmodels.Players{Name: "", Order: payload.Order + 1}).Render(c.Request().Context(), c.Response()),
+		)
 	}
 	return nil
 }
