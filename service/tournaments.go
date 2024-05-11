@@ -54,7 +54,6 @@ func (t *Tournaments) GetTournamentsWithGamesByTeamSlug(teamSlug string) ([]*pbm
 			Games:      make([]*pbmodels.Games, 0),
 		}
 		for _, g := range games {
-			fmt.Println("id", g)
 			if g.Tournament == t.GetId() {
 				tg[i].Games = append(tg[i].Games, g)
 			}
