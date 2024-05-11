@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"log"
 	"strings"
 	"ultigamecast/pbmodels"
 
@@ -15,26 +14,16 @@ type Game struct {
 	app        core.App
 	dao        *daos.Dao
 	collection *models.Collection
-	allEvents  []string
 }
 
 func NewGame(app core.App) *Game {
 	dao := app.Dao()
 	collection := mustGetCollection(app.Dao(), "games")
 
-	events := make([]string, len(collection.Schema.AsMap()))
-	i := 0
-	for key := range collection.Schema.AsMap() {
-		events[i] = key
-		i++
-	}
-	log.Printf("%v\n", events)
-
 	return &Game{
 		app:        app,
 		dao:        dao,
 		collection: collection,
-		allEvents:  events,
 	}
 }
 
@@ -62,7 +51,7 @@ func (g *Game) GetAllByTeamSlug(teamSlug string) ([]*pbmodels.Games, error) {
 }
 
 func (g *Game) Create(game *pbmodels.Games) error {
-	if err := g.dao.DB().Model(game).Insert(); err != nil {
+	if err := g.dao.DB().Model(game).Exclude("Id").Insert(); err != nil {
 		return err
 	}
 	return nil

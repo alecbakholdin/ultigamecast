@@ -39,7 +39,7 @@ templ TournamentGameRow(teamSlug string, tournamentSlug string, game *pbmodels.G
 				<span class="font-semibold flex items-center gap-2">
 					@gameStatus(game)
 					vs. { game.Opponent }
-					<a href={ util.JoinSlugs("/team", teamSlug, "tournaments", tournamentSlug, "games", game.GetId()) }>
+					<a href={ util.JoinSlugs("/team", teamSlug, "tournaments", tournamentSlug, "games", game.Id) }>
 						@icon.ExternalLink()
 					</a>
 				</span>
@@ -64,7 +64,7 @@ templ TournamentGameRow(teamSlug string, tournamentSlug string, game *pbmodels.G
 				<ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
 					<li>
 						<a
-							hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournamentSlug, "games", game.GetId(), "edit") }
+							hx-get={ util.JoinSlugsString("/team", teamSlug, "tournaments", tournamentSlug, "games", game.Id, "edit") }
 							hx-target="#modal_content"
 							hx-swap="innerHTML"
 						>

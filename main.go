@@ -32,9 +32,7 @@ func BindAppHooks(app *pocketbase.PocketBase) {
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
 		e.Router.HTTPErrorHandler = setup.ErrorHandler
 		e.Router.GET("/*", apis.StaticDirectoryHandler(os.DirFS("./public"), false))
-		logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-			
-		}))
+		logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}))
 		e.Router.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 			LogStatus:   true,
 			LogURI:      true,
@@ -69,7 +67,7 @@ func BindAppHooks(app *pocketbase.PocketBase) {
 		playersService := service.NewPlayers(playerRepo, teamRepo)
 
 		teamHandler := handlers.NewTeam(teamRepo, playerRepo, tournamentRepo)
-		tournamentHandler := handlers.NewTournaments(tournamentsService, tournamentRepo, gameRepo, teamRepo)
+		tournamentHandler := handlers.NewTournaments(tournamentsService)
 		rosterHandler := handlers.NewRoster(playersService)
 		gameHandler := handlers.NewGames(teamRepo, tournamentRepo, gamesService)
 

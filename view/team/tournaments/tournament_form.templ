@@ -1,7 +1,6 @@
 package view
 
 import "ultigamecast/view/util"
-import "ultigamecast/validation"
 import "ultigamecast/view/component"
 
 import "github.com/labstack/echo/v5"
@@ -36,7 +35,7 @@ templ TournamentForm(c echo.Context, isNew bool, tournament *pbmodels.Tournament
 		if isNew {
 			hx-post={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "tournaments") }
 		} else {
-			hx-put={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "tournaments", c.PathParam("touranmentsSlug")) }
+			hx-put={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "tournaments", c.PathParam("tournamentsSlug")) }
 		}
 	>
 		@component.InputWrapperLabel(c, "name", "tournament_modal_name", "Name") {
@@ -44,7 +43,7 @@ templ TournamentForm(c echo.Context, isNew bool, tournament *pbmodels.Tournament
 				type=""
 				id="tournament_modal_name"
 				name="name"
-				class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "start")) }
+				class="input input-bordered"
 				placeholder="Name"
 				value={ tournament.Name }
 			/>
@@ -53,27 +52,29 @@ templ TournamentForm(c echo.Context, isNew bool, tournament *pbmodels.Tournament
 			@component.InputWrapperLabel(c, "start", "tournament_modal_start", "Start") {
 				<input
 					type="date"
-					name="start"
+					name="start_datetime"
 					id="tournament_modal_start"
 					class="input input-bordered"
 					value={ tournament.GetStartStr("2006-01-02", "America/New_York") }
 				/>
+				<input type="hidden" name="start_timezone" value="America/New_York"/>
 			}
 			@component.InputWrapperLabel(c, "end", "tournament_modal_end", "End") {
 				<input
 					type="date"
-					name="end"
+					name="end_datetime"
 					id="tournament_modal_end"
-					class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "end")) }
+					class="input input-bordered"
 					value={ tournament.GetEndStr("2006-01-02", "America/New_York") }
 				/>
+				<input type="hidden" name="end_timezone" value="America/New_York"/>
 			}
 		</div>
 		@component.InputWrapperLabel(c, "location", "tournament_modal_location", "Location") {
 			<input
 				type="text"
 				id="tournament_modal_location"
-				class={ "input input-bordered", templ.KV("input-error", !validation.IsFieldValid(c, "location")) }
+				class="input input-bordered"
 				name="location"
 				placeholder="Location"
 				value={ tournament.Location }

@@ -12,6 +12,12 @@ type Users struct {
 	Avatar string `db:"avatar" form:"avatar" json:"avatar"`
 }
 
+
+func (d *Users) CopyFrom(s *Users) *Users {
+	d.Name = s.Name
+	d.Avatar = s.Avatar
+	return d
+}
 func (m *Users) TableName() string {
     return "users"
 }

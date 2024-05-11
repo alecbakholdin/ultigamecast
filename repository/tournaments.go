@@ -8,7 +8,6 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/daos"
 	"github.com/pocketbase/pocketbase/models"
-	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 type Tournament struct {
@@ -60,59 +59,17 @@ func (t *Tournament) GetAllByTeamSlug(slug string) ([]*pbmodels.Tournaments, err
 	return tournaments, nil
 }
 
-func (t *Tournament) Update(to *pbmodels.Tournaments) (err error) {
-	return t.dao.DB().Model(to).Exclude("Id", "Team").Update()
+func (t *Tournament) Create(m *pbmodels.Tournaments) (error) {
+	return t.dao.DB().Model(m).Exclude("Id").Insert();
 }
 
-func (t *Tournament) UpdateBySlug(teamSlug string, currentSlug string, name string, slug string, start types.DateTime, end types.DateTime, location string) (*pbmodels.Tournaments, error) {
-	currentModel, err := t.GetOneBySlug(teamSlug, currentSlug)
-	if err != nil {
-		return nil, err
-	}
-
-	currentModel.Name = name
-	currentModel.Slug = slug
-	currentModel.Start = start
-	currentModel.End = end
-	currentModel.Location = location
-
-	if err := t.dao.DB().Model(currentModel).Update(); err != nil {
-		return nil, err
-	} else {
-		return currentModel, nil
-	}
+func (t *Tournament) Update(m *pbmodels.Tournaments, attrs... string) (err error) {
+	return t.dao.DB().Model(m).Exclude("Id", "Team").Update(attrs...)
 }
 
-func (t *Tournament) Create(teamId string, name string, slug string, start types.DateTime, end types.DateTime, location string) (*pbmodels.Tournaments, error) {
-	tournament := &pbmodels.Tournaments{
-		Team:     teamId,
-		Name:     name,
-		Slug:     slug,
-		Start:    start,
-		End:      end,
-		Location: location,
-	}
-	if err := t.dao.DB().Model(tournament).Insert(); err != nil {
-		return nil, err
-	}
-	return tournament, nil
-}
-
-func (t *Tournament) Delete(id string) error {
-	if record, err := t.dao.FindRecordById(t.collection.Id, id); err != nil {
-		return err
-	} else if err = t.dao.DeleteRecord(record); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (t *Tournament) DeleteBySlug(teamSlug string, tournamentSlug string) error {
-	if _, err := t.GetOneBySlug(teamSlug, tournamentSlug); err != nil {
-		return err
-	} else {
-		panic("Tournament is not deletable rn") //TODO
-	}
+func (t *Tournament) DeleteById(id string) error {
+	_, err := t.dao.DB().Delete(t.collection.TableName(), dbx.HashExp{"id": id}).Execute()
+	return err
 }
 
 func (t *Tournament) tournamentQuery() *dbx.SelectQuery {

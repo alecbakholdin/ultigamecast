@@ -15,9 +15,6 @@ type Player struct {
 	app                   core.App
 	dao                   *daos.Dao
 	collection            *models.Collection
-	tournamentSummaryView *models.Collection
-	teamSummaryView       *models.Collection
-	gameSummaryView       *models.Collection
 }
 
 func NewPlayer(app core.App) *Player {
@@ -26,9 +23,6 @@ func NewPlayer(app core.App) *Player {
 		app:                   app,
 		dao:                   dao,
 		collection:            mustGetCollection(dao, "players"),
-		tournamentSummaryView: mustGetCollection(dao, "player_tournament_summary"),
-		teamSummaryView:       mustGetCollection(dao, "player_team_summary"),
-		gameSummaryView:       mustGetCollection(dao, "player_game_summary"),
 	}
 }
 
@@ -55,7 +49,7 @@ func (p *Player) GetAllByTeamSlug(slug string) ([]*pbmodels.Players, error) {
 }
 
 func (p *Player) Create(player *pbmodels.Players) error {
-	return p.dao.DB().Model(player).Insert()
+	return p.dao.DB().Model(player).Exclude("Id").Insert()
 }
 
 func (p *Player) Update(player *pbmodels.Players) error {

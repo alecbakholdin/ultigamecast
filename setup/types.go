@@ -199,7 +199,7 @@ func snakeToPascalCase(s string) string {
 }
 
 var defaultImports = []string{"\"github.com/pocketbase/pocketbase/models\""}
-var dateImports = []string{"\"time\"", "\"cmp\"", "\"github.com/pocketbase/pocketbase/tools/types\""}
+var dateImports = []string{"\"cmp\"", "\"strings\"", "\"time\"", "\"github.com/pocketbase/pocketbase/tools/types\""}
 
 func writeCollectionToFile(c *CollectionData) {
 	file := mustGetCollectionFile(c)
@@ -245,6 +245,9 @@ func writeCollectionToFile(c *CollectionData) {
 		}
 		writer.WriteString(")\n\n")
 	}
+
+	collectionCopyFunctionTemplate.Execute(writer, c);
+
 	writer.WriteString(fmt.Sprintf(`func (m *%s) TableName() string {
     return "%s"
 }

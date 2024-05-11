@@ -25,10 +25,18 @@ func (m *{{.CollectionData.GoName}}) Get{{.GoName}}Str(format string, locName st
 }
 
 func (m *{{.CollectionData.GoName}}) Get{{.GoName}}Dt() (types.DateTime, error) {
+	m.{{.GoName}}Datetime = strings.TrimSpace(m.{{.GoName}}Datetime)
+	m.{{.GoName}}Timezone = strings.TrimSpace(m.{{.GoName}}Timezone)
 	if m.{{.GoName}}Datetime != "" && m.{{.GoName}}Timezone != "" {
+		var datetimeFormat string
+		if len(m.{{.GoName}}Datetime) == len("2006-01-02") {
+			datetimeFormat = "2006-01-02"
+		} else {
+			datetimeFormat = "2006-01-02T15:04"
+		}
 		if loc, err := time.LoadLocation(m.{{.GoName}}Timezone); err != nil {
 			return types.DateTime{}, err
-		} else if time, err := time.ParseInLocation("2006-01-02T15:04", m.{{.GoName}}Datetime, cmp.Or(loc, time.Local)); err != nil {
+		} else if time, err := time.ParseInLocation(datetimeFormat, m.{{.GoName}}Datetime, cmp.Or(loc, time.Local)); err != nil {
 			return types.DateTime{}, err
 		} else {
 			return types.ParseDateTime(time)
@@ -44,9 +52,8 @@ var fieldDateTimeTemplate = template.Must(template.New("datetime").Parse(dateTim
 
 const copyFunctionFormat = `
 func (d *{{.GoName}}) CopyFrom(s *{{.GoName}}) *{{.GoName}} {
-{{range .Fields}}
-	d.{{.GoName}} = s.{{.GoName}}
-{{end}}
+{{range .Fields}}	d.{{.GoName}} = s.{{.GoName}}
+{{end}}	return d
 }
 `
 var collectionCopyFunctionTemplate = template.Must(template.New("copy").Parse(copyFunctionFormat))

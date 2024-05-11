@@ -27,7 +27,7 @@ func NewEvents(app core.App) *Events {
 
 // Creates new event
 func (e *Events) Create(event *pbmodels.Events) error {
-	return e.dao.DB().Model(event).Insert()
+	return e.dao.DB().Model(event).Exclude("Id").Insert()
 }
 
 // Updates an existing record. Make sure event has Id set or this will fail
