@@ -18,6 +18,11 @@ func (d *Users) CopyFrom(s *Users) *Users {
 	d.Avatar = s.Avatar
 	return d
 }
+
+func (m *Users) Copy() *Users {
+	return (&Users{}).CopyFrom(m)
+}
+
 func (m *Users) TableName() string {
     return "users"
 }

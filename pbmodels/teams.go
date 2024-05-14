@@ -22,6 +22,11 @@ func (d *Teams) CopyFrom(s *Teams) *Teams {
 	d.Logo = s.Logo
 	return d
 }
+
+func (m *Teams) Copy() *Teams {
+	return (&Teams{}).CopyFrom(m)
+}
+
 func (m *Teams) TableName() string {
     return "teams"
 }

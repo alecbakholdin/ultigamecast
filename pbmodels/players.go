@@ -19,6 +19,11 @@ func (d *Players) CopyFrom(s *Players) *Players {
 	d.Order = s.Order
 	return d
 }
+
+func (m *Players) Copy() *Players {
+	return (&Players{}).CopyFrom(m)
+}
+
 func (m *Players) TableName() string {
     return "players"
 }

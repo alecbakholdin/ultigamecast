@@ -57,14 +57,17 @@ func BindAppHooks(app *pocketbase.PocketBase) {
 
 		setup.RegisterDevParams(e)
 
+		transactionRepo := repository.NewTransaction(app)
 		teamRepo := repository.NewTeam(app)
 		playerRepo := repository.NewPlayer(app)
 		tournamentRepo := repository.NewTournament(app)
 		gameRepo := repository.NewGame(app)
+		eventsRepo := repository.NewEvents(app)
 
 		tournamentsService := service.NewTournaments(tournamentRepo, gameRepo, teamRepo)
 		gamesService := service.NewGames(tournamentRepo, gameRepo)
 		playersService := service.NewPlayers(playerRepo, teamRepo)
+		service.NewLiveGames(gameRepo, eventsRepo, transactionRepo)
 
 		teamHandler := handlers.NewTeam(teamRepo, playerRepo, tournamentRepo)
 		tournamentHandler := handlers.NewTournaments(tournamentsService)

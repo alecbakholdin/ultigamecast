@@ -11,19 +11,20 @@ import (
 type Games struct {
 	models.BaseModel
 
-	SoftCap           int            `db:"soft_cap" form:"soft_cap" json:"soft_cap"`
-	HardCap           int            `db:"hard_cap" form:"hard_cap" json:"hard_cap"`
-	WindMph           int            `db:"wind_mph" form:"wind_mph" json:"wind_mph"`
-	Tournament        string         `db:"tournament" form:"tournament" json:"tournament"`
-	Status            GamesStatus    `db:"status" form:"status" json:"status"`
-	TeamScore         int            `db:"team_score" form:"team_score" json:"team_score"`
-	OpponentScore     int            `db:"opponent_score" form:"opponent_score" json:"opponent_score"`
-	HalfCap           int            `db:"half_cap" form:"half_cap" json:"half_cap"`
-	TempF             int            `db:"temp_f" form:"temp_f" json:"temp_f"`
-	StartTime         types.DateTime `db:"start_time" json:"start_time"`
-	StartTimeTimezone string         `db:"-" form:"start_time_timezone" json:"start_time_timezone"`
-	StartTimeDatetime string         `db:"-" form:"start_time_datetime" json:"start_time_datetime"`
-	Opponent          string         `db:"opponent" form:"opponent" json:"opponent"`
+	Opponent          string          `db:"opponent" form:"opponent" json:"opponent"`
+	Status            GamesStatus     `db:"status" form:"status" json:"status"`
+	OpponentScore     int             `db:"opponent_score" form:"opponent_score" json:"opponent_score"`
+	HardCap           int             `db:"hard_cap" form:"hard_cap" json:"hard_cap"`
+	WindMph           int             `db:"wind_mph" form:"wind_mph" json:"wind_mph"`
+	Tournament        string          `db:"tournament" form:"tournament" json:"tournament"`
+	StartTime         types.DateTime  `db:"start_time" json:"start_time"`
+	StartTimeTimezone string          `db:"-" form:"start_time_timezone" json:"start_time_timezone"`
+	StartTimeDatetime string          `db:"-" form:"start_time_datetime" json:"start_time_datetime"`
+	SoftCap           int             `db:"soft_cap" form:"soft_cap" json:"soft_cap"`
+	TempF             int             `db:"temp_f" form:"temp_f" json:"temp_f"`
+	LiveStatus        GamesLiveStatus `db:"live_status" form:"live_status" json:"live_status"`
+	TeamScore         int             `db:"team_score" form:"team_score" json:"team_score"`
+	HalfCap           int             `db:"half_cap" form:"half_cap" json:"half_cap"`
 }
 
 type GamesStatus string
@@ -34,23 +35,39 @@ const (
 	GamesStatusCompleted GamesStatus = "completed"
 )
 
+type GamesLiveStatus string
+
+const (
+	GamesLiveStatusBeforePoint         GamesLiveStatus = "Before Point"
+	GamesLiveStatusHalftime            GamesLiveStatus = "Halftime"
+	GamesLiveStatusFinal               GamesLiveStatus = "Final"
+	GamesLiveStatusTeamPossession      GamesLiveStatus = "Team Possession"
+	GamesLiveStatusOpponentPossession  GamesLiveStatus = "Opponent Possession"
+)
+
 
 func (d *Games) CopyFrom(s *Games) *Games {
-	d.SoftCap = s.SoftCap
+	d.Opponent = s.Opponent
+	d.Status = s.Status
+	d.OpponentScore = s.OpponentScore
 	d.HardCap = s.HardCap
 	d.WindMph = s.WindMph
 	d.Tournament = s.Tournament
-	d.Status = s.Status
-	d.TeamScore = s.TeamScore
-	d.OpponentScore = s.OpponentScore
-	d.HalfCap = s.HalfCap
-	d.TempF = s.TempF
 	d.StartTime = s.StartTime
 	d.StartTimeTimezone = s.StartTimeTimezone
 	d.StartTimeDatetime = s.StartTimeDatetime
-	d.Opponent = s.Opponent
+	d.SoftCap = s.SoftCap
+	d.TempF = s.TempF
+	d.LiveStatus = s.LiveStatus
+	d.TeamScore = s.TeamScore
+	d.HalfCap = s.HalfCap
 	return d
 }
+
+func (m *Games) Copy() *Games {
+	return (&Games{}).CopyFrom(m)
+}
+
 func (m *Games) TableName() string {
     return "games"
 }

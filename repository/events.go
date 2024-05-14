@@ -25,10 +25,27 @@ func NewEvents(app core.App) *Events {
 	}
 }
 
+func (e *Events) GetAllByGame(gameId string) ([]*pbmodels.Events, error) {
+	var events []*pbmodels.Events;
+	q := e.dao.ModelQuery(&pbmodels.Events{})
+	q.Where(dbx.HashExp{"game": gameId})
+	q.OrderBy("created ASC")
+	
+	if err := q.All(&events); err != nil {
+		return nil, err
+	}
+	return events, nil
+}
+
 // Creates new event
 func (e *Events) Create(event *pbmodels.Events) error {
-	return e.dao.DB().Model(event).Exclude("Id").Insert()
+	return e.CreateDao(e.dao, event)
 }
+
+func (e *Events) CreateDao(dao *daos.Dao, event *pbmodels.Events) error {
+	return dao.DB().Model(event).Exclude("Id").Insert()
+}
+
 
 // Updates an existing record. Make sure event has Id set or this will fail
 // Updates only the fields specified in fields. If fields is empty, then updates

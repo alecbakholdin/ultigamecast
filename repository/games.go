@@ -57,8 +57,12 @@ func (g *Game) Create(game *pbmodels.Games) error {
 	return nil
 }
 
-func (g *Game) Update(game *pbmodels.Games) (err error) {
-	if err := g.dao.DB().Model(game).Exclude("Id", "Tournament").Update(); err != nil {
+func (g *Game) Update(game *pbmodels.Games, attr... string) (err error) {
+	return g.UpdateDao(g.dao, game, attr...)
+}
+
+func (g *Game) UpdateDao(dao *daos.Dao, game *pbmodels.Games, attr... string) (err error) {
+	if err := dao.DB().Model(game).Exclude("Id", "Tournament").Update(attr...); err != nil {
 		return err
 	}
 	return nil

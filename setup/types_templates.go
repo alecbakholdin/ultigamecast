@@ -55,5 +55,10 @@ func (d *{{.GoName}}) CopyFrom(s *{{.GoName}}) *{{.GoName}} {
 {{range .Fields}}	d.{{.GoName}} = s.{{.GoName}}
 {{end}}	return d
 }
+
+func (m *{{.GoName}}) Copy() *{{.GoName}} {
+	return (&{{.GoName}}{}).CopyFrom(m)
+}
+
 `
 var collectionCopyFunctionTemplate = template.Must(template.New("copy").Parse(copyFunctionFormat))
