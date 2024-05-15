@@ -23,30 +23,30 @@ type LiveGames struct {
 
 func NewLiveGames(g *repository.Game, e *repository.Events, t *repository.Transaction) *LiveGames {
 	return &LiveGames{
-		gameRepo:   g,
-		eventRepo:  e,
-		games:      make([]*liveGameContainer, 0),
-		addGame:    make(chan *liveGameContainer, 5),
-		deleteGame: make(chan string, 5),
+		gameRepo:        g,
+		eventRepo:       e,
+		transactionRepo: t,
+		games:           make([]*liveGameContainer, 0),
+		addGame:         make(chan *liveGameContainer, 5),
+		deleteGame:      make(chan string, 5),
 	}
 }
 
-func (l *LiveGames) StartLiveGame(gameId string) error {
+func (l *LiveGames) StartLiveGame(gameId string) (*liveGameContainer, error) {
 	l.gamesMut.Lock()
 	defer l.gamesMut.Unlock()
 
-	liveGame := l.findLiveGame(gameId)
-	if liveGame != nil {
-		return nil
+	if lg := l.findLiveGame(gameId); lg != nil {
+		return lg, nil
 	}
 
 	game, err := l.gameRepo.GetOneById(gameId)
 	if err != nil {
-		return fmt.Errorf("error fetching game %s: %s", gameId, err)
+		return nil, fmt.Errorf("error fetching game %s: %s", gameId, err)
 	}
 	events, err := l.eventRepo.GetAllByGame(gameId)
 	if err != nil {
-		return fmt.Errorf("error fetching game events for game %s: %s", gameId, err)
+		return nil, fmt.Errorf("error fetching game events for game %s: %s", gameId, err)
 	}
 
 	lg := &liveGameContainer{
@@ -60,7 +60,7 @@ func (l *LiveGames) StartLiveGame(gameId string) error {
 	}
 	l.games = append(l.games, lg)
 	go l.notifySubscribers(lg)
-	return nil
+	return lg, nil
 }
 
 func (l *LiveGames) RemoveLiveGame(gameId string) {
@@ -73,8 +73,6 @@ func (l *LiveGames) RemoveLiveGame(gameId string) {
 		}
 
 		lg.mut.Lock()
-		close(lg.gameUpdates)
-		close(lg.eventUpdates)
 		for _, s := range lg.Subscriptions {
 			s.game = nil
 			l.Unsubscribe(s)
@@ -86,12 +84,9 @@ func (l *LiveGames) RemoveLiveGame(gameId string) {
 }
 
 func (l *LiveGames) Subscribe(gameId string) (*LiveGameSubscription, error) {
-	l.gamesMut.Lock()
-	defer l.gamesMut.Unlock()
-
-	liveGame := l.findLiveGame(gameId)
-	if liveGame == nil {
-		return nil, fmt.Errorf("game %s is not live", gameId)
+	liveGame, err := l.StartLiveGame(gameId)
+	if err != nil {
+		return nil, fmt.Errorf("error starting live game: %s", err)
 	}
 	liveGame.mut.Lock()
 	defer liveGame.mut.Unlock()
@@ -101,6 +96,7 @@ func (l *LiveGames) Subscribe(gameId string) (*LiveGameSubscription, error) {
 		SubscriptionId: uuid.NewString(),
 		GameUpdates:    make(chan *LiveGameUpdate, 10),
 		EventUpdates:   make(chan *LiveEventUpdate, 10),
+		Close:          make(chan int),
 		game:           liveGame,
 	}
 	liveGame.Subscriptions = append(liveGame.Subscriptions, sub)
@@ -108,8 +104,7 @@ func (l *LiveGames) Subscribe(gameId string) (*LiveGameSubscription, error) {
 }
 
 func (l *LiveGames) Unsubscribe(sub *LiveGameSubscription) {
-	close(sub.GameUpdates)
-	close(sub.EventUpdates)
+	sub.Close <- 1
 	if sub.game == nil {
 		return
 	}
@@ -189,19 +184,18 @@ func (l *LiveGames) OpponentScored(gameId, message string) error {
 func (l *LiveGames) genericUpdate(gameId string, expectedStatus pbmodels.GamesLiveStatus, getEvents func(g *liveGameContainer) []*pbmodels.Events) error {
 	game := l.lockedFindLiveGame(gameId)
 	if game == nil {
+		fmt.Println("No game found")
 		return nil
 	}
 
 	game.mut.Lock()
 	defer game.mut.Unlock()
 
-	if game.Game.LiveStatus != expectedStatus {
-		return nil
-	}
-
 	events := getEvents(game)
-	l.transactionRepo.Run(func(txDao *daos.Dao) error {
+	fmt.Println(events)
+	err := l.transactionRepo.Run(func(txDao *daos.Dao) error {
 		g := game.Game.Copy()
+		g.Id = game.Game.Id
 		updatedFields := []string{}
 		for _, e := range events {
 			updatedFields = append(updatedFields, l.applyEvent(g, e, false)...)
@@ -209,6 +203,7 @@ func (l *LiveGames) genericUpdate(gameId string, expectedStatus pbmodels.GamesLi
 				return fmt.Errorf("error creating event %v: %s", e, err)
 			}
 		}
+		fmt.Println(g, g.OpponentScore)
 		if len(updatedFields) == 0 {
 			return nil
 		} else if err := l.gameRepo.UpdateDao(txDao, g, updatedFields...); err != nil {
@@ -216,6 +211,10 @@ func (l *LiveGames) genericUpdate(gameId string, expectedStatus pbmodels.GamesLi
 		}
 		return nil
 	})
+	fmt.Println("err", err)
+	if err != nil {
+		return err
+	}
 
 	updatedFields := []string{}
 	for _, e := range events {
@@ -225,10 +224,11 @@ func (l *LiveGames) genericUpdate(gameId string, expectedStatus pbmodels.GamesLi
 			Event: e,
 		}
 	}
+	fmt.Println(events[0], updatedFields)
 	if len(updatedFields) > 0 {
 		game.gameUpdates <- &LiveGameUpdate{
 			Fields: updatedFields,
-			Game: game.Game.Copy(),
+			Game:   game.Game.Copy(),
 		}
 	}
 
@@ -297,11 +297,11 @@ func (l *LiveGames) notifySubscribers(game *liveGameContainer) {
 		select {
 		case gu := <-game.gameUpdates:
 			for _, s := range game.Subscriptions {
-				s.game.gameUpdates <- gu
+				s.GameUpdates <- gu
 			}
 		case eu := <-game.eventUpdates:
 			for _, s := range game.Subscriptions {
-				s.game.eventUpdates <- eu
+				s.EventUpdates <- eu
 			}
 		}
 	}

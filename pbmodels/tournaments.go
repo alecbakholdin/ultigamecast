@@ -11,8 +11,6 @@ import (
 type Tournaments struct {
 	models.BaseModel
 
-	Name          string         `db:"name" form:"name" json:"name"`
-	Slug          string         `db:"slug" json:"slug" param:"tournamentsSlug"`
 	Team          string         `db:"team" form:"team" json:"team"`
 	Start         types.DateTime `db:"start" json:"start"`
 	StartTimezone string         `db:"-" form:"start_timezone" json:"start_timezone"`
@@ -21,12 +19,12 @@ type Tournaments struct {
 	EndTimezone   string         `db:"-" form:"end_timezone" json:"end_timezone"`
 	EndDatetime   string         `db:"-" form:"end_datetime" json:"end_datetime"`
 	Location      string         `db:"location" form:"location" json:"location"`
+	Name          string         `db:"name" form:"name" json:"name"`
+	Slug          string         `db:"slug" json:"slug" param:"tournamentsSlug"`
 }
 
 
 func (d *Tournaments) CopyFrom(s *Tournaments) *Tournaments {
-	d.Name = s.Name
-	d.Slug = s.Slug
 	d.Team = s.Team
 	d.Start = s.Start
 	d.StartTimezone = s.StartTimezone
@@ -35,6 +33,8 @@ func (d *Tournaments) CopyFrom(s *Tournaments) *Tournaments {
 	d.EndTimezone = s.EndTimezone
 	d.EndDatetime = s.EndDatetime
 	d.Location = s.Location
+	d.Name = s.Name
+	d.Slug = s.Slug
 	return d
 }
 

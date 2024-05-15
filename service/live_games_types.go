@@ -54,5 +54,6 @@ type LiveGameSubscription struct {
 	SubscriptionId string
 	GameUpdates    chan *LiveGameUpdate
 	EventUpdates   chan *LiveEventUpdate
+	Close          chan int
 	game           *liveGameContainer
 }

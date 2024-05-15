@@ -5,13 +5,21 @@ import "ultigamecast/view/util"
 import "github.com/labstack/echo/v5"
 import "ultigamecast/pbmodels"
 
-templ GameRoot(c echo.Context, game pbmodels.Games) {
+templ GameRoot(c echo.Context, game *pbmodels.Games, events []*pbmodels.Events) {
 	@layout.Root() {
 		<div
 			hx-ext="sse"
 			sse-connect={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "tournaments", c.PathParam("tournamentsSlug"), "games", game.Id, "sse") }
 		>
-            @GameScore(c, game)
-        </div>
+			@GameScore(c, game)
+			@GameEventList(c, events)
+			<button
+				class="btn btn-primary"
+				hx-post={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "tournaments", c.PathParam("tournamentsSlug"), "games", game.Id, "opponentScore") }
+				hx-swap="none"
+			>
+				Opponent Score
+			</button>
+		</div>
 	}
 }

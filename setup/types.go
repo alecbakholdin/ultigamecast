@@ -104,6 +104,12 @@ func getCollectionField(c *CollectionData, f *schema.SchemaField, pbc *models.Co
 	switch f.Type {
 	case "text":
 		cf.GoType = "string"
+	case "relation":
+		cf.GoType = "string"
+	case "json":
+		cf.GoType = "[]byte"
+	case "bool":
+		cf.GoType = "bool"
 	case "number":
 		if opts, ok := f.Options.(*schema.NumberOptions); !ok {
 			fmt.Printf("Missing number options for %s\n", f.Name)
@@ -124,8 +130,6 @@ func getCollectionField(c *CollectionData, f *schema.SchemaField, pbc *models.Co
 		} else {
 			fmt.Printf("Missing select options for %s: %v\n", f.Name, f.Options)
 		}
-	case "bool":
-		cf.GoType = "bool"
 	case "date":
 		cf.GoType = "types.DateTime"
 		fields = append(fields,
@@ -153,8 +157,6 @@ func getCollectionField(c *CollectionData, f *schema.SchemaField, pbc *models.Co
 			})
 		c.Dates = append(c.Dates, &cf)
 		c.IncludesDate = true
-	case "relation":
-		cf.GoType = "string"
 	case "file":
 		cf.GoType = "string"
 		c.Files = append(c.Files, &CollectionFile{

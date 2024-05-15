@@ -1,0 +1,14 @@
+package game
+
+import "ultigamecast/pbmodels"
+
+templ GameUpdate(field string, game *pbmodels.Games) {
+	switch field {
+		case "OpponentScore":
+			@GameOpponentScore(game)
+		case "TeamScore":
+			@GameTeamScore(game)
+		case "OpponentTitle":
+			@OpponentTitle(game)
+	}
+}
