@@ -9,7 +9,7 @@ import "ultigamecast/view/component"
 import "ultigamecast/pbmodels"
 
 templ Team(c echo.Context, team *pbmodels.Teams) {
-	@layout.Root()
+	@layout.Root(c)
 	<div class="w-full flex flex-col">
 		<div class="w-full flex items-start gap-4 p-4">
 			<img src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/nba/500/gs.png&h=200&w=200" alt={ team.Name } class="row-span-full w-20 h-20"/>

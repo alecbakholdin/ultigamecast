@@ -7,13 +7,15 @@ import (
 type Events struct {
 	models.BaseModel
 
-	Type       EventsType      `db:"type" form:"type" json:"type"`
-	Player     string          `db:"player" form:"player" json:"player"`
-	IsOpponent bool            `db:"is_opponent" form:"is_opponent" json:"is_opponent"`
-	Message    string          `db:"message" form:"message" json:"message"`
-	Metadata   []byte          `db:"metadata" form:"metadata" json:"metadata"`
-	Game       string          `db:"game" form:"game" json:"game"`
-	PointType  EventsPointType `db:"point_type" form:"point_type" json:"point_type"`
+	Metadata      []byte          `db:"metadata" form:"metadata" json:"metadata"`
+	Type          EventsType      `db:"type" form:"type" json:"type"`
+	PointType     EventsPointType `db:"point_type" form:"point_type" json:"point_type"`
+	Player        string          `db:"player" form:"player" json:"player"`
+	IsOpponent    bool            `db:"is_opponent" form:"is_opponent" json:"is_opponent"`
+	Message       string          `db:"message" form:"message" json:"message"`
+	TeamScore     int             `db:"team_score" form:"team_score" json:"team_score"`
+	OpponentScore int             `db:"opponent_score" form:"opponent_score" json:"opponent_score"`
+	Game          string          `db:"game" form:"game" json:"game"`
 }
 
 type EventsType string
@@ -45,13 +47,15 @@ const (
 
 
 func (d *Events) CopyFrom(s *Events) *Events {
+	d.Metadata = s.Metadata
 	d.Type = s.Type
+	d.PointType = s.PointType
 	d.Player = s.Player
 	d.IsOpponent = s.IsOpponent
 	d.Message = s.Message
-	d.Metadata = s.Metadata
+	d.TeamScore = s.TeamScore
+	d.OpponentScore = s.OpponentScore
 	d.Game = s.Game
-	d.PointType = s.PointType
 	return d
 }
 

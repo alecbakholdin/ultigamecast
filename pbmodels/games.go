@@ -11,20 +11,20 @@ import (
 type Games struct {
 	models.BaseModel
 
-	WindMph           int             `db:"wind_mph" form:"wind_mph" json:"wind_mph"`
 	Tournament        string          `db:"tournament" form:"tournament" json:"tournament"`
 	StartTime         types.DateTime  `db:"start_time" json:"start_time"`
 	StartTimeTimezone string          `db:"-" form:"start_time_timezone" json:"start_time_timezone"`
 	StartTimeDatetime string          `db:"-" form:"start_time_datetime" json:"start_time_datetime"`
-	Status            GamesStatus     `db:"status" form:"status" json:"status"`
-	TeamScore         int             `db:"team_score" form:"team_score" json:"team_score"`
-	HardCap           int             `db:"hard_cap" form:"hard_cap" json:"hard_cap"`
-	LiveStatus        GamesLiveStatus `db:"live_status" form:"live_status" json:"live_status"`
 	Opponent          string          `db:"opponent" form:"opponent" json:"opponent"`
 	OpponentScore     int             `db:"opponent_score" form:"opponent_score" json:"opponent_score"`
 	HalfCap           int             `db:"half_cap" form:"half_cap" json:"half_cap"`
+	Status            GamesStatus     `db:"status" form:"status" json:"status"`
+	TeamScore         int             `db:"team_score" form:"team_score" json:"team_score"`
 	SoftCap           int             `db:"soft_cap" form:"soft_cap" json:"soft_cap"`
+	HardCap           int             `db:"hard_cap" form:"hard_cap" json:"hard_cap"`
+	WindMph           int             `db:"wind_mph" form:"wind_mph" json:"wind_mph"`
 	TempF             int             `db:"temp_f" form:"temp_f" json:"temp_f"`
+	LiveStatus        GamesLiveStatus `db:"live_status" form:"live_status" json:"live_status"`
 }
 
 type GamesStatus string
@@ -47,20 +47,20 @@ const (
 
 
 func (d *Games) CopyFrom(s *Games) *Games {
-	d.WindMph = s.WindMph
 	d.Tournament = s.Tournament
 	d.StartTime = s.StartTime
 	d.StartTimeTimezone = s.StartTimeTimezone
 	d.StartTimeDatetime = s.StartTimeDatetime
-	d.Status = s.Status
-	d.TeamScore = s.TeamScore
-	d.HardCap = s.HardCap
-	d.LiveStatus = s.LiveStatus
 	d.Opponent = s.Opponent
 	d.OpponentScore = s.OpponentScore
 	d.HalfCap = s.HalfCap
+	d.Status = s.Status
+	d.TeamScore = s.TeamScore
 	d.SoftCap = s.SoftCap
+	d.HardCap = s.HardCap
+	d.WindMph = s.WindMph
 	d.TempF = s.TempF
+	d.LiveStatus = s.LiveStatus
 	return d
 }
 

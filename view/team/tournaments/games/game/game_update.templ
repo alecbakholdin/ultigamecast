@@ -10,5 +10,7 @@ templ GameUpdate(field string, game *pbmodels.Games) {
 			@GameTeamScore(game)
 		case "OpponentTitle":
 			@OpponentTitle(game)
+        case "LiveStatus":
+            @GameLiveStatus(game)
 	}
 }

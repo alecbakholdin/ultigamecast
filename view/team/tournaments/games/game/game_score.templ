@@ -7,6 +7,7 @@ import "ultigamecast/pbmodels"
 
 templ GameScore(c echo.Context, game *pbmodels.Games) {
 	<div class="max-w-screen-sm mx-auto pt-8 flex flex-col items-center">
+		@GameLiveStatus(game)
 		<div class="w-full grid grid-cols-[1fr_auto_1fr] gap-2" sse-swap="score">
 			<div class="w-full flex justify-end items-center gap-1">
 				<div class="flex flex-col items-center">
@@ -34,6 +35,12 @@ templ GameTeamScore(game *pbmodels.Games) {
 templ GameOpponentScore(game *pbmodels.Games) {
 	<div sse-swap="OpponentScore" class="w-12 font-bold text-3xl place-self-start [&.htmx-added]:text-error transition-all duration-1000">
 		{ strconv.Itoa(game.OpponentScore) }
+	</div>
+}
+
+templ GameLiveStatus(game *pbmodels.Games) {
+	<div sse-swap="LiveStatus">
+		{ string(game.LiveStatus) }
 	</div>
 }
 

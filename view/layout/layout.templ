@@ -1,6 +1,9 @@
 package layout
 
-templ Root() {
+import "fmt"
+import "github.com/labstack/echo/v5"
+
+templ Root(c echo.Context) {
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
@@ -60,6 +63,9 @@ templ Root() {
 				<button data-set-theme="dark" data-act-class="hidden">Set theme to dark</button>
 				<button data-set-theme="winter" data-act-class="hidden">Set theme to light</button>
 			</div>
+			<a href={templ.SafeURL(fmt.Sprintf("/login?q=%s", c.Request().URL.Path))} class="absolute bottom-1 right-1 w-fit">
+				Admin? <span class="text-primary">Log in</span>
+			</a>
 		</body>
 	</html>
 }

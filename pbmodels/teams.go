@@ -8,18 +8,18 @@ import (
 type Teams struct {
 	models.BaseModel
 
-	Organization string `db:"organization" form:"organization" json:"organization"`
-	Logo         string `db:"logo" form:"logo" json:"logo"`
 	Name         string `db:"name" form:"name" json:"name"`
 	Slug         string `db:"slug" json:"slug" param:"teamsSlug"`
+	Organization string `db:"organization" form:"organization" json:"organization"`
+	Logo         string `db:"logo" form:"logo" json:"logo"`
 }
 
 
 func (d *Teams) CopyFrom(s *Teams) *Teams {
-	d.Organization = s.Organization
-	d.Logo = s.Logo
 	d.Name = s.Name
 	d.Slug = s.Slug
+	d.Organization = s.Organization
+	d.Logo = s.Logo
 	return d
 }
 

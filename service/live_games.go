@@ -43,6 +43,8 @@ func (l *LiveGames) StartLiveGame(gameId string) (*liveGameContainer, error) {
 	game, err := l.gameRepo.GetOneById(gameId)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching game %s: %s", gameId, err)
+	} else if game.Status != pbmodels.GamesStatusLive {
+		return nil, fmt.Errorf("game is not live")
 	}
 	events, err := l.eventRepo.GetAllByGame(gameId)
 	if err != nil {
@@ -184,12 +186,16 @@ func (l *LiveGames) OpponentScored(gameId, message string) error {
 func (l *LiveGames) genericUpdate(gameId string, expectedStatus pbmodels.GamesLiveStatus, getEvents func(g *liveGameContainer) []*pbmodels.Events) error {
 	game := l.lockedFindLiveGame(gameId)
 	if game == nil {
-		fmt.Println("No game found")
 		return nil
 	}
 
 	game.mut.Lock()
 	defer game.mut.Unlock()
+
+	if (game.Game.LiveStatus != expectedStatus) {
+		fmt.Println("unexpected status")
+		return nil
+	}
 
 	events := getEvents(game)
 	fmt.Println(events)
@@ -198,12 +204,15 @@ func (l *LiveGames) genericUpdate(gameId string, expectedStatus pbmodels.GamesLi
 		g.Id = game.Game.Id
 		updatedFields := []string{}
 		for _, e := range events {
+			e.TeamScore = g.TeamScore
+			e.OpponentScore = g.OpponentScore
+		}
+		for _, e := range events {
 			updatedFields = append(updatedFields, l.applyEvent(g, e, false)...)
 			if err := l.eventRepo.CreateDao(txDao, e); err != nil {
 				return fmt.Errorf("error creating event %v: %s", e, err)
 			}
 		}
-		fmt.Println(g, g.OpponentScore)
 		if len(updatedFields) == 0 {
 			return nil
 		} else if err := l.gameRepo.UpdateDao(txDao, g, updatedFields...); err != nil {

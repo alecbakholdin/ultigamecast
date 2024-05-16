@@ -10,6 +10,7 @@ import (
 	view "ultigamecast/view/team/tournaments/games"
 	"ultigamecast/view/team/tournaments/games/game"
 
+	"github.com/a-h/templ"
 	"github.com/labstack/echo/v5"
 )
 
@@ -165,24 +166,31 @@ func (g *Games) gameSse(c echo.Context) (err error) {
 	w.Header().Add("Access-Control-Allow-Methods", "GET")
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
 
+	writeSse := func (event string, comp templ.Component) {
+		w.Write([]byte(fmt.Sprintf("event: %s\ndata: ", event)))
+		comp.Render(c.Request().Context(), w)
+		w.Write([]byte("\n\n"))
+	}
+
 outer_sse:
 	for {
 		select {
 		case e := <-sub.EventUpdates:
-			w.Write([]byte(fmt.Sprintf("event: %s\ndata: ", e.Event.Id)))
-			game.GameEvent(e.Event).Render(c.Request().Context(), w)
-			w.Write([]byte("\n\n"))
+			if e.IsNew {
+				writeSse("NewEvent", game.GameEvent(e.Event))
+			} else {
+				writeSse(e.Event.Id, game.GameEvent(e.Event))
+			}
 		case g := <-sub.GameUpdates:
 			for _, f := range g.Fields {
-				w.Write([]byte(fmt.Sprintf("event: %s\ndata: ", f)))
-				game.GameUpdate(f, g.Game).Render(c.Request().Context(), w)
-				w.Write([]byte("\n\n"))
+				writeSse(f, game.GameUpdate(f, g.Game))
 			}
 			w.Flush()
 		case <-sub.Close:
 			c.Echo().Logger.Write([]byte("done"))
 			break outer_sse
 		}
+		w.Flush()
 	}
 
 	return nil

@@ -6,7 +6,7 @@ import "github.com/labstack/echo/v5"
 import "ultigamecast/pbmodels"
 
 templ GameRoot(c echo.Context, game *pbmodels.Games, events []*pbmodels.Events) {
-	@layout.Root() {
+	@layout.Root(c) {
 		<div
 			hx-ext="sse"
 			sse-connect={ util.JoinSlugsString("/team", c.PathParam("teamsSlug"), "tournaments", c.PathParam("tournamentsSlug"), "games", game.Id, "sse") }

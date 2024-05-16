@@ -7,7 +7,7 @@ import "net/http"
 import "ultigamecast/validation"
 
 templ ErrorPage(c echo.Context, status int, message string) {
-	@layout.Root() {
+	@layout.Root(c) {
 		@ErrorContent(c, status, message)
 	}
 }
