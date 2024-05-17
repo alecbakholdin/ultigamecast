@@ -1,0 +1,26 @@
+package view_auth
+
+import "ultigamecast/view/layout"
+
+templ LoginPage() {
+	@view_layout.PlainLayout() {
+		@LoginForm()
+	}
+}
+
+templ LoginForm() {
+	<div class="grid">
+		<div class="s12 l4">
+			<div class="field label border">
+				<input id="email" type="text"/>
+				<label>Email</label>
+			</div>
+		</div>
+		<div class="s12 l4">
+			<div class="field label border invalid">
+				<input id="password" type="password"/>
+				<label>Password</label>
+			</div>
+		</div>
+	</div>
+}

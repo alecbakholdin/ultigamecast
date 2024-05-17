@@ -1,0 +1,18 @@
+version: "2"
+sql:
+  - engine: "sqlite"
+    queries: "query.sql"
+    schema: "schema.sql"
+    gen:
+      go:
+        emit_json_tags: true
+        emit_db_tags: true
+        package: "models"
+        out: "models"
+        overrides:
+          - column: teams.name
+            go_struct_tag: validate:"required,max=64"
+          - column: players.name
+            go_struct_tag: validate:"required,max=64"
+          - column: tournaments.name
+            go_struct_tag: validate:"required,max=64"

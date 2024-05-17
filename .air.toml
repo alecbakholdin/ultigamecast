@@ -2,8 +2,8 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  bin = "./tmp/main serve --dev --dir ./pb_data"
-  cmd = "make styles && templ generate && go build -o ./tmp/main ."
+  bin = "./tmp/main"
+  cmd = "templ generate && go build -o ./tmp/main app/main.go"
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "node_modules"]
   exclude_file = []

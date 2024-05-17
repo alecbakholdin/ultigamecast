@@ -1,0 +1,22 @@
+package view_layout
+
+templ Root() {
+	<!DOCTYPE html>
+	<html lang="en" translate="no">
+		<head>
+ 			<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+			// styling
+			<link href="https://cdn.jsdelivr.net/npm/beercss@3.5.6/dist/cdn/beer.min.css" rel="stylesheet"/>
+			<script type="module" src="https://cdn.jsdelivr.net/npm/beercss@3.5.6/dist/cdn/beer.min.js"></script>
+			<script type="module" src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.0/dist/cdn/material-dynamic-colors.min.js"></script>
+			// alpinejs
+			<script src="//unpkg.com/alpinejs" defer></script>
+			// htmx
+			<script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
+			<script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js"></script>
+		</head>
+		<body class="dark">
+			<div id="app">{ children... }</div>
+		</body>
+	</html>
+}

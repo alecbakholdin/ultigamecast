@@ -7,3 +7,4 @@ main
 *_templ.go
 .vscode
 node_modules
+data.db
