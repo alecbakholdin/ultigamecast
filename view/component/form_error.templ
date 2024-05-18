@@ -1,0 +1,12 @@
+package view_component
+
+type FormErrorDTO interface {
+    FormError() string
+}
+
+templ FormError(dto FormErrorDTO) {
+    if dto.FormError() != "" {
+        <span class="error-text">{dto.FormError()}</span>
+        <div class="small-space"></div>
+    }
+}

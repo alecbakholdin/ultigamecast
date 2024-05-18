@@ -1,3 +1,11 @@
+-- name: GetUser :one
+SELECT *
+FROM users
+WHERE email = LOWER(@email);
+-- name: CreateUser :one
+INSERT INTO users (email, password_hash)
+VALUES (LOWER(@email), ?)
+RETURNING *;
 -- name: GetTeam :one
 SELECT *
 FROM teams

@@ -14,9 +14,21 @@ templ Root() {
 			// htmx
 			<script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
 			<script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js"></script>
+
+			<style>
+			 	.htmx-request .loading-appear {
+					display: inline-block !important;
+				}
+				.loading-appear {
+					display: none !important;
+				}
+				.htmx-request .loading-disappear {
+					display: none;
+				}
+			</style>
 		</head>
 		<body class="dark">
-			<div id="app">{ children... }</div>
+			{ children... }
 		</body>
 	</html>
 }

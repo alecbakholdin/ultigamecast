@@ -53,6 +53,7 @@ type Tournament struct {
 }
 
 type User struct {
-	ID    int64  `db:"id" json:"id"`
-	Email string `db:"email" json:"email"`
+	ID           int64          `db:"id" json:"id"`
+	Email        string         `db:"email" json:"email"`
+	PasswordHash sql.NullString `db:"password_hash" json:"password_hash"`
 }

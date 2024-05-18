@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
-    email TEXT NOT NULL UNIQUE    
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT
 );
 CREATE TABLE IF NOT EXISTS teams (
     id INTEGER PRIMARY KEY,
@@ -19,7 +20,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
     id INTEGER PRIMARY KEY,
     team INTEGER NOT NULL,
     "name" TEXT NOT NULL,
-    slug TEXT  NOT NULL GENERATED ALWAYS AS (LOWER(REPLACE("name", ' ', '-'))) STORED,
+    slug TEXT NOT NULL GENERATED ALWAYS AS (LOWER(REPLACE("name", ' ', '-'))) STORED,
     "start_date" DATETIME,
     "end_date" DATETIME,
     "location" TEXT,

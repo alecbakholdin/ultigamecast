@@ -41,6 +41,24 @@ func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (Pla
 	return i, err
 }
 
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (email, password_hash)
+VALUES (LOWER(?), ?)
+RETURNING id, email, password_hash
+`
+
+type CreateUserParams struct {
+	Email        string         `db:"email" json:"email"`
+	PasswordHash sql.NullString `db:"password_hash" json:"password_hash"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, createUser, arg.Email, arg.PasswordHash)
+	var i User
+	err := row.Scan(&i.ID, &i.Email, &i.PasswordHash)
+	return i, err
+}
+
 const getTeam = `-- name: GetTeam :one
 SELECT id, name, slug, organization
 FROM teams
@@ -56,6 +74,19 @@ func (q *Queries) GetTeam(ctx context.Context, slug string) (Team, error) {
 		&i.Slug,
 		&i.Organization,
 	)
+	return i, err
+}
+
+const getUser = `-- name: GetUser :one
+SELECT id, email, password_hash
+FROM users
+WHERE email = LOWER(?1)
+`
+
+func (q *Queries) GetUser(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUser, email)
+	var i User
+	err := row.Scan(&i.ID, &i.Email, &i.PasswordHash)
 	return i, err
 }
 

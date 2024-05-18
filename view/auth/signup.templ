@@ -1,0 +1,56 @@
+package view_auth
+
+import "ultigamecast/view/component"
+import "ultigamecast/view/layout"
+
+type SignUpDTO struct {
+	view_component.DTO
+	Email           string `validate:"email,required"`
+	Password        string `validate:"required,min=8,max=64"`
+	ConfirmPassword string `validate:"required,eqcsfield=Password"`
+}
+
+templ SignUpPage() {
+	@view_layout.Root() {
+		<main class="responsive primary-container">
+			<div class="large-space"></div>
+			<article class="medium-width center">
+				<h4>Sign Up</h4>
+				<div class="small-space"></div>
+				@SignUpForm(&SignUpDTO{})
+                <div class="small-space"></div>
+				<span>Already have an account? <a href="/login">Log in</a></span>
+			</article>
+		</main>
+	}
+}
+
+templ SignUpForm(dto *SignUpDTO) {
+	<form
+		hx-post="/signup"
+		hx-swap="outerHTML"
+		hx-disabled-elt="button"
+        hx-indicator="button"
+	>
+		<div class={ "field label border", dto.FieldInvalidClass("Email") }>
+			<input type="email" name="email" id="email" autocomplete="email"/>
+			<label for="email">Email</label>
+			<span class="error">{ dto.FieldError("Email") }</span>
+		</div>
+		<div class={ "field label border", dto.FieldInvalidClass("Password") }>
+			<input type="password" name="password" id="password" autocomplete="new-password"/>
+			<label for="password">Password</label>
+			<span class="error">{ dto.FieldError("Password") }</span>
+		</div>
+		<div class={ "field label border", dto.FieldInvalidClass("ConfirmPassword") }>
+			<input type="password" name="confirm-password" id="confirm-password" autocomplete="new-password"/>
+			<label for="confirm-password">Confirm Password</label>
+			<span class="error">{ dto.FieldError("ConfirmPassword") }</span>
+		</div>
+        @view_component.FormError(dto)
+		<button class="responsive small-round">
+			<progress class="loading-appear circle small inverse-primary-text"></progress>
+			<span class="loading-disappear">Sign Up</span>
+		</button>
+	</form>
+}

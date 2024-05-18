@@ -1,26 +1,54 @@
 package view_auth
 
 import "ultigamecast/view/layout"
+import "ultigamecast/view/component"
+
+type LoginFormDTO struct {
+	view_component.DTO
+	Email    string `validate:"required,email"`
+	Password string `validate:"required"`
+}
 
 templ LoginPage() {
-	@view_layout.PlainLayout() {
-		@LoginForm()
+	@view_layout.Root() {
+		<main class="responsive primary-container">
+			<div class="large-space"></div>
+			<article class="medium-width center">
+				<h4>
+					Login
+				</h4>
+				<div class="small-space"></div>
+				@LoginForm(&LoginFormDTO{})
+				<p>
+					Don't have an account? <a href="/signup">Sign up</a>
+				</p>
+			</article>
+		</main>
 	}
 }
 
-templ LoginForm() {
-	<div class="grid">
-		<div class="s12 l4">
-			<div class="field label border">
-				<input id="email" type="text"/>
-				<label>Email</label>
-			</div>
+templ LoginForm(dto *LoginFormDTO) {
+	<form
+		hx-boost="true"
+		hx-post="/login"
+		hx-swap="outerHTML"
+		hx-disabled-elt="button"
+		hx-indicator="button"
+	>
+		<div class={ "field label border", dto.FieldInvalidClass("Email") }>
+			<input id="email" name="email" type="email" autocomplete="email"/>
+			<label for="email">Email</label>
+			<span class="error">{ dto.FieldError("Email") }</span>
 		</div>
-		<div class="s12 l4">
-			<div class="field label border invalid">
-				<input id="password" type="password"/>
-				<label>Password</label>
-			</div>
+		<div class={ "field label border", dto.FieldInvalidClass("Password") }>
+			<input id="password" name="password" type="password" autocomplete="current-password"/>
+			<label>Password</label>
+			<span class="error">{ dto.FieldError("Password") }</span>
 		</div>
-	</div>
+		@view_component.FormError(dto)
+		<button class="responsive small-round">
+			<progress class="loading-appear circle small inverse-primary-text"></progress>
+			<span class="loading-disappear">Login</span>
+		</button>
+	</form>
 }

@@ -1,0 +1,17 @@
+package view_layout
+
+templ PlainLayout() {
+	@Root() {
+		<main class="responsive">
+			{ children... }
+		</main>
+	}
+}
+
+templ BackgroundLayout(bgClass string) {
+	@Root() {
+		<main class={ "responsive", bgClass }>
+			{ children... }
+		</main>
+	}
+}
