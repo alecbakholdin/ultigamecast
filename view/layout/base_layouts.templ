@@ -21,21 +21,30 @@ templ NavLayout() {
 				display: none !important;
 			}
 		</style>
-		for _, c := range []string{"bottom s", "left m l"} {
+		for i, c := range []string{"bottom s", "left m l"} {
 			<nav class={ c }>
-				<a href="/">
-					<img class="circle" src="/frisbee.png" height="40" width="40"/>
-				</a>
-				<div class="max"></div>
-				if user := ctx_var.GetUser(ctx); user == nil {
-					<a href="/login">
-						<i>person</i>
-						<span>Log In</span>
+				if i == 0 {
+					<a href="/">
+						<i>home</i>
+						<span>Home</span>
 					</a>
 				} else {
+					<a href="/">
+						<img class="circle" src="/frisbee.png" height="40" width="40"/>
+					</a>
+				}
+				if i == 1 {
+					<div class="max"></div>
+				}
+				if ctx_var.IsAuthenticated(ctx) {
 					<a hx-post="/logout" hx-swap="none">
 						<i>logout</i>
 						<span>Log Out</span>
+					</a>
+				} else {
+					<a href="/login">
+						<i>person</i>
+						<span>Log In</span>
 					</a>
 				}
 				<button
@@ -44,7 +53,6 @@ templ NavLayout() {
 					onclick="setDark(true)"
 				>
 					<i>dark_mode</i>
-					<span>Dark</span>
 				</button>
 				<button
 					type="button"
@@ -52,7 +60,6 @@ templ NavLayout() {
 					onclick="setDark(false)"
 				>
 					<i>light_mode</i>
-					<span>Light</span>
 				</button>
 			</nav>
 		}
