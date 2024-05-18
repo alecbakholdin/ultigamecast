@@ -1,5 +1,7 @@
 package view_layout
 
+import "ultigamecast/app/ctx_var"
+
 templ PlainLayout() {
 	@Root() {
 		<main class="responsive">
@@ -8,10 +10,52 @@ templ PlainLayout() {
 	}
 }
 
-templ BackgroundLayout(bgClass string) {
+templ NavLayout() {
 	@Root() {
-		<main class={ "responsive", bgClass }>
-			{ children... }
-		</main>
+		<style type="text/css">
+			.dark .hide-dark {
+				display: none !important;
+			}
+
+			.light .hide-light {
+				display: none !important;
+			}
+		</style>
+		for _, c := range []string{"bottom s", "left m l"} {
+			<nav class={ c }>
+				<a href="/">
+					<img class="circle" src="/frisbee.png" height="40" width="40"/>
+				</a>
+				<div class="max"></div>
+				if user := ctx_var.GetUser(ctx); user == nil {
+					<a href="/login">
+						<i>person</i>
+						<span>Log In</span>
+					</a>
+				} else {
+					<a hx-post="/logout" hx-swap="none">
+						<i>logout</i>
+						<span>Log Out</span>
+					</a>
+				}
+				<button
+					type="button"
+					class="transparent circle hide-dark"
+					onclick="setDark(true)"
+				>
+					<i>dark_mode</i>
+					<span>Dark</span>
+				</button>
+				<button
+					type="button"
+					class="transparent circle hide-light"
+					onclick="setDark(false)"
+				>
+					<i>light_mode</i>
+					<span>Light</span>
+				</button>
+			</nav>
+		}
+		{ children... }
 	}
 }

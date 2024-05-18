@@ -4,7 +4,7 @@ templ Root() {
 	<!DOCTYPE html>
 	<html lang="en" translate="no">
 		<head>
- 			<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			// styling
 			<link href="https://cdn.jsdelivr.net/npm/beercss@3.5.6/dist/cdn/beer.min.css" rel="stylesheet"/>
 			<script type="module" src="https://cdn.jsdelivr.net/npm/beercss@3.5.6/dist/cdn/beer.min.js"></script>
@@ -14,7 +14,6 @@ templ Root() {
 			// htmx
 			<script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
 			<script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js"></script>
-
 			<style>
 			 	.htmx-request .loading-appear {
 					display: inline-block !important;
@@ -25,9 +24,35 @@ templ Root() {
 				.htmx-request .loading-disappear {
 					display: none;
 				}
+				.hidden {
+					display: none !important;
+				}
 			</style>
+			<script lang="js">
+				function setDark(dark, dontUpdate) {
+					console.log(dark, 'update')
+					const body = document.getElementsByTagName('body').item(0)
+					if(dark) {
+						body.classList.add('dark')
+						body.classList.remove('light')
+					} else {
+						body.classList.add('light')
+						body.classList.remove('dark')
+					}
+					if (!dontUpdate) {
+						localStorage.setItem('darkMode', dark ? 'dark' : 'light')
+					}
+				}
+			</script>
 		</head>
-		<body class="dark">
+		<body
+			class="dark"
+		>
+			<script>
+				const theme = localStorage.getItem('darkMode')
+				const isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)
+				setDark(isDark, true)
+			</script>
 			{ children... }
 		</body>
 	</html>

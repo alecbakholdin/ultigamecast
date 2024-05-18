@@ -28,11 +28,18 @@ func main() {
 	authService := service.NewAuth(queries, env.MustGetenv("JWT_SECRET"))
 	base := alice.New(middleware.LoadContext, middleware.LoadUser(authService), middleware.LogRequest)
 
+	http.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {http.ServeFile(w, r, "public/favicon.ico")})
+	http.HandleFunc("GET /frisbee.png", func(w http.ResponseWriter, r *http.Request) {http.ServeFile(w, r, "public/frisbee.png")})
+
+	homeHandler := handlers.NewHome()
+	http.Handle("GET /", base.ThenFunc(homeHandler.GetHome))
+
 	authHandler := handlers.NewAuth(authService)
 	http.Handle("GET /login", base.ThenFunc(authHandler.GetLogin))
 	http.Handle("POST /login", base.ThenFunc(authHandler.PostLogin))
 	http.Handle("GET /signup", base.ThenFunc(authHandler.GetSignup))
 	http.Handle("POST /signup", base.ThenFunc(authHandler.PostSignup))
+	http.Handle("POST /logout", base.ThenFunc(authHandler.PostLogout))
 	log.Fatal(http.ListenAndServe("localhost:8090", nil))
 }
 

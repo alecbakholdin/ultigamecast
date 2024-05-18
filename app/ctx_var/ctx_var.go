@@ -18,6 +18,10 @@ const (
 var LogMessageVars = []ContextVar{HttpMethod, Path}
 var LogAttrVars = []ContextVar{ReqId, User}
 
+func IsAuthenticated(ctx context.Context) bool {
+	return GetUser(ctx) != nil
+}
+
 func GetUser(ctx context.Context) *models.User {
 	if user, ok := ctx.Value(User).(*models.User); ok {
 		return user
