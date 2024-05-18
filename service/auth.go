@@ -135,7 +135,7 @@ func (a *Auth) createJwt(user *models.User) (jwt string, err error) {
 	return jwtData + "." + signature, nil
 }
 
-func (a *Auth) ValidateJwt(jwt string) (user *models.User, err error) {
+func (a *Auth) VerifyJwt(jwt string) (user *models.User, err error) {
 	s := strings.Split(jwt, ".")
 	if len(s) != 3 {
 		return nil, errors.Join(ErrInvalidCredentials, fmt.Errorf("expected 3 jwt sections but found %d", len(s)))

@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"strings"
 	"sync"
+	"ultigamecast/app/ctx_var"
 )
 
 type Handler struct {
@@ -72,10 +74,18 @@ func (h *Handler) Handle(ctx context.Context, r slog.Record) error {
 		return fmt.Errorf("error when marshaling attrs: %w", err)
 	}
 
+	messageVars := []string{}
+	for _, v := range ctx_var.LogMessageVars {
+		if str := ctx_var.GetValue(ctx, v); str != "" {
+			messageVars = append(messageVars, str)
+		}
+	}
+	messageVars = append(messageVars, r.Message)
+
 	fmt.Println(
 		colorize(lightGray, r.Time.Format(timeFormat)),
 		level,
-		colorize(white, r.Message),
+		colorize(white, strings.Join(messageVars, " ")),
 		colorize(darkGray, string(bytes)),
 	)
 
@@ -99,6 +109,11 @@ func (h *Handler) computeAttrs(
 	err := json.Unmarshal(h.b.Bytes(), &attrs)
 	if err != nil {
 		return nil, fmt.Errorf("error when unmarshaling inner handler's Handle result: %w", err)
+	}
+	for _, cv := range ctx_var.LogAttrVars {
+		if str := ctx_var.GetValue(ctx, cv); str != "" {
+			attrs[string(cv)] = str
+		}
 	}
 	return attrs, nil
 }

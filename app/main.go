@@ -8,9 +8,11 @@ import (
 	"ultigamecast/app/env"
 	"ultigamecast/app/logger"
 	"ultigamecast/handlers"
+	"ultigamecast/middleware"
 	"ultigamecast/models"
 	"ultigamecast/service"
 
+	"github.com/justinas/alice"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -24,11 +26,13 @@ func main() {
 	queries := models.New(db)
 
 	authService := service.NewAuth(queries, env.MustGetenv("JWT_SECRET"))
+	base := alice.New(middleware.LoadContext, middleware.LoadUser(authService), middleware.LogRequest)
+
 	authHandler := handlers.NewAuth(authService)
-	http.HandleFunc("GET /login", authHandler.GetLogin)
-	http.HandleFunc("POST /login", authHandler.PostLogin)
-	http.HandleFunc("GET /signup", authHandler.GetSignup)
-	http.HandleFunc("POST /signup", authHandler.PostSignup)
+	http.Handle("GET /login", base.ThenFunc(authHandler.GetLogin))
+	http.Handle("POST /login", base.ThenFunc(authHandler.PostLogin))
+	http.Handle("GET /signup", base.ThenFunc(authHandler.GetSignup))
+	http.Handle("POST /signup", base.ThenFunc(authHandler.PostSignup))
 	log.Fatal(http.ListenAndServe("localhost:8090", nil))
 }
 

@@ -2,7 +2,6 @@ package view_component
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/a-h/templ"
@@ -74,9 +73,7 @@ func (d *DTO) Invalid() bool {
 }
 
 func (d *DTO) Validate(obj interface{}) error {
-	fmt.Println(obj)
 	err := validate.Struct(obj)
-	fmt.Println("err", err)
 	if err == nil {
 		return nil
 	}
