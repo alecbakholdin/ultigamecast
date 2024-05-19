@@ -33,6 +33,12 @@ templ NavLayout() {
 						<img class="circle" src="/frisbee.png" height="40" width="40"/>
 					</a>
 				}
+				if ctx_var.IsAuthenticated(ctx) {
+					<a href="/teams">
+						<i>groups</i>
+						<span>Teams</span>
+					</a>
+				}
 				if i == 1 {
 					<div class="max"></div>
 				}

@@ -26,7 +26,9 @@ func main() {
 	queries := models.New(db)
 
 	authService := service.NewAuth(queries, env.MustGetenv("JWT_SECRET"))
+	teamService := service.NewTeam(queries)
 	base := alice.New(middleware.LoadContext, middleware.LoadUser(authService), middleware.LogRequest)
+	mustBeAuthenticated := base.Append(middleware.MustBeAuthenticated)
 
 	http.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {http.ServeFile(w, r, "public/favicon.ico")})
 	http.HandleFunc("GET /frisbee.png", func(w http.ResponseWriter, r *http.Request) {http.ServeFile(w, r, "public/frisbee.png")})
@@ -40,6 +42,12 @@ func main() {
 	http.Handle("GET /signup", base.ThenFunc(authHandler.GetSignup))
 	http.Handle("POST /signup", base.ThenFunc(authHandler.PostSignup))
 	http.Handle("POST /logout", base.ThenFunc(authHandler.PostLogout))
+
+	teamHandler := handlers.NewTeam(teamService)
+	http.Handle("GET /teams", mustBeAuthenticated.ThenFunc(teamHandler.GetTeams))
+	http.Handle("POST /teams", mustBeAuthenticated.ThenFunc(teamHandler.PostTeams))
+
+
 	log.Fatal(http.ListenAndServe("localhost:8090", nil))
 }
 

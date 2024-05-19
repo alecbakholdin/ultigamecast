@@ -1,0 +1,33 @@
+package view_team
+
+import "ultigamecast/models"
+import "ultigamecast/view/layout"
+
+templ TeamsPage(teams []*models.Team) {
+	@view_layout.NavLayout() {
+		<main class="responsive">
+			<div class="large-space"></div>
+			if len(teams) == 0 {
+				<div class="center center-align">
+					<p>You currently don't own or follow any teams</p>
+					<button
+						type="button"
+						hx-post="/teams-create"
+					>
+                        Create Your First Team
+                    </button>
+				</div>
+			}
+		</main>
+	}
+}
+
+templ TeamList(teams []*models.Team) {
+	team list
+}
+
+templ TeamRow(team *models.Team) {
+	<div>
+		{ team.Name }
+	</div>
+}

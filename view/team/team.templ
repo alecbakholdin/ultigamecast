@@ -1,0 +1,10 @@
+package view_team
+
+import "ultigamecast/models"
+import "ultigamecast/view/layout"
+
+templ TeamPage(team *models.Team) {
+	@view_layout.NavLayout() {
+		{ team.Name }
+	}
+}

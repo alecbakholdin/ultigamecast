@@ -6,6 +6,10 @@ WHERE email = LOWER(@email);
 INSERT INTO users (email, password_hash)
 VALUES (LOWER(@email), ?)
 RETURNING *;
+-- name: CreateTeam :one
+INSERT INTO teams ("owner", "name", "organization")
+VALUES (?, ?, ?)
+RETURNING *;
 -- name: GetTeam :one
 SELECT *
 FROM teams
@@ -32,7 +36,8 @@ RETURNING *;
 SELECT p.*
 FROM players p
     INNER JOIN teams t ON p.team = t.id
-WHERE t.slug = LOWER(@slug);
+WHERE t.slug = LOWER(@slug)
+ORDER BY p.order ASC;
 -- name: UpdatePlayer :one
 UPDATE players
 SET "name" = ?

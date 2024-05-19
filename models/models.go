@@ -37,9 +37,15 @@ type Player struct {
 
 type Team struct {
 	ID           int64          `db:"id" json:"id"`
+	Owner        int64          `db:"owner" json:"owner"`
 	Name         string         `db:"name" json:"name" validate:"required,max=64"`
 	Slug         string         `db:"slug" json:"slug"`
 	Organization sql.NullString `db:"organization" json:"organization"`
+}
+
+type TeamManager struct {
+	Team int64 `db:"team" json:"team"`
+	User int64 `db:"user" json:"user"`
 }
 
 type Tournament struct {

@@ -41,6 +41,31 @@ func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (Pla
 	return i, err
 }
 
+const createTeam = `-- name: CreateTeam :one
+INSERT INTO teams ("owner", "name", "organization")
+VALUES (?, ?, ?)
+RETURNING id, owner, name, slug, organization
+`
+
+type CreateTeamParams struct {
+	Owner        int64          `db:"owner" json:"owner"`
+	Name         string         `db:"name" json:"name" validate:"required,max=64"`
+	Organization sql.NullString `db:"organization" json:"organization"`
+}
+
+func (q *Queries) CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error) {
+	row := q.db.QueryRowContext(ctx, createTeam, arg.Owner, arg.Name, arg.Organization)
+	var i Team
+	err := row.Scan(
+		&i.ID,
+		&i.Owner,
+		&i.Name,
+		&i.Slug,
+		&i.Organization,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (email, password_hash)
 VALUES (LOWER(?), ?)
@@ -60,7 +85,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getTeam = `-- name: GetTeam :one
-SELECT id, name, slug, organization
+SELECT id, owner, name, slug, organization
 FROM teams
 WHERE slug = LOWER(?1)
 `
@@ -70,6 +95,7 @@ func (q *Queries) GetTeam(ctx context.Context, slug string) (Team, error) {
 	var i Team
 	err := row.Scan(
 		&i.ID,
+		&i.Owner,
 		&i.Name,
 		&i.Slug,
 		&i.Organization,
@@ -192,7 +218,7 @@ UPDATE teams
 SET "name" = ?,
     organization = ?
 WHERE teams.slug = ?
-RETURNING id, name, slug, organization
+RETURNING id, owner, name, slug, organization
 `
 
 type UpdateTeamParams struct {
@@ -206,6 +232,7 @@ func (q *Queries) UpdateTeam(ctx context.Context, arg UpdateTeamParams) (Team, e
 	var i Team
 	err := row.Scan(
 		&i.ID,
+		&i.Owner,
 		&i.Name,
 		&i.Slug,
 		&i.Organization,
