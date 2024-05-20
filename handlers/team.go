@@ -24,6 +24,10 @@ func (t *Team) GetTeams(w http.ResponseWriter, r *http.Request) {
 	view_team.TeamsPage([]*models.Team{}).Render(r.Context(), w)
 }
 
+func (t *Team) GetTeamsCreate(w http.ResponseWriter, r *http.Request) {
+	
+}
+
 func (t *Team) PostTeams(w http.ResponseWriter, r *http.Request) {
 
 }

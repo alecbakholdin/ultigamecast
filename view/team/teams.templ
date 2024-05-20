@@ -2,6 +2,7 @@ package view_team
 
 import "ultigamecast/models"
 import "ultigamecast/view/layout"
+import "ultigamecast/view/component"
 
 templ TeamsPage(teams []*models.Team) {
 	@view_layout.NavLayout() {
@@ -12,9 +13,12 @@ templ TeamsPage(teams []*models.Team) {
 					<p>You currently don't own or follow any teams</p>
 					<button
 						type="button"
-						hx-post="/teams-create"
+						hx-post="/teams"
+						hx-swap="none"
+						hx-indicator="#create-first-team-loading"
 					>
-						Create Your First Team
+						@view_component.LoadingIcon("create-first-team-loading", "add", "small")
+						Create your first team	
 					</button>
 				</div>
 			}

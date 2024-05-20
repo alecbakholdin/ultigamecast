@@ -1,3 +1,16 @@
 body {
     font-family: Poppins
 }
+
+.loading-appear {
+    display: none !important;
+}
+.htmx-request .loading-appear {
+    display: inline !important;
+}
+.htmx-request .loading-disappear {
+    display: none !important;
+}
+:is(button,.button,.chip)>.loading-icon {
+    margin: 0 -.5rem;
+}

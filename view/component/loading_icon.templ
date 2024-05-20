@@ -1,0 +1,18 @@
+package view_component
+
+type LoadingIconSize string
+
+const (
+	SizeSmall  LoadingIconSize = "small"
+	SizeMedium LoadingIconSize = "medium"
+	SizeLarge  LoadingIconSize = "large"
+)
+
+templ LoadingIcon(id string, icon string, size string) {
+	<span class="loading-icon" id={ id }>
+		<span class={ "loading-disappear", size }>
+			<i>{ icon }</i>
+		</span>
+		<progress class={ "loading-appear circle inverse-primary-text", size }></progress>
+	</span>
+}
