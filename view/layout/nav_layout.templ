@@ -2,14 +2,6 @@ package view_layout
 
 import "ultigamecast/app/ctx_var"
 
-templ PlainLayout() {
-	@Root() {
-		<main class="responsive">
-			{ children... }
-		</main>
-	}
-}
-
 templ NavLayout() {
 	@Root() {
 		<style type="text/css">
@@ -20,9 +12,12 @@ templ NavLayout() {
 			.light .hide-light {
 				display: none !important;
 			}
+			nav.primary-nav {
+				box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+			}
 		</style>
 		for i, c := range []string{"bottom s", "left m l"} {
-			<nav class={ c }>
+			<nav class={ c, "primary-nav" }>
 				if i == 0 {
 					<a href="/">
 						<i>home</i>
