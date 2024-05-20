@@ -3,15 +3,18 @@ package handlers
 import (
 	"net/http"
 	"ultigamecast/models"
-	"ultigamecast/service"
-	"ultigamecast/view/team"
+	view_team "ultigamecast/view/team"
 )
 
 type Team struct {
-	t *service.Team
+	t TeamService
 }
 
-func NewTeam(t *service.Team) *Team {
+type TeamService interface {
+
+}
+
+func NewTeam(t TeamService) *Team {
 	return &Team{
 		t: t,
 	}
