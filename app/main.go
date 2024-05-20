@@ -27,13 +27,13 @@ func main() {
 
 	authService := service.NewAuth(queries, env.MustGetenv("JWT_SECRET"))
 	teamService := service.NewTeam(queries)
-	base := alice.New(middleware.LoadContext, middleware.LoadUser(authService), middleware.LogRequest)
-	mustBeAuthenticated := base.Append(middleware.MustBeAuthenticated)
+	base := alice.New(middleware.LoadContext(teamService), middleware.LoadUser(authService), middleware.LogRequest)
+	mustBeAuthenticated := base.Append(middleware.GuardAuthenticated)
 
-	http.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {http.ServeFile(w, r, "public/favicon.ico")})
-	http.HandleFunc("GET /frisbee.png", func(w http.ResponseWriter, r *http.Request) {http.ServeFile(w, r, "public/frisbee.png")})
-	http.HandleFunc("GET /styles.css", func(w http.ResponseWriter, r *http.Request) {http.ServeFile(w, r, "public/styles.css")})
-	http.HandleFunc("GET /theme.css", func(w http.ResponseWriter, r *http.Request) {http.ServeFile(w, r, "public/theme.css")})
+	http.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/favicon.ico") })
+	http.HandleFunc("GET /frisbee.png", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/frisbee.png") })
+	http.HandleFunc("GET /styles.css", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/styles.css") })
+	http.HandleFunc("GET /theme.css", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/theme.css") })
 
 	homeHandler := handlers.NewHome()
 	http.Handle("GET /", base.ThenFunc(homeHandler.GetHome))
@@ -49,7 +49,5 @@ func main() {
 	http.Handle("GET /teams", mustBeAuthenticated.ThenFunc(teamHandler.GetTeams))
 	http.Handle("POST /teams", mustBeAuthenticated.ThenFunc(teamHandler.PostTeams))
 
-
 	log.Fatal(http.ListenAndServe("localhost:8090", nil))
 }
-
