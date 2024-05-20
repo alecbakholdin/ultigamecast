@@ -5,7 +5,7 @@ import "ultigamecast/view/layout"
 
 templ TeamsPage(teams []*models.Team) {
 	@view_layout.NavLayout() {
-		<main class="responsive">
+		<main class="responsive surface-container">
 			<div class="large-space"></div>
 			if len(teams) == 0 {
 				<div class="center center-align">
@@ -14,8 +14,8 @@ templ TeamsPage(teams []*models.Team) {
 						type="button"
 						hx-post="/teams-create"
 					>
-                        Create Your First Team
-                    </button>
+						Create Your First Team
+					</button>
 				</div>
 			}
 		</main>

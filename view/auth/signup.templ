@@ -12,15 +12,15 @@ type SignUpDTO struct {
 
 templ SignUpPage() {
 	@view_layout.NavLayout() {
-		<main class="responsive primary-container">
+		<main class="responsive surface-container">
 			<div class="large-space"></div>
-			<article class="medium-width center">
+			<div class="medium-width center">
 				<h4>Sign Up</h4>
 				<div class="small-space"></div>
 				@SignUpForm(&SignUpDTO{})
                 <div class="small-space"></div>
 				<span>Already have an account? <a href="/login">Log in</a></span>
-			</article>
+			</div>
 		</main>
 	}
 }
@@ -48,7 +48,7 @@ templ SignUpForm(dto *SignUpDTO) {
 			<span class="error">{ dto.FieldError("ConfirmPassword") }</span>
 		</div>
         @view_component.FormError(dto)
-		<button class="responsive small-round">
+		<button class="responsive small-round no-margin">
 			<progress class="loading-appear circle small inverse-primary-text"></progress>
 			<span class="loading-disappear">Sign Up</span>
 		</button>

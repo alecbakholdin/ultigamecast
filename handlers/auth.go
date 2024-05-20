@@ -109,5 +109,9 @@ func (a *Auth) PostLogout(w http.ResponseWriter, r *http.Request) {
 		Value: "deleted",
 		Expires: time.Time{},
 	})
-	hxRefresh(w)
+	if r.URL.Path == "/" {
+		hxRefresh(w)
+	} else {
+		hxRedirect(w, "/")
+	}
 }

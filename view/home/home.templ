@@ -1,33 +1,67 @@
 package view_home
 
 import "ultigamecast/view/layout"
+import "fmt"
+
+var colors = []string{"primary-container", "secondary-container", "tertiary-container"}
+var heights = []string{"medium-height", "small-height"}
 
 templ HomePage() {
 	@view_layout.NavLayout() {
 		<style type="text/css">
             #top_banner {
-                background: radial-gradient(farthest-side at top right, var(--primary) 0, var(--surface) 100%);
-                height: 500px;
+				background-color: #f2f0eb;
+				width: 100%;
+				color: black;
+				border-radius: 0 0 50px 50px;
             }
+			.image_carousel {
+				overflow-y: hidden;
+				height: 100%;
+			}
+			.image_container {
+				transform: translateY(-25%)
+			}
         </style>
-		<div id="top_banner">
-			<div class="large-space"></div>
-			<h1 class="center-align">Ulti Game Cast</h1>
-			<h3 class="center large-width center-align">
-				The easy way to keep tabs on tournaments
-			</h3>
-			<div class="small-space"></div>
-			<a href="/signup" class="button small-round center">
-				New here? Sign Up!
-			</a>
-			<div class="large-space"></div>
+		<div class="surface-container bottom-round large-round">
+			<div class="large-width grid center">
+				<div class="s12 m6 l6 medium-padding">
+					<div class="medium-space"></div>
+					<h3 class="bold">
+						Your team's analytics start here
+					</h3>
+					<p>
+						Track your team's score and statistics live. Keep your audience connected
+						with real-time score updates.
+					</p>
+					<div class="small-space"></div>
+					<a href="/signup" class="button">
+						Get Started
+						<i>arrow_forward</i>
+					</a>
+					<div class="medium-space"></div>
+				</div>
+				<div class="no-margin s12 m6 l6 large-height no-round horizontal grid">
+					@ImageCarousel(0)
+					@ImageCarousel(1)
+				</div>
+			</div>
 		</div>
 	}
 }
 
-css top_banner() {
-	--mask: radial-gradient(56.6px at 50% calc(100% - 78px),#000 99%,#0000 101%) calc(50% - 60px) 0/120px 100%,
-    radial-gradient(56.6px at 50% calc(100% + 48px),#0000 99%,#000 101%) 50% calc(100% - 30px)/120px 100% repeat-x;
-	-webkit-mask: var(--mask);
-	mask: var(--mask);
+templ ImageCarousel(start int) {
+	<div class="image_carousel m6 l6">
+		<div class="image_container vertical">
+			for i := range 10 {
+				<div class="tiny-margin vertical-margin">
+					<div
+						class={ "small-width medium-round outline", colors[(i + start) % len(colors)]}
+						{ templ.Attributes(map[string]any{"style": fmt.Sprintf("height: %dpx;", ((((i + start + 1) * 37) % 5) + 1) * 50)})... }
+					>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
 }

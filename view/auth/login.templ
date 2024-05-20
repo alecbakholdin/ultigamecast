@@ -11,9 +11,9 @@ type LoginFormDTO struct {
 
 templ LoginPage() {
 	@view_layout.NavLayout() {
-		<main class="responsive primary-container">
+		<main class="responsive surface-container">
 			<div class="large-space"></div>
-			<article class="medium-width center">
+			<div class="medium-width center">
 				<h4>
 					Login
 				</h4>
@@ -22,7 +22,7 @@ templ LoginPage() {
 				<p>
 					Don't have an account? <a href="/signup">Sign up</a>
 				</p>
-			</article>
+			</div>
 		</main>
 	}
 }
@@ -46,7 +46,7 @@ templ LoginForm(dto *LoginFormDTO) {
 			<span class="error">{ dto.FieldError("Password") }</span>
 		</div>
 		@view_component.FormError(dto)
-		<button class="responsive small-round">
+		<button class="responsive small-round no-margin">
 			<progress class="loading-appear circle small inverse-primary-text"></progress>
 			<span class="loading-disappear">Login</span>
 		</button>

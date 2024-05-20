@@ -3,7 +3,7 @@ module ultigamecast
 go 1.22.2
 
 require (
-	github.com/a-h/templ v0.2.680
+	github.com/a-h/templ v0.2.697
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-playground/validator/v10 v10.20.0
