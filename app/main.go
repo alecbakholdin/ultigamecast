@@ -32,6 +32,7 @@ func main() {
 
 	http.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {http.ServeFile(w, r, "public/favicon.ico")})
 	http.HandleFunc("GET /frisbee.png", func(w http.ResponseWriter, r *http.Request) {http.ServeFile(w, r, "public/frisbee.png")})
+	http.HandleFunc("GET /styles.css", func(w http.ResponseWriter, r *http.Request) {http.ServeFile(w, r, "public/styles.css")})
 
 	homeHandler := handlers.NewHome()
 	http.Handle("GET /", base.ThenFunc(homeHandler.GetHome))
