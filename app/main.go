@@ -27,13 +27,13 @@ func main() {
 	queries := models.New(db)
 
 	authService := service.NewAuth(queries, env.MustGetenv("JWT_SECRET"))
-	teamService := service.NewTeam(queries)
+	teamService := service.NewTeam(queries, db)
 	base := alice.New(
 		middleware.RecoverPanic,
 		middleware.LoadContext(teamService),
-		 middleware.LoadUser(authService),
-		  middleware.LogRequest,
-		)
+		middleware.LoadUser(authService),
+		middleware.LogRequest,
+	)
 	if os.Getenv("USE_DELAY") != "" {
 		slog.Info("Adding artificial delay to every HTTP request")
 		base = base.Append(middleware.Delay)

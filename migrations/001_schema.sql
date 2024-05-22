@@ -1,35 +1,36 @@
-CREATE TABLE IF NOT EXISTS users (
+-- +goose Up
+CREATE TABLE users (
     id INTEGER PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT
 );
-CREATE TABLE IF NOT EXISTS teams (
+CREATE TABLE teams (
     id INTEGER PRIMARY KEY,
     "owner" INTEGER NOT NULL,
     "name" TEXT NOT NULL UNIQUE,
     slug TEXT NOT NULL UNIQUE,
     organization TEXT
 );
-CREATE TABLE IF NOT EXISTS team_managers (
+CREATE TABLE team_managers (
     team INTEGER NOT NULL,
     user INTEGER NOT NULL,
     FOREIGN KEY (team) REFERENCES teams(id) ON DELETE CASCADE,
     FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
  );
-CREATE TABLE IF NOT EXISTS team_follow (
+CREATE TABLE team_follow (
     team INTEGER NOT NULL,
     user INTEGER NOT NULL,
     FOREIGN KEY (team) REFERENCES teams(id) ON DELETE CASCADE,
     FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS players (
+CREATE TABLE players (
     id INTEGER PRIMARY KEY,
     team INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "order" INTEGER NOT NULL,
     FOREIGN KEY (team) REFERENCES teams(id) ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS tournaments (
+CREATE TABLE tournaments (
     id INTEGER PRIMARY KEY,
     team INTEGER NOT NULL,
     "name" TEXT NOT NULL,
@@ -39,7 +40,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
     "location" TEXT,
     FOREIGN KEY (team) REFERENCES teams(id) ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS games (
+CREATE TABLE games (
     id INTEGER PRIMARY KEY,
     tournament INTEGER NOT NULL,
     opponent TEXT NOT NULL,
@@ -55,7 +56,7 @@ CREATE TABLE IF NOT EXISTS games (
     hard_cap INTEGER,
     FOREIGN KEY (tournament) REFERENCES tournaments(id) ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS events (
+CREATE TABLE events (
     id INTEGER PRIMARY KEY,
     game INTEGER NOT NULL,
     "type" TEXT CHECK (

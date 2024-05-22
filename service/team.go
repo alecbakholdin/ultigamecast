@@ -10,12 +10,14 @@ import (
 )
 
 type Team struct {
-	q *models.Queries
+	q  *models.Queries
+	db *sql.DB
 }
 
-func NewTeam(q *models.Queries) *Team {
+func NewTeam(q *models.Queries, db *sql.DB) *Team {
 	return &Team{
-		q: q,
+		q:  q,
+		db: db,
 	}
 }
 
