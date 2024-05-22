@@ -8,7 +8,7 @@ import (
 	"log/slog"
 	"strings"
 	"sync"
-	"ultigamecast/app/ctx_var"
+	"ultigamecast/app/ctxvar"
 )
 
 type Handler struct {
@@ -75,8 +75,8 @@ func (h *Handler) Handle(ctx context.Context, r slog.Record) error {
 	}
 
 	messageVars := []string{}
-	for _, v := range ctx_var.LogMessageVars {
-		if str := ctx_var.GetValue(ctx, v); str != "" {
+	for _, v := range ctxvar.LogMessageVars {
+		if str := ctxvar.GetValue(ctx, v); str != "" {
 			messageVars = append(messageVars, str)
 		}
 	}
@@ -110,8 +110,8 @@ func (h *Handler) computeAttrs(
 	if err != nil {
 		return nil, fmt.Errorf("error when unmarshaling inner handler's Handle result: %w", err)
 	}
-	for _, cv := range ctx_var.LogAttrVars {
-		if str := ctx_var.GetValue(ctx, cv); str != "" {
+	for _, cv := range ctxvar.LogAttrVars {
+		if str := ctxvar.GetValue(ctx, cv); str != "" {
 			attrs[string(cv)] = str
 		}
 	}

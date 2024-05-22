@@ -2,12 +2,12 @@ package middleware
 
 import (
 	"net/http"
-	"ultigamecast/app/ctx_var"
+	"ultigamecast/app/ctxvar"
 )
 
 func GuardAuthenticated(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !ctx_var.IsAuthenticated(r.Context()) {
+		if !ctxvar.IsAuthenticated(r.Context()) {
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 			return
 		}

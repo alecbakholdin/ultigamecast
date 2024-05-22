@@ -1,4 +1,4 @@
-package ctx_var
+package ctxvar
 
 import (
 	"context"

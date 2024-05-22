@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-	"ultigamecast/app/ctx_var"
+	"ultigamecast/app/ctxvar"
 	"ultigamecast/models"
 
 	"github.com/justinas/alice"
@@ -23,7 +23,7 @@ func LoadUser(a AuthService) alice.Constructor {
 				if err != nil {
 					slog.ErrorContext(r.Context(), "invalid jwt", "err", err)
 				} else {
-					*r = *r.WithContext(context.WithValue(r.Context(), ctx_var.User, user))
+					*r = *r.WithContext(context.WithValue(r.Context(), ctxvar.User, user))
 				}
 			}
 			h.ServeHTTP(w, r)

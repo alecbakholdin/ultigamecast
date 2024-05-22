@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 	"net/http"
-	"ultigamecast/app/ctx_var"
+	"ultigamecast/app/ctxvar"
 	"ultigamecast/app/pathvar"
 	"ultigamecast/models"
 
@@ -16,20 +16,20 @@ type TeamService interface {
 }
 
 type TournamentService interface {
-	GetBySlug(ctx context.Context, team *models.Team, slug string) (*models.Tournament)
+	GetBySlug(ctx context.Context, team *models.Team, slug string) *models.Tournament
 }
 
-func LoadContext(t TeamService) alice.Constructor{
-	return func (h http.Handler) http.Handler {
+func LoadContext(t TeamService) alice.Constructor {
+	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			ctx = context.WithValue(ctx, ctx_var.Path, r.URL.Path)
-			ctx = context.WithValue(ctx, ctx_var.HttpMethod, r.Method)
+			ctx = context.WithValue(ctx, ctxvar.Path, r.URL.Path)
+			ctx = context.WithValue(ctx, ctxvar.HttpMethod, r.Method)
 			u, _ := uuid.NewRandom()
-			ctx = context.WithValue(ctx, ctx_var.ReqId, u.String())
+			ctx = context.WithValue(ctx, ctxvar.ReqId, u.String())
 			if teamSlug := pathvar.TeamSlug(r); teamSlug != "" {
-				if team, err := t.GetTeam(ctx, teamSlug); err == nil{
-					ctx = context.WithValue(ctx, ctx_var.Team, team)
+				if team, err := t.GetTeam(ctx, teamSlug); err == nil {
+					ctx = context.WithValue(ctx, ctxvar.Team, team)
 				}
 			}
 			// if tournamentSlug := r.PathValue("tournamentSlug"); tournamentSlug != "" {
@@ -46,4 +46,4 @@ func LoadContext(t TeamService) alice.Constructor{
 			h.ServeHTTP(w, r)
 		})
 	}
-	}
+}

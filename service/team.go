@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"ultigamecast/app/ctx_var"
+	"ultigamecast/app/ctxvar"
 	"ultigamecast/models"
 	"ultigamecast/service/slug"
 )
@@ -33,10 +33,9 @@ func (t *Team) GetTeam(ctx context.Context, slug string) (*models.Team, error) {
 	}
 }
 
-
 func (t *Team) GetTeams(ctx context.Context) ([]models.Team, error) {
 	var teams []models.Team = make([]models.Team, 0)
-	user := ctx_var.GetUser(ctx)
+	user := ctxvar.GetUser(ctx)
 
 	if ownedTeams, err := t.q.ListOwnedTeams(ctx, user.ID); err == nil {
 		teams = append(teams, ownedTeams...)
@@ -61,7 +60,7 @@ func (t *Team) CreateTeam(ctx context.Context, name, organization string) (*mode
 		return nil, ErrTeamExists
 	}
 	team, err := t.q.CreateTeam(ctx, models.CreateTeamParams{
-		Owner:        ctx_var.GetUser(ctx).ID,
+		Owner:        ctxvar.GetUser(ctx).ID,
 		Name:         name,
 		Slug:         slug,
 		Organization: sql.NullString{String: organization, Valid: organization != ""},
