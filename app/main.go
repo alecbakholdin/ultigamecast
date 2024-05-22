@@ -38,7 +38,8 @@ func main() {
 		slog.Info("Adding artificial delay to every HTTP request")
 		base = base.Append(middleware.Delay)
 	}
-	mustBeAuthenticated := base.Append(middleware.GuardAuthenticated)
+	authenticatedOnly := base.Append(middleware.GuardAuthenticated)
+	teamAdminOnly := base.Append(middleware.GuardTeamAdmin)
 
 	http.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/favicon.ico") })
 	http.HandleFunc("GET /frisbee.png", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/frisbee.png") })
@@ -56,10 +57,12 @@ func main() {
 	http.Handle("POST /logout", base.ThenFunc(authHandler.PostLogout))
 
 	teamHandler := handlers.NewTeam(teamService)
-	http.Handle("GET /teams", mustBeAuthenticated.ThenFunc(teamHandler.GetTeams))
+	http.Handle("GET /teams", authenticatedOnly.ThenFunc(teamHandler.GetTeams))
+	http.Handle("POST /teams", authenticatedOnly.ThenFunc(teamHandler.PostTeams))
 	http.Handle("GET /teams/{teamSlug}", base.ThenFunc(teamHandler.GetTeam))
-	http.Handle("GET /teams-create", mustBeAuthenticated.ThenFunc(teamHandler.GetTeamsCreate))
-	http.Handle("POST /teams", mustBeAuthenticated.ThenFunc(teamHandler.PostTeams))
+	http.Handle("PUT /teams/{teamSlug}", teamAdminOnly.ThenFunc(teamHandler.PutTeam))
+	http.Handle("GET /teams-edit/{teamSlug}", teamAdminOnly.ThenFunc(teamHandler.GetTeamsEdit))
+	http.Handle("GET /teams-create", authenticatedOnly.ThenFunc(teamHandler.GetTeamsCreate))
 
 	log.Fatal(http.ListenAndServe("localhost:8090", nil))
 }

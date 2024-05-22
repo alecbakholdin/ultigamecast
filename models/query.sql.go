@@ -296,6 +296,7 @@ func (q *Queries) UpdatePlayer(ctx context.Context, arg UpdatePlayerParams) (Pla
 const updateTeam = `-- name: UpdateTeam :one
 UPDATE teams
 SET "name" = ?,
+    "slug" = ?,
     organization = ?
 WHERE teams.slug = ?
 RETURNING id, owner, name, slug, organization
@@ -303,12 +304,42 @@ RETURNING id, owner, name, slug, organization
 
 type UpdateTeamParams struct {
 	Name         string         `db:"name" json:"name" validate:"required,max=64"`
-	Organization sql.NullString `db:"organization" json:"organization"`
 	Slug         string         `db:"slug" json:"slug"`
+	Organization sql.NullString `db:"organization" json:"organization"`
 }
 
 func (q *Queries) UpdateTeam(ctx context.Context, arg UpdateTeamParams) (Team, error) {
-	row := q.db.QueryRowContext(ctx, updateTeam, arg.Name, arg.Organization, arg.Slug)
+	row := q.db.QueryRowContext(ctx, updateTeam,
+		arg.Name,
+		arg.Slug,
+		arg.Organization,
+		arg.Slug,
+	)
+	var i Team
+	err := row.Scan(
+		&i.ID,
+		&i.Owner,
+		&i.Name,
+		&i.Slug,
+		&i.Organization,
+	)
+	return i, err
+}
+
+const updateTeamOwner = `-- name: UpdateTeamOwner :one
+UPDATE teams
+SET "owner" = ?
+WHERE teams.slug = ?
+RETURNING id, owner, name, slug, organization
+`
+
+type UpdateTeamOwnerParams struct {
+	Owner int64  `db:"owner" json:"owner"`
+	Slug  string `db:"slug" json:"slug"`
+}
+
+func (q *Queries) UpdateTeamOwner(ctx context.Context, arg UpdateTeamOwnerParams) (Team, error) {
+	row := q.db.QueryRowContext(ctx, updateTeamOwner, arg.Owner, arg.Slug)
 	var i Team
 	err := row.Scan(
 		&i.ID,

@@ -70,3 +70,24 @@ func (t *Team) CreateTeam(ctx context.Context, name, organization string) (*mode
 	}
 	return &team, nil
 }
+
+func (t *Team) UpdateTeam(ctx context.Context, name, organization string) (*models.Team, error) {
+	oldSlug := ctxvar.GetTeam(ctx).Slug
+	slug := slug.From(name)
+	if slug != oldSlug {
+		if _, err := t.q.GetTeam(ctx, slug); err != nil && !errors.Is(sql.ErrNoRows, err) {
+			return nil, convertAndLogSqlError(ctx, "error fetching team while updating another team", err)
+		} else if !errors.Is(sql.ErrNoRows, err) {
+			return nil, ErrTeamExists
+		}
+	}
+	newTeam, err := t.q.UpdateTeam(ctx, models.UpdateTeamParams{
+		Name:         name,
+		Organization: sql.NullString{String: organization, Valid: organization != ""},
+		Slug:         oldSlug,
+	})
+	if err != nil {
+		return nil, convertAndLogSqlError(ctx, "error updating team", err)
+	}
+	return &newTeam, nil
+}

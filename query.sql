@@ -28,7 +28,13 @@ ORDER BY t.name ASC;
 -- name: UpdateTeam :one
 UPDATE teams
 SET "name" = ?,
+    "slug" = ?,
     organization = ?
+WHERE teams.slug = @slug
+RETURNING *;
+-- name: UpdateTeamOwner :one
+UPDATE teams
+SET "owner" = ?
 WHERE teams.slug = @slug
 RETURNING *;
 -- name: CreatePlayer :one

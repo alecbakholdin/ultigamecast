@@ -1,23 +1,30 @@
 package view_team
 
 import "ultigamecast/view/component"
+import "ultigamecast/app/ctxvar"
 
-type CreateTeamDTO struct {
+type TeamFormDTO struct {
 	view_component.DTO
 	Name         string `validate:"required,max=64,ascii"`
 	Organization string `validate:"max=64,ascii"`
 }
 
 const (
-	createTeamFormId    = "create_team_form"
-	createTeamSubmitId  = "create_team_submit"
-	createTeamLoadingId = "create_team_loading"
+	createTeamFormId    = "team_modal_form"
+	createTeamSubmitId  = "team_modal_submit"
+	createTeamLoadingId = "team_modal_loading"
 )
 
-templ CreateTeamModal() {
-	<h5>Create Team</h5>
+templ TeamModal(isNew bool, dto *TeamFormDTO) {
+	<h5>
+		if isNew {
+			New Team
+		} else {
+			Edit Team
+		}
+	</h5>
 	<div class="small-space"></div>
-	@CreateTeamForm(&CreateTeamDTO{})
+	@TeamForm(isNew, dto)
 	<nav class="responsive">
 		<form method="dialog">
 			<button class="border">
@@ -30,24 +37,27 @@ templ CreateTeamModal() {
 			Confirm
 		</button>
 	</nav>
-
 }
 
-templ CreateTeamForm(dto *CreateTeamDTO) {
+templ TeamForm(new bool, dto *TeamFormDTO) {
 	<form
 		id={ createTeamFormId }
-		hx-post="/teams"
+		if new {
+			hx-post="/teams"
+		} else {
+			hx-put={ "/teams/" + ctxvar.GetTeam(ctx).Slug }
+		}
 		hx-swap="outerHTML"
 		hx-indicator={ "#" + createTeamLoadingId }
 		hx-disabled-elt={ "#" + createTeamSubmitId }
 	>
 		<div class={ "field label border", templ.KV("invalid", dto.FieldInvalid("Name")) }>
-			<input type="text" name="name" id="create_team_name" required="true" autocomplete="off" />
+			<input type="text" name="name" id="create_team_name" required="true" autocomplete="off" value={dto.Name} autofocus />
 			<label for="create_team_name" value={ dto.Name }>Name*</label>
 			<span class="error">{ dto.FieldError("Name") }</span>
 		</div>
 		<div class={ "field label border", templ.KV("invalid", dto.FieldInvalid("Organization")) }>
-			<input type="text" name="organization" id="create_team_organization" autocomplete="off" />
+			<input type="text" name="organization" id="create_team_organization" autocomplete="off" value={dto.Organization}/>
 			<label for="create_team_organization" value={ dto.Organization }>Organization</label>
 			<span class="error">{ dto.FieldError("Organization") }</span>
 		</div>

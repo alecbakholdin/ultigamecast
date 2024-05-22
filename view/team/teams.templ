@@ -104,5 +104,8 @@ templ TeamRow(team *models.Team) {
 		<a href={ templ.SafeURL("teams/" + team.Slug) }>
 			<i>group</i>
 		</a>
+		<a hx-get={ "teams-edit/" + team.Slug } hx-target="#modal" hx-swap="innerHTML">
+			<i>edit</i>
+		</a>
 	</div>
 }
