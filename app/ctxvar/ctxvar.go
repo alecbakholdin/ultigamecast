@@ -14,6 +14,7 @@ const (
 	ReqId      ContextVar = "RequestId"
 	User       ContextVar = "User"
 	Team       ContextVar = "Team"
+	Player     ContextVar = "Player"
 	Tournament ContextVar = "Tournament"
 	Game       ContextVar = "Game"
 )
@@ -31,6 +32,10 @@ func GetUser(ctx context.Context) *models.User {
 
 func GetTeam(ctx context.Context) *models.Team {
 	return getModel[models.Team](ctx, Team)
+}
+
+func GetPlayer(ctx context.Context) *models.Player {
+	return getModel[models.Player](ctx, Player)
 }
 
 func GetTournament(ctx context.Context) *models.Tournament {
@@ -57,6 +62,10 @@ func GetValue(ctx context.Context, key ContextVar) string {
 	case Team:
 		if team := GetTeam(ctx); team != nil {
 			return fmt.Sprintf("[%d] %s", team.ID, team.Name)
+		}
+	case Player:
+		if player := GetPlayer(ctx); player != nil {
+			return fmt.Sprintf("[%d] %s", player.ID, player.Name)
 		}
 	case Tournament:
 		if tournament := GetTournament(ctx); tournament != nil {

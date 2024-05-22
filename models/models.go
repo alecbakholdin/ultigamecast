@@ -31,6 +31,7 @@ type Game struct {
 type Player struct {
 	ID    int64  `db:"id" json:"id"`
 	Team  int64  `db:"team" json:"team"`
+	Slug  string `db:"slug" json:"slug"`
 	Name  string `db:"name" json:"name" validate:"required,max=64"`
 	Order int64  `db:"order" json:"order"`
 }

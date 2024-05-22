@@ -11,30 +11,33 @@ import (
 )
 
 const createPlayer = `-- name: CreatePlayer :one
-INSERT INTO players (team, "name", "order")
+INSERT INTO players (team, slug, "name", "order")
 VALUES (
         ?1,
         ?2,
+        ?3,
         (
             SELECT 1 + IFNULL(MAX("order"), -1)
             FROM players p
             WHERE p.team = ?1
         )
     )
-RETURNING id, team, name, "order"
+RETURNING id, team, slug, name, "order"
 `
 
 type CreatePlayerParams struct {
 	Team int64  `db:"team" json:"team"`
+	Slug string `db:"slug" json:"slug"`
 	Name string `db:"name" json:"name" validate:"required,max=64"`
 }
 
 func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (Player, error) {
-	row := q.db.QueryRowContext(ctx, createPlayer, arg.Team, arg.Name)
+	row := q.db.QueryRowContext(ctx, createPlayer, arg.Team, arg.Slug, arg.Name)
 	var i Player
 	err := row.Scan(
 		&i.ID,
 		&i.Team,
+		&i.Slug,
 		&i.Name,
 		&i.Order,
 	)
@@ -90,6 +93,31 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const getPlayer = `-- name: GetPlayer :one
+SELECT id, team, slug, name, "order"
+FROM players
+WHERE team = ?1
+    AND slug = ?2
+`
+
+type GetPlayerParams struct {
+	TeamId int64  `db:"teamId" json:"teamId"`
+	Slug   string `db:"slug" json:"slug"`
+}
+
+func (q *Queries) GetPlayer(ctx context.Context, arg GetPlayerParams) (Player, error) {
+	row := q.db.QueryRowContext(ctx, getPlayer, arg.TeamId, arg.Slug)
+	var i Player
+	err := row.Scan(
+		&i.ID,
+		&i.Team,
+		&i.Slug,
+		&i.Name,
+		&i.Order,
+	)
+	return i, err
+}
+
 const getTeam = `-- name: GetTeam :one
 SELECT id, owner, name, slug, organization
 FROM teams
@@ -125,7 +153,7 @@ func (q *Queries) GetUser(ctx context.Context, email string) (User, error) {
 const listFollowedTeams = `-- name: ListFollowedTeams :many
 SELECT t.id, t.owner, t.name, t.slug, t.organization
 FROM team_follow tf
-INNER JOIN teams t ON t.id = tf.team
+    INNER JOIN teams t ON t.id = tf.team
 WHERE tf.user = ?1
 ORDER BY t.name ASC
 `
@@ -196,15 +224,14 @@ func (q *Queries) ListOwnedTeams(ctx context.Context, userid int64) ([]Team, err
 }
 
 const listTeamPlayers = `-- name: ListTeamPlayers :many
-SELECT p.id, p.team, p.name, p."order"
-FROM players p
-    INNER JOIN teams t ON p.team = t.id
-WHERE t.slug = LOWER(?1)
+SELECT id, team, slug, name, "order"
+FROM players
+WHERE team = ?1
 ORDER BY p.order ASC
 `
 
-func (q *Queries) ListTeamPlayers(ctx context.Context, slug string) ([]Player, error) {
-	rows, err := q.db.QueryContext(ctx, listTeamPlayers, slug)
+func (q *Queries) ListTeamPlayers(ctx context.Context, teamid int64) ([]Player, error) {
+	rows, err := q.db.QueryContext(ctx, listTeamPlayers, teamid)
 	if err != nil {
 		return nil, err
 	}
@@ -215,6 +242,7 @@ func (q *Queries) ListTeamPlayers(ctx context.Context, slug string) ([]Player, e
 		if err := rows.Scan(
 			&i.ID,
 			&i.Team,
+			&i.Slug,
 			&i.Name,
 			&i.Order,
 		); err != nil {
@@ -271,22 +299,24 @@ func (q *Queries) ListTournaments(ctx context.Context, slug string) ([]Tournamen
 
 const updatePlayer = `-- name: UpdatePlayer :one
 UPDATE players
-SET "name" = ?
+SET "name" = ?, slug = ?
 WHERE id = ?
-RETURNING id, team, name, "order"
+RETURNING id, team, slug, name, "order"
 `
 
 type UpdatePlayerParams struct {
 	Name string `db:"name" json:"name" validate:"required,max=64"`
+	Slug string `db:"slug" json:"slug"`
 	ID   int64  `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdatePlayer(ctx context.Context, arg UpdatePlayerParams) (Player, error) {
-	row := q.db.QueryRowContext(ctx, updatePlayer, arg.Name, arg.ID)
+	row := q.db.QueryRowContext(ctx, updatePlayer, arg.Name, arg.Slug, arg.ID)
 	var i Player
 	err := row.Scan(
 		&i.ID,
 		&i.Team,
+		&i.Slug,
 		&i.Name,
 		&i.Order,
 	)

@@ -22,7 +22,7 @@ ORDER BY id DESC;
 -- name: ListFollowedTeams :many
 SELECT t.*
 FROM team_follow tf
-INNER JOIN teams t ON t.id = tf.team
+    INNER JOIN teams t ON t.id = tf.team
 WHERE tf.user = @userId
 ORDER BY t.name ASC;
 -- name: UpdateTeam :one
@@ -38,10 +38,11 @@ SET "owner" = ?
 WHERE teams.slug = @slug
 RETURNING *;
 -- name: CreatePlayer :one
-INSERT INTO players (team, "name", "order")
+INSERT INTO players (team, slug, "name", "order")
 VALUES (
         ?1,
         ?2,
+        ?3,
         (
             SELECT 1 + IFNULL(MAX("order"), -1)
             FROM players p
@@ -49,19 +50,23 @@ VALUES (
         )
     )
 RETURNING *;
+-- name: GetPlayer :one
+SELECT *
+FROM players
+WHERE team = @teamId
+    AND slug = @slug;
 -- name: ListTeamPlayers :many
-SELECT p.*
-FROM players p
-    INNER JOIN teams t ON p.team = t.id
-WHERE t.slug = LOWER(@slug)
+SELECT *
+FROM players
+WHERE team = @teamId
 ORDER BY p.order ASC;
 -- name: UpdatePlayer :one
 UPDATE players
-SET "name" = ?
+SET "name" = ?, slug = ?
 WHERE id = ?
 RETURNING *;
 -- name: ListTournaments :many
 SELECT tournaments.*
 FROM tournaments
     INNER JOIN teams ON tournaments.team = teams.id
-WHERE teams.slug = LOWER(@slug)
+WHERE teams.slug = LOWER(@slug);

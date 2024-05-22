@@ -26,9 +26,11 @@ CREATE TABLE team_follow (
 CREATE TABLE players (
     id INTEGER PRIMARY KEY,
     team INTEGER NOT NULL,
+    slug TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "order" INTEGER NOT NULL,
-    FOREIGN KEY (team) REFERENCES teams(id) ON DELETE CASCADE
+    FOREIGN KEY (team) REFERENCES teams(id) ON DELETE CASCADE,
+    UNIQUE(team, slug)
 );
 CREATE TABLE tournaments (
     id INTEGER PRIMARY KEY,
