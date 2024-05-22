@@ -8,8 +8,8 @@ import (
 	"os"
 	"ultigamecast/app/env"
 	"ultigamecast/app/logger"
+	"ultigamecast/app/middleware"
 	"ultigamecast/handlers"
-	"ultigamecast/middleware"
 	"ultigamecast/models"
 	"ultigamecast/service"
 
@@ -57,6 +57,7 @@ func main() {
 
 	teamHandler := handlers.NewTeam(teamService)
 	http.Handle("GET /teams", mustBeAuthenticated.ThenFunc(teamHandler.GetTeams))
+	http.Handle("GET /teams/{teamSlug}", base.ThenFunc(teamHandler.GetTeam))
 	http.Handle("GET /teams-create", mustBeAuthenticated.ThenFunc(teamHandler.GetTeamsCreate))
 	http.Handle("POST /teams", mustBeAuthenticated.ThenFunc(teamHandler.PostTeams))
 

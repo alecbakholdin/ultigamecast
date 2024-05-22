@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"ultigamecast/app/ctx_var"
+	"ultigamecast/app/pathvar"
 	"ultigamecast/models"
 
 	"github.com/google/uuid"
@@ -11,15 +12,11 @@ import (
 )
 
 type TeamService interface {
-	GetBySlug(ctx context.Context, slug string) (*models.Team, error)
+	GetTeam(ctx context.Context, slug string) (*models.Team, error)
 }
 
 type TournamentService interface {
 	GetBySlug(ctx context.Context, team *models.Team, slug string) (*models.Tournament)
-}
-
-type GameService interface {
-	GetById(ctx context.Context, tournament *models.Tournament, id string) (*models.Game)
 }
 
 func LoadContext(t TeamService) alice.Constructor{
@@ -30,8 +27,8 @@ func LoadContext(t TeamService) alice.Constructor{
 			ctx = context.WithValue(ctx, ctx_var.HttpMethod, r.Method)
 			u, _ := uuid.NewRandom()
 			ctx = context.WithValue(ctx, ctx_var.ReqId, u.String())
-			if teamSlug := r.PathValue("teamSlug"); teamSlug != "" {
-				if team, err := t.GetBySlug(ctx, teamSlug); err == nil{
+			if teamSlug := pathvar.TeamSlug(r); teamSlug != "" {
+				if team, err := t.GetTeam(ctx, teamSlug); err == nil{
 					ctx = context.WithValue(ctx, ctx_var.Team, team)
 				}
 			}

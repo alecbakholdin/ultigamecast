@@ -25,7 +25,7 @@ var (
 	ErrTeamExists = errors.New("a team with that name already exists")
 )
 
-func (t *Team) GetBySlug(ctx context.Context, slug string) (*models.Team, error) {
+func (t *Team) GetTeam(ctx context.Context, slug string) (*models.Team, error) {
 	if team, err := t.q.GetTeam(ctx, slug); err != nil {
 		return nil, convertAndLogSqlError(ctx, "error getting team by slug", err)
 	} else {
