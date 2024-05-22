@@ -1,0 +1,56 @@
+package view_team
+
+import "ultigamecast/view/component"
+
+type CreateTeamDTO struct {
+	view_component.DTO
+	Name         string `validate:"required,max=64,ascii"`
+	Organization string `validate:"max=64,ascii"`
+}
+
+const (
+	createTeamFormId    = "create_team_form"
+	createTeamSubmitId  = "create_team_submit"
+	createTeamLoadingId = "create_team_loading"
+)
+
+templ CreateTeamModal() {
+	<h5>Create Team</h5>
+	<div class="small-space"></div>
+	@CreateTeamForm(&CreateTeamDTO{})
+	<nav class="responsive">
+		<form method="dialog">
+			<button class="border">
+				<i>close</i>
+				Cancel
+			</button>
+		</form>
+		<button id={ createTeamSubmitId } form={ createTeamFormId }>
+			@view_component.LoadingIcon(createTeamLoadingId, "check", "small")
+			Confirm
+		</button>
+	</nav>
+
+}
+
+templ CreateTeamForm(dto *CreateTeamDTO) {
+	<form
+		id={ createTeamFormId }
+		hx-post="/teams"
+		hx-swap="outerHTML"
+		hx-indicator={ "#" + createTeamLoadingId }
+		hx-disabled-elt={ "#" + createTeamSubmitId }
+	>
+		<div class={ "field label border", templ.KV("invalid", dto.FieldInvalid("Name")) }>
+			<input type="text" name="name" id="create_team_name" required="true" autocomplete="off" />
+			<label for="create_team_name" value={ dto.Name }>Name*</label>
+			<span class="error">{ dto.FieldError("Name") }</span>
+		</div>
+		<div class={ "field label border", templ.KV("invalid", dto.FieldInvalid("Organization")) }>
+			<input type="text" name="organization" id="create_team_organization" autocomplete="off" />
+			<label for="create_team_organization" value={ dto.Organization }>Organization</label>
+			<span class="error">{ dto.FieldError("Organization") }</span>
+		</div>
+		@view_component.FormError(dto)
+	</form>
+}

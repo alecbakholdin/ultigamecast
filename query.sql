@@ -7,8 +7,8 @@ INSERT INTO users (email, password_hash)
 VALUES (LOWER(@email), ?)
 RETURNING *;
 -- name: CreateTeam :one
-INSERT INTO teams ("owner", "name", "organization")
-VALUES (?, ?, ?)
+INSERT INTO teams ("owner", "name", "slug", "organization")
+VALUES (?, ?, ?, ?)
 RETURNING *;
 -- name: GetTeam :one
 SELECT *

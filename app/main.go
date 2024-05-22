@@ -28,7 +28,12 @@ func main() {
 
 	authService := service.NewAuth(queries, env.MustGetenv("JWT_SECRET"))
 	teamService := service.NewTeam(queries)
-	base := alice.New(middleware.LoadContext(teamService), middleware.LoadUser(authService), middleware.LogRequest)
+	base := alice.New(
+		middleware.RecoverPanic,
+		middleware.LoadContext(teamService),
+		 middleware.LoadUser(authService),
+		  middleware.LogRequest,
+		)
 	if os.Getenv("USE_DELAY") != "" {
 		slog.Info("Adding artificial delay to every HTTP request")
 		base = base.Append(middleware.Delay)
@@ -54,7 +59,6 @@ func main() {
 	http.Handle("GET /teams", mustBeAuthenticated.ThenFunc(teamHandler.GetTeams))
 	http.Handle("GET /teams-create", mustBeAuthenticated.ThenFunc(teamHandler.GetTeamsCreate))
 	http.Handle("POST /teams", mustBeAuthenticated.ThenFunc(teamHandler.PostTeams))
-
 
 	log.Fatal(http.ListenAndServe("localhost:8090", nil))
 }

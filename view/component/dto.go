@@ -39,6 +39,10 @@ type CustomFieldError struct {
 
 var ErrBinding = errors.New("error validating struct")
 
+func (d *DTO) FieldValid(field string) bool {
+	return d.FieldError(field) == ""
+}
+
 func (d *DTO) FieldInvalid(field string) bool {
 	return d.FieldError(field) != ""
 }
@@ -67,25 +71,26 @@ func (d *DTO) FieldError(field string) string {
 	return strings.Join(errs, ",")
 }
 
-func (d *DTO) Invalid() bool {
-	valid := d.Errors == nil && d.CustomErrors == nil && d.FormError() == ""
-	return !valid
+func (d *DTO) Valid() bool {
+	return d.Errors == nil && d.CustomErrors == nil && d.FormError() == ""
 }
 
-func (d *DTO) Validate(obj interface{}) error {
+func (d *DTO) Invalid() bool {
+	return !d.Valid()
+}
+
+func (d *DTO) Validate(obj interface{}) bool {
 	err := validate.Struct(obj)
 	if err == nil {
-		return nil
+		return true
 	}
-	if errs, ok := err.(validator.ValidationErrors); !ok {
-		return ErrBinding
-	} else {
+	if errs, ok := err.(validator.ValidationErrors); ok {
 		d.Errors = errs
 	}
-	return nil
+	return false
 }
 
-func (d *DTO) AddCustomError(field, err string) {
+func (d *DTO) AddFieldError(field, err string) {
 	if d.CustomErrors == nil {
 		d.CustomErrors = []*CustomFieldError{{Field: field, Error: err}}
 	} else {

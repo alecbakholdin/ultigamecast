@@ -21,7 +21,6 @@ templ Root() {
 			// htmx
 			<script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
 			<script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js"></script>
-
 			<script lang="js">
 				function setDark(dark, dontUpdate) {
 					console.log(dark, 'update')
@@ -41,6 +40,8 @@ templ Root() {
 		</head>
 		<body
 			class="dark"
+			hx-on:openmodal="modal.showModal()"
+			hx-on:closemodal="modal.close()"
 		>
 			<script>
 				const theme = localStorage.getItem('darkMode')
@@ -48,6 +49,8 @@ templ Root() {
 				setDark(isDark, true)
 			</script>
 			{ children... }
+			<dialog id="modal" class="modal">
+			</dialog>
 		</body>
 	</html>
 }

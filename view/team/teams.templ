@@ -3,6 +3,7 @@ package view_team
 import "ultigamecast/models"
 import "ultigamecast/view/layout"
 import "ultigamecast/view/component"
+import "fmt"
 
 templ TeamsPage(teams []*models.Team) {
 	@view_layout.NavLayout() {
@@ -11,15 +12,22 @@ templ TeamsPage(teams []*models.Team) {
 			if len(teams) == 0 {
 				<div class="center center-align">
 					<p>You currently don't own or follow any teams</p>
-					<button
-						type="button"
-						hx-post="/teams"
-						hx-swap="none"
-						hx-indicator="#create-first-team-loading"
-					>
-						@view_component.LoadingIcon("create-first-team-loading", "add", "small")
-						Create your first team	
-					</button>
+					<div class="vertical medium-width center">
+						<button
+							class="bottom-margin"
+							hx-get="/teams-create"
+							hx-swap="innerHTMl"
+							hx-target="#modal"
+							hx-indicator="#create-first-team-loading"
+						>
+							@view_component.LoadingIcon("create-first-team-loading", "add", "small")
+							Create your first team
+						</button>
+						<button type="button">
+							<i>person</i>
+							Discover teams
+						</button>
+					</div>
 				</div>
 			}
 		</main>
@@ -27,11 +35,11 @@ templ TeamsPage(teams []*models.Team) {
 }
 
 templ TeamList(teams []*models.Team) {
-	team list
+	<div id="team_list"></div>
 }
 
 templ TeamRow(team *models.Team) {
-	<div>
+	<div id={ fmt.Sprintf("team-%d", team.ID) }>
 		{ team.Name }
 	</div>
 }

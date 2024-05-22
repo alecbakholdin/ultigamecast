@@ -42,19 +42,25 @@ func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (Pla
 }
 
 const createTeam = `-- name: CreateTeam :one
-INSERT INTO teams ("owner", "name", "organization")
-VALUES (?, ?, ?)
+INSERT INTO teams ("owner", "name", "slug", "organization")
+VALUES (?, ?, ?, ?)
 RETURNING id, owner, name, slug, organization
 `
 
 type CreateTeamParams struct {
 	Owner        int64          `db:"owner" json:"owner"`
 	Name         string         `db:"name" json:"name" validate:"required,max=64"`
+	Slug         string         `db:"slug" json:"slug"`
 	Organization sql.NullString `db:"organization" json:"organization"`
 }
 
 func (q *Queries) CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error) {
-	row := q.db.QueryRowContext(ctx, createTeam, arg.Owner, arg.Name, arg.Organization)
+	row := q.db.QueryRowContext(ctx, createTeam,
+		arg.Owner,
+		arg.Name,
+		arg.Slug,
+		arg.Organization,
+	)
 	var i Team
 	err := row.Scan(
 		&i.ID,
@@ -121,6 +127,7 @@ SELECT p.id, p.team, p.name, p."order"
 FROM players p
     INNER JOIN teams t ON p.team = t.id
 WHERE t.slug = LOWER(?1)
+ORDER BY p.order ASC
 `
 
 func (q *Queries) ListTeamPlayers(ctx context.Context, slug string) ([]Player, error) {

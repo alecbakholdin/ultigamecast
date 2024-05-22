@@ -40,28 +40,28 @@ templ NavLayout() {
 				if ctx_var.IsAuthenticated(ctx) {
 					<a hx-post="/logout" hx-swap="none">
 						<i>logout</i>
-						<span>Log Out</span>
+						<span>Logout</span>
 					</a>
 				} else {
 					<a href="/login">
 						<i>person</i>
-						<span>Log In</span>
+						<span>Login</span>
 					</a>
 				}
-				<button
-					type="button"
-					class="transparent circle hide-dark"
+				<a
+					class="hide-dark"
 					onclick="setDark(true)"
 				>
 					<i>dark_mode</i>
-				</button>
-				<button
-					type="button"
-					class="transparent circle hide-light"
+					<span>Dark</span>
+				</a>
+				<a
+					class="hide-light"
 					onclick="setDark(false)"
 				>
 					<i>light_mode</i>
-				</button>
+					<span>Light</span>
+				</a>
 			</nav>
 		}
 		{ children... }

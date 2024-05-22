@@ -33,12 +33,8 @@ func (a *Auth) PostLogin(w http.ResponseWriter, r *http.Request) {
 		Email:    r.FormValue("email"),
 		Password: r.FormValue("password"),
 	}
-	if err := dto.Validate(dto); err != nil {
-		unexpectedError(w, r, err)
-		return
-	}
 
-	if dto.Invalid() {
+	if !dto.Validate(dto) {
 		view_auth.LoginForm(dto).Render(r.Context(), w)
 		return
 	}
@@ -74,10 +70,7 @@ func (a *Auth) PostSignup(w http.ResponseWriter, r *http.Request) {
 		Password:        r.FormValue("password"),
 		ConfirmPassword: r.FormValue("confirm-password"),
 	}
-	if err := dto.Validate(dto); err != nil {
-		unexpectedError(w, r, err)
-		return
-	} else if dto.Invalid() {
+	if !dto.Validate(dto) {
 		view_auth.SignUpForm(dto).Render(r.Context(), w)
 		return
 	}

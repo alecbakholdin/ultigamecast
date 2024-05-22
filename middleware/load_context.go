@@ -11,15 +11,15 @@ import (
 )
 
 type TeamService interface {
-	GetBySlug(slug string) (*models.Team, error)
+	GetBySlug(ctx context.Context, slug string) (*models.Team, error)
 }
 
 type TournamentService interface {
-	GetBySlug(team *models.Team, slug string) (*models.Tournament)
+	GetBySlug(ctx context.Context, team *models.Team, slug string) (*models.Tournament)
 }
 
 type GameService interface {
-	GetById(tournament *models.Tournament, id string) (*models.Game)
+	GetById(ctx context.Context, tournament *models.Tournament, id string) (*models.Game)
 }
 
 func LoadContext(t TeamService) alice.Constructor{
@@ -31,7 +31,7 @@ func LoadContext(t TeamService) alice.Constructor{
 			u, _ := uuid.NewRandom()
 			ctx = context.WithValue(ctx, ctx_var.ReqId, u.String())
 			if teamSlug := r.PathValue("teamSlug"); teamSlug != "" {
-				if team, err := t.GetBySlug(teamSlug); err == nil{
+				if team, err := t.GetBySlug(ctx, teamSlug); err == nil{
 					ctx = context.WithValue(ctx, ctx_var.Team, team)
 				}
 			}

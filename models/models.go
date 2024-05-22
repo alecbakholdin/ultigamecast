@@ -43,6 +43,11 @@ type Team struct {
 	Organization sql.NullString `db:"organization" json:"organization"`
 }
 
+type TeamFollow struct {
+	Team int64 `db:"team" json:"team"`
+	User int64 `db:"user" json:"user"`
+}
+
 type TeamManager struct {
 	Team int64 `db:"team" json:"team"`
 	User int64 `db:"user" json:"user"`
