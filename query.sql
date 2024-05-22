@@ -14,6 +14,17 @@ RETURNING *;
 SELECT *
 FROM teams
 WHERE slug = LOWER(@slug);
+-- name: ListOwnedTeams :many
+SELECT *
+FROM teams
+WHERE teams.owner = @userId
+ORDER BY id DESC;
+-- name: ListFollowedTeams :many
+SELECT t.*
+FROM team_follow tf
+INNER JOIN teams t ON t.id = tf.team
+WHERE tf.user = @userId
+ORDER BY t.name ASC;
 -- name: UpdateTeam :one
 UPDATE teams
 SET "name" = ?,

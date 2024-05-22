@@ -122,6 +122,79 @@ func (q *Queries) GetUser(ctx context.Context, email string) (User, error) {
 	return i, err
 }
 
+const listFollowedTeams = `-- name: ListFollowedTeams :many
+SELECT t.id, t.owner, t.name, t.slug, t.organization
+FROM team_follow tf
+INNER JOIN teams t ON t.id = tf.team
+WHERE tf.user = ?1
+ORDER BY t.name ASC
+`
+
+func (q *Queries) ListFollowedTeams(ctx context.Context, userid int64) ([]Team, error) {
+	rows, err := q.db.QueryContext(ctx, listFollowedTeams, userid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Team
+	for rows.Next() {
+		var i Team
+		if err := rows.Scan(
+			&i.ID,
+			&i.Owner,
+			&i.Name,
+			&i.Slug,
+			&i.Organization,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOwnedTeams = `-- name: ListOwnedTeams :many
+SELECT id, owner, name, slug, organization
+FROM teams
+WHERE teams.owner = ?1
+ORDER BY id DESC
+`
+
+func (q *Queries) ListOwnedTeams(ctx context.Context, userid int64) ([]Team, error) {
+	rows, err := q.db.QueryContext(ctx, listOwnedTeams, userid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Team
+	for rows.Next() {
+		var i Team
+		if err := rows.Scan(
+			&i.ID,
+			&i.Owner,
+			&i.Name,
+			&i.Slug,
+			&i.Organization,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listTeamPlayers = `-- name: ListTeamPlayers :many
 SELECT p.id, p.team, p.name, p."order"
 FROM players p

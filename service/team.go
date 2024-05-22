@@ -33,8 +33,24 @@ func (t *Team) GetBySlug(ctx context.Context, slug string) (*models.Team, error)
 	}
 }
 
-func (t *Team) GetTeams(ctx context.Context) ([]*models.Team, error) {
-	return []*models.Team{}, nil
+
+func (t *Team) GetTeams(ctx context.Context) ([]models.Team, error) {
+	var teams []models.Team = make([]models.Team, 0)
+	user := ctx_var.GetUser(ctx)
+
+	if ownedTeams, err := t.q.ListOwnedTeams(ctx, user.ID); err == nil {
+		teams = append(teams, ownedTeams...)
+	} else if !errors.Is(sql.ErrNoRows, err) {
+		return []models.Team{}, convertAndLogSqlError(ctx, "error getting owned teams", err)
+	}
+
+	if followedTeams, err := t.q.ListFollowedTeams(ctx, user.ID); err == nil {
+		teams = append(teams, followedTeams...)
+	} else if !errors.Is(sql.ErrNoRows, err) {
+		return []models.Team{}, convertAndLogSqlError(ctx, "error getting followed teams", err)
+	}
+
+	return teams, nil
 }
 
 func (t *Team) CreateTeam(ctx context.Context, name, organization string) (*models.Team, error) {

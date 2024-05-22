@@ -14,7 +14,7 @@ type Team struct {
 }
 
 type TeamService interface {
-	GetTeams(ctx context.Context) ([]*models.Team, error)
+	GetTeams(ctx context.Context) ([]models.Team, error)
 	CreateTeam(ctx context.Context, name, organization string) (*models.Team, error)
 }
 
@@ -25,7 +25,11 @@ func NewTeam(t TeamService) *Team {
 }
 
 func (t *Team) GetTeams(w http.ResponseWriter, r *http.Request) {
-	view_team.TeamsPage([]*models.Team{}).Render(r.Context(), w)
+	if teams, err := t.t.GetTeams(r.Context()); err != nil {
+		http.Error(w, "unexpected error", http.StatusInternalServerError)
+	} else {
+		view_team.TeamsPage(teams).Render(r.Context(), w)
+	}
 }
 
 func (t *Team) GetTeamsCreate(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +54,7 @@ func (t *Team) PostTeams(w http.ResponseWriter, r *http.Request) {
 		dto.AddFormError("unexpected error")
 		view_team.CreateTeamForm(dto).Render(r.Context(), w)
 	} else {
-		hxRetarget(w, "#team_list", "afterbegin")
+		hxRetarget(w, "#owned_team_list", "afterbegin")
 		hxCloseModal(w)
 		view_team.TeamRow(team).Render(r.Context(), w)
 	}
