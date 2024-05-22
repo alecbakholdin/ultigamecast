@@ -4,7 +4,7 @@ import "ultigamecast/models"
 import "ultigamecast/view/layout"
 import "ultigamecast/view/component"
 import "fmt"
-import "ultigamecast/app/ctx_var"
+import "ultigamecast/app/ctxvar"
 
 templ TeamsPage(teams []models.Team) {
 	@view_layout.NavLayout() {
@@ -78,7 +78,7 @@ templ TeamList(teams []models.Team) {
 
 func getOwnedTeams(ctx context.Context, teams []models.Team) []*models.Team {
 	ownedTeams := make([]*models.Team, 0)
-	user := ctx_var.GetUser(ctx)
+	user := ctxvar.GetUser(ctx)
 	for _, t := range teams {
 		if t.Owner == user.ID {
 			ownedTeams = append(ownedTeams, &t)
@@ -89,7 +89,7 @@ func getOwnedTeams(ctx context.Context, teams []models.Team) []*models.Team {
 
 func getFollowedTeams(ctx context.Context, teams []models.Team) []*models.Team {
 	followedTeams := make([]*models.Team, 0)
-	user := ctx_var.GetUser(ctx)
+	user := ctxvar.GetUser(ctx)
 	for _, t := range teams {
 		if t.Owner != user.ID {
 			followedTeams = append(followedTeams, &t)

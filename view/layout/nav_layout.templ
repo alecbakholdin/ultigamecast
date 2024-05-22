@@ -1,6 +1,6 @@
 package view_layout
 
-import "ultigamecast/app/ctx_var"
+import "ultigamecast/app/ctxvar"
 
 templ NavLayout() {
 	@Root() {
@@ -28,7 +28,7 @@ templ NavLayout() {
 						<img class="circle" src="/frisbee.png" height="40" width="40"/>
 					</a>
 				}
-				if ctx_var.IsAuthenticated(ctx) {
+				if ctxvar.IsAuthenticated(ctx) {
 					<a href="/teams">
 						<i>groups</i>
 						<span>Teams</span>
@@ -37,7 +37,7 @@ templ NavLayout() {
 				if i == 1 {
 					<div class="max"></div>
 				}
-				if ctx_var.IsAuthenticated(ctx) {
+				if ctxvar.IsAuthenticated(ctx) {
 					<a hx-post="/logout" hx-swap="none">
 						<i>logout</i>
 						<span>Logout</span>
