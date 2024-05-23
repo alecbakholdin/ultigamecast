@@ -323,6 +323,23 @@ func (q *Queries) UpdatePlayer(ctx context.Context, arg UpdatePlayerParams) (Pla
 	return i, err
 }
 
+const updatePlayerOrder = `-- name: UpdatePlayerOrder :exec
+UPDATE players
+SET "order" = ?
+WHERE id = ? AND team = ?
+`
+
+type UpdatePlayerOrderParams struct {
+	Order int64 `db:"order" json:"order"`
+	ID    int64 `db:"id" json:"id"`
+	Team  int64 `db:"team" json:"team"`
+}
+
+func (q *Queries) UpdatePlayerOrder(ctx context.Context, arg UpdatePlayerOrderParams) error {
+	_, err := q.db.ExecContext(ctx, updatePlayerOrder, arg.Order, arg.ID, arg.Team)
+	return err
+}
+
 const updateTeam = `-- name: UpdateTeam :one
 UPDATE teams
 SET "name" = ?,

@@ -10,6 +10,7 @@ import (
 var (
 	ErrNotFound = errors.New("did not find a matching record")
 	ErrUnexpected = errors.New("unexpected error")
+	ErrBadFormat = errors.New("poorly formatted request")
 )
 
 func convertAndLogSqlError(ctx context.Context, message string, sqlErr error) error {

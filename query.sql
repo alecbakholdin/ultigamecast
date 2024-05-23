@@ -65,6 +65,10 @@ UPDATE players
 SET "name" = ?, slug = ?
 WHERE id = ?
 RETURNING *;
+-- name: UpdatePlayerOrder :exec
+UPDATE players
+SET "order" = ?
+WHERE id = ? AND team = ?;
 -- name: ListTournaments :many
 SELECT tournaments.*
 FROM tournaments
