@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"ultigamecast/models"
-	view_players "ultigamecast/view/team/players"
+	view_players "ultigamecast/view/teams/players"
 )
 
 type Player struct {

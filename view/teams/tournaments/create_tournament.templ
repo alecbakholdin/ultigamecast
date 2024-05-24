@@ -1,0 +1,39 @@
+package view_tournament
+
+import "ultigamecast/view/component"
+import "fmt"
+import "ultigamecast/app/ctxvar"
+
+type CreateTournamentDTO struct {
+	view_component.DTO
+	Name string `validate:"required,ascii,max=64"`
+}
+
+const (
+	createTournamentSubmitId  = "create_tournament_submit"
+	createTournamentLoadingId = "create_tournament_loading"
+)
+
+templ CreateTournamentForm(dto *CreateTournamentDTO) {
+	<form
+		hx-post={ fmt.Sprintf("%s/tournaments", ctxvar.GetTeam(ctx).Slug) }
+		hx-target="this"
+		hx-swap="outerHTML"
+		hx-disabled-elt={ "#" + createTournamentSubmitId }
+		hx-indicator={ "#" + createTournamentLoadingId }
+        hx-on:clearform="this.reset()"
+		class="vertical"
+	>
+		<nav class="no-space">
+			<div class={ "left-round field label border", dto.FieldInvalidClass("Name") }>
+				<input type="text" name="name" id="create_tournament_name" autcomplete="off"/>
+				<label for="create_tournament_name">Tournament Name</label>
+				<span class="error">{ dto.FieldError("Name") }</span>
+			</div>
+			<button class="square large right-round">
+				@view_component.LoadingIcon(createTournamentLoadingId, "add", "small")
+			</button>
+		</nav>
+		@view_component.FormError(dto)
+	</form>
+}

@@ -9,7 +9,7 @@ import (
 	"ultigamecast/app/pathvar"
 	"ultigamecast/models"
 	"ultigamecast/service"
-	view_team "ultigamecast/view/team"
+	view_team "ultigamecast/view/teams"
 )
 
 type Team struct {

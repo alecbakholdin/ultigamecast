@@ -1,0 +1,31 @@
+package view_tournament
+
+import "ultigamecast/models"
+import "fmt"
+import "ultigamecast/app/ctxvar"
+
+templ TeamTournaments(tournaments []models.Tournament) {
+	<div class="vertical">
+		if ctxvar.IsAdmin(ctx) {
+			@CreateTournamentForm(&CreateTournamentDTO{})
+		}
+		<div id="team_tournaments">
+			for _, t := range tournaments {
+				@TournamentRow(&t)
+			}
+		</div>
+	</div>
+}
+
+templ NewTournamentRow(tournament *models.Tournament) {
+	<div hx-swap-oob="beforeend:#team_tournaments">
+		@TournamentRow(tournament)
+	</div>
+}
+
+templ TournamentRow(tournament *models.Tournament) {
+	<div id={ fmt.Sprintf("tournament-%d", tournament.ID) } hx-swap-oob="true">
+		<span>{ tournament.Name }</span>
+		<span>{ tournament.Slug }</span>
+	</div>
+}
