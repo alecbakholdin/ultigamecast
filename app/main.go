@@ -28,18 +28,22 @@ func main() {
 
 	authService := service.NewAuth(queries, env.MustGetenv("JWT_SECRET"))
 	teamService := service.NewTeam(queries, db)
+	playerService := service.NewPlayer(queries, db)
 	base := alice.New(
 		middleware.RecoverPanic,
 		middleware.LoadContext(teamService),
 		middleware.LoadUser(authService),
-		middleware.LogRequest,
+		middleware.LogRequestAndHandleError,
 	)
 	if os.Getenv("USE_DELAY") != "" {
 		slog.Info("Adding artificial delay to every HTTP request")
 		base = base.Append(middleware.Delay)
 	}
 	authenticatedOnly := base.Append(middleware.GuardAuthenticated)
-	teamAdminOnly := base.Append(middleware.GuardTeamAdmin)
+	withTeam := base.Append(middleware.LoadTeam(teamService))
+	withTeamAdminOnly := withTeam.Append(middleware.GuardTeamAdmin)
+	withPlayer := base.Append(middleware.LoadPlayer(playerService))
+	withPlayerAdminOnly := withPlayer.Append(middleware.GuardTeamAdmin)
 
 	http.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/favicon.ico") })
 	http.HandleFunc("GET /frisbee.png", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/frisbee.png") })
@@ -59,10 +63,16 @@ func main() {
 	teamHandler := handlers.NewTeam(teamService)
 	http.Handle("GET /teams", authenticatedOnly.ThenFunc(teamHandler.GetTeams))
 	http.Handle("POST /teams", authenticatedOnly.ThenFunc(teamHandler.PostTeams))
-	http.Handle("GET /teams/{teamSlug}", base.ThenFunc(teamHandler.GetTeam))
-	http.Handle("PUT /teams/{teamSlug}", teamAdminOnly.ThenFunc(teamHandler.PutTeam))
-	http.Handle("GET /teams-edit/{teamSlug}", teamAdminOnly.ThenFunc(teamHandler.GetTeamsEdit))
+	http.Handle("GET /teams/{teamSlug}", withTeam.ThenFunc(teamHandler.GetTeam))
+	http.Handle("PUT /teams/{teamSlug}", withTeamAdminOnly.ThenFunc(teamHandler.PutTeam))
+	http.Handle("GET /teams-edit/{teamSlug}", withTeamAdminOnly.ThenFunc(teamHandler.GetTeamsEdit))
 	http.Handle("GET /teams-create", authenticatedOnly.ThenFunc(teamHandler.GetTeamsCreate))
+
+	playerHandler := handlers.NewPlayer(playerService)
+	http.Handle("GET /teams/{teamSlug}/players", withTeam.ThenFunc(playerHandler.GetPlayers))
+	http.Handle("POST /teams/{teamSlug}/players", withTeam.ThenFunc(playerHandler.PostPlayers))
+	http.Handle("PUT /teams/{teamSlug}/players/{playerSlug}", withPlayerAdminOnly.ThenFunc(playerHandler.PutPlayer))
+	http.Handle("POST /teams/{teamSlug}/players-order", withTeam.ThenFunc(playerHandler.PostPlayersOrder))
 
 	log.Fatal(http.ListenAndServe("localhost:8090", nil))
 }

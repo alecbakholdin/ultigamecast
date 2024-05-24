@@ -59,7 +59,7 @@ WHERE team = @teamId
 SELECT *
 FROM players
 WHERE team = @teamId
-ORDER BY p.order ASC;
+ORDER BY "order" ASC;
 -- name: UpdatePlayer :one
 UPDATE players
 SET "name" = ?, slug = ?

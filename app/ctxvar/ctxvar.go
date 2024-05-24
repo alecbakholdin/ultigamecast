@@ -17,10 +17,19 @@ const (
 	Player     ContextVar = "Player"
 	Tournament ContextVar = "Tournament"
 	Game       ContextVar = "Game"
+	Admin      ContextVar = "Admin"
 )
 
 var LogMessageVars = []ContextVar{HttpMethod, Path}
 var LogAttrVars = []ContextVar{ReqId, User}
+
+func IsAdmin(ctx context.Context) bool {
+	if val, ok := ctx.Value(Admin).(bool); ok {
+		return val
+	} else {
+		return false
+	}
+}
 
 func IsAuthenticated(ctx context.Context) bool {
 	return GetUser(ctx) != nil
@@ -77,8 +86,8 @@ func GetValue(ctx context.Context, key ContextVar) string {
 		}
 
 	default:
-		if val, ok := ctx.Value(key).(string); ok {
-			return val
+		if val := ctx.Value(key); val != nil {
+			return fmt.Sprintf("%#v", val)
 		}
 	}
 	return ""

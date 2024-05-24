@@ -14,6 +14,7 @@ import (
 
 type TeamService interface {
 	GetTeam(ctx context.Context, slug string) (*models.Team, error)
+	IsTeamAdmin(ctx context.Context) bool
 }
 
 func LoadTeam(t TeamService) alice.Constructor {
@@ -28,8 +29,10 @@ func LoadTeam(t TeamService) alice.Constructor {
 				http.Error(w, "unexpected error", http.StatusInternalServerError)
 			} else {
 				ctx := context.WithValue(r.Context(), ctxvar.Team, team)
+				ctx = context.WithValue(ctx, ctxvar.Admin, t.IsTeamAdmin(ctx))
 				*r = *r.WithContext(ctx)
 			}
+			h.ServeHTTP(w, r)
 		})
 	}
 }

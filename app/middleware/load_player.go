@@ -30,6 +30,7 @@ func LoadPlayer(t PlayerService) alice.Constructor {
 				ctx := context.WithValue(r.Context(), ctxvar.Player, player)
 				*r = *r.WithContext(ctx)
 			}
+			h.ServeHTTP(w, r)
 		})
 	}
 }

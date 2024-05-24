@@ -35,6 +35,15 @@ func (p *Player) GetPlayer(ctx context.Context, slug string) (*models.Player, er
 	return &player, nil
 }
 
+func (p *Player) GetTeamPlayers(ctx context.Context) ([]models.Player, error) {
+	team := ctxvar.GetTeam(ctx)
+	players, err := p.q.ListTeamPlayers(ctx, team.ID)
+	if err != nil && !errors.Is(sql.ErrNoRows, err) {
+		return nil, convertAndLogSqlError(ctx, "error fetching team players", err)
+	}
+	return players, nil
+} 
+
 func (p *Player) CreatePlayer(ctx context.Context, name string) (*models.Player, error) {
 	team := ctxvar.GetTeam(ctx)
 	slug, err := p.nextAvailableSlug(ctx, 0, team.ID, name)

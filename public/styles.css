@@ -12,5 +12,31 @@ body {
     display: none !important;
 }
 :is(button,.button,.chip)>.loading-icon {
+    display: inline;
     margin: 0 -.5rem;
+}
+.handle {
+    cursor: pointer;
+}
+
+body>main.responsive {
+    margin: 0;
+    min-width: 100%;
+}
+
+.fade-in-out-1s {
+    animation-name: fade-in-out-1s-animation;
+    animation-duration: 1s;
+}
+
+@keyframes fade-in-out-1s-animation {
+    from {
+        opacity: 0;
+    }
+    20%, 80% {
+        opacity: 1;
+    }
+    to {
+        opactiy: 0;
+    }
 }

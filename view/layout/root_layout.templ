@@ -21,27 +21,18 @@ templ Root() {
 			// htmx
 			<script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
 			<script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js"></script>
-			<script lang="js">
-				function setDark(dark, dontUpdate) {
-					console.log(dark, 'update')
-					const body = document.getElementsByTagName('body').item(0)
-					if(dark) {
-						body.classList.add('dark')
-						body.classList.remove('light')
-					} else {
-						body.classList.add('light')
-						body.classList.remove('dark')
-					}
-					if (!dontUpdate) {
-						localStorage.setItem('darkMode', dark ? 'dark' : 'light')
-					}
-				}
-			</script>
+			<script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/remove-me.js"></script>
+			// sortable
+			<script src="http://SortableJS.github.io/Sortable/Sortable.js"></script>
+
+			// custom scripts
+			@RootScripts()
 		</head>
 		<body
 			class="dark"
 			hx-on:openmodal="modal.showModal()"
 			hx-on:closemodal="modal.close()"
+			hx-on::response-error="console.log(event.detail.xhr.responseText)"
 		>
 			<script>
 				const theme = localStorage.getItem('darkMode')
@@ -49,8 +40,58 @@ templ Root() {
 				setDark(isDark, true)
 			</script>
 			{ children... }
-			<dialog id="modal" class="modal">
-			</dialog>
+			<dialog id="modal" class="modal"></dialog>
+			<div id="snackbars" hx-ext="remove-me"></div>
 		</body>
 	</html>
+}
+
+templ RootScripts() {
+	// dark mode adjuster
+	<script lang="js">
+		function setDark(dark, dontUpdate) {
+			console.log(dark, 'update')
+			const body = document.getElementsByTagName('body').item(0)
+			if(dark) {
+				body.classList.add('dark')
+				body.classList.remove('light')
+			} else {
+				body.classList.add('light')
+				body.classList.remove('dark')
+			}
+			if (!dontUpdate) {
+				localStorage.setItem('darkMode', dark ? 'dark' : 'light')
+			}
+		}
+	</script>
+	// htmx sortable
+	<script lang="js">
+		htmx.onLoad(function(content) {
+			var sortables = content.querySelectorAll(".sortable");
+			for (var i = 0; i < sortables.length; i++) {
+				var sortable = sortables[i];
+				var sortableInstance = new Sortable(sortable, {
+					animation: 150,
+					ghostClass: 'blue-background-class',
+					handle: '.handle',
+
+					// Make the `.htmx-indicator` unsortable
+					filter: ".htmx-indicator",
+					onMove: function (evt) {
+						return evt.related.className.indexOf('htmx-indicator') === -1;
+					},
+
+					// Disable sorting on the `end` event
+					onEnd: function (evt) {
+						this.option("disabled", true);
+					}
+				});
+
+				// Re-enable sorting on the `htmx:afterSwap` event
+				sortable.addEventListener("htmx:afterSwap", function() {
+					sortableInstance.option("disabled", false);
+				});
+			}
+		})
+	</script>
 }

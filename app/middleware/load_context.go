@@ -4,16 +4,12 @@ import (
 	"context"
 	"net/http"
 	"ultigamecast/app/ctxvar"
-	"ultigamecast/models"
 
 	"github.com/google/uuid"
 	"github.com/justinas/alice"
 )
 
 
-type TournamentService interface {
-	GetBySlug(ctx context.Context, team *models.Team, slug string) *models.Tournament
-}
 
 func LoadContext(t TeamService) alice.Constructor {
 	return func(h http.Handler) http.Handler {

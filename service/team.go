@@ -25,6 +25,12 @@ var (
 	ErrTeamExists = errors.New("a team with that name already exists")
 )
 
+func (t *Team) IsTeamAdmin(ctx context.Context) (bool) {
+	team := ctxvar.GetTeam(ctx)
+	user := ctxvar.GetUser(ctx)
+	return team.Owner == user.ID
+}
+
 func (t *Team) GetTeam(ctx context.Context, slug string) (*models.Team, error) {
 	if team, err := t.q.GetTeam(ctx, slug); err != nil {
 		return nil, convertAndLogSqlError(ctx, "error getting team by slug", err)

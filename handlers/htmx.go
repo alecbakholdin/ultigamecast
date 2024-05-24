@@ -18,6 +18,10 @@ func hxCloseModal(w http.ResponseWriter) {
 	hxTrigger(w, "closemodal")
 }
 
+func hxClearForm(w http.ResponseWriter) {
+	hxTrigger(w, "clearform")
+}
+
 func hxTrigger(w http.ResponseWriter, event string) {
 	w.Header().Add("Hx-Trigger", event)
 }

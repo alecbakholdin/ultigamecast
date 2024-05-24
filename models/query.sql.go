@@ -227,7 +227,7 @@ const listTeamPlayers = `-- name: ListTeamPlayers :many
 SELECT id, team, slug, name, "order"
 FROM players
 WHERE team = ?1
-ORDER BY p.order ASC
+ORDER BY "order" ASC
 `
 
 func (q *Queries) ListTeamPlayers(ctx context.Context, teamid int64) ([]Player, error) {
