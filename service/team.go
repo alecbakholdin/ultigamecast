@@ -28,7 +28,7 @@ var (
 func (t *Team) IsTeamAdmin(ctx context.Context) (bool) {
 	team := ctxvar.GetTeam(ctx)
 	user := ctxvar.GetUser(ctx)
-	return team.Owner == user.ID
+	return user != nil && team != nil && team.Owner == user.ID
 }
 
 func (t *Team) GetTeam(ctx context.Context, slug string) (*models.Team, error) {

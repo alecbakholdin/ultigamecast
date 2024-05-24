@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"time"
 	"ultigamecast/service"
 	view_auth "ultigamecast/view/auth"
 )
@@ -100,7 +99,7 @@ func (a *Auth) PostLogout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name: "access_token",
 		Value: "deleted",
-		Expires: time.Time{},
+		MaxAge: 1,
 	})
 	if r.URL.Path == "/" {
 		hxRefresh(w)
