@@ -29,6 +29,7 @@ func main() {
 	authService := service.NewAuth(queries, env.MustGetenv("JWT_SECRET"))
 	teamService := service.NewTeam(queries, db)
 	playerService := service.NewPlayer(queries, db)
+	tournamentService := service.NewTournament(queries, db)
 	base := alice.New(
 		middleware.RecoverPanic,
 		middleware.LoadContext(teamService),
@@ -44,6 +45,8 @@ func main() {
 	withTeamAdminOnly := withTeam.Append(middleware.GuardTeamAdmin)
 	withPlayer := base.Append(middleware.LoadPlayer(playerService))
 	withPlayerAdminOnly := withPlayer.Append(middleware.GuardTeamAdmin)
+	withTournament := withTeam.Append(middleware.LoadTournament(tournamentService))
+	withTournamentAdminOnly := withTournament.Append(middleware.GuardTeamAdmin)
 
 	http.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/favicon.ico") })
 	http.HandleFunc("GET /frisbee.png", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/frisbee.png") })
@@ -70,9 +73,15 @@ func main() {
 
 	playerHandler := handlers.NewPlayer(playerService)
 	http.Handle("GET /teams/{teamSlug}/players", withTeam.ThenFunc(playerHandler.GetPlayers))
-	http.Handle("POST /teams/{teamSlug}/players", withTeam.ThenFunc(playerHandler.PostPlayers))
+	http.Handle("POST /teams/{teamSlug}/players", withTeamAdminOnly.ThenFunc(playerHandler.PostPlayers))
 	http.Handle("PUT /teams/{teamSlug}/players/{playerSlug}", withPlayerAdminOnly.ThenFunc(playerHandler.PutPlayer))
-	http.Handle("POST /teams/{teamSlug}/players-order", withTeam.ThenFunc(playerHandler.PostPlayersOrder))
+	http.Handle("POST /teams/{teamSlug}/players-order", withTeamAdminOnly.ThenFunc(playerHandler.PostPlayersOrder))
+
+	tournamentHandler := handlers.NewTournament(tournamentService)
+	http.Handle("GET /teams/{teamSlug}/tournaments", withTeam.ThenFunc(tournamentHandler.GetTournaments))
+	http.Handle("POST /teams/{teamSlug}/tournaments", withTeamAdminOnly.ThenFunc(tournamentHandler.PostTournaments))
+	http.Handle("GET /teams/{teamSlug}/tournaments/{tournamentSlug}", withTournament.ThenFunc(tournamentHandler.GetTournament))
+	http.Handle("PUT /teams/{teamSlug}/tournaments/{tournamentSlug}", withTournamentAdminOnly.ThenFunc(tournamentHandler.PutTournament))
 
 	log.Fatal(http.ListenAndServe("localhost:8090", nil))
 }

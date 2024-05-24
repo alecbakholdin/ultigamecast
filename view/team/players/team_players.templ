@@ -26,7 +26,9 @@ templ TeamPlayers(players []models.Player) {
 
 templ TeamPlayerRow(player *models.Player) {
 	<div class="horizontal">
-		<i class="handle">drag_handle</i>
+		if ctxvar.IsAdmin(ctx) {
+			<i class="handle">drag_handle</i>
+		}
 		<input type="hidden" name="players" value={ strconv.Itoa(int(player.ID)) }/>
 		<span>{ player.Name }</span>
 	</div>

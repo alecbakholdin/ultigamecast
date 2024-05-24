@@ -17,6 +17,7 @@ type Event struct {
 type Game struct {
 	ID             int64          `db:"id" json:"id"`
 	Tournament     int64          `db:"tournament" json:"tournament"`
+	Slug           string         `db:"slug" json:"slug"`
 	Opponent       string         `db:"opponent" json:"opponent"`
 	ScheduleStatus sql.NullString `db:"schedule_status" json:"schedule_status"`
 	Start          sql.NullTime   `db:"start" json:"start"`

@@ -62,15 +62,25 @@ WHERE team = @teamId
 ORDER BY "order" ASC;
 -- name: UpdatePlayer :one
 UPDATE players
-SET "name" = ?, slug = ?
+SET "name" = ?,
+    slug = ?
 WHERE id = ?
 RETURNING *;
 -- name: UpdatePlayerOrder :exec
 UPDATE players
 SET "order" = ?
-WHERE id = ? AND team = ?;
--- name: ListTournaments :many
-SELECT tournaments.*
+WHERE id = ?
+    AND team = ?;
+-- name: GetTournament :one
+SELECT *
 FROM tournaments
-    INNER JOIN teams ON tournaments.team = teams.id
-WHERE teams.slug = LOWER(@slug);
+WHERE team = @teamId
+    AND slug = @slug;
+-- name: ListTournaments :many
+SELECT *
+FROM tournaments
+WHERE team = @teamId;
+-- name: CreateTournament :one
+INSERT INTO tournaments (team, "name", slug)
+VALUES (@teamId, ?, ?)
+RETURNING *;

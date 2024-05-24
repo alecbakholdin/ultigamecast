@@ -7,13 +7,33 @@ import "fmt"
 templ TeamPage(team *models.Team) {
 	@view_layout.NavLayout() {
 		{ team.Name }
-		<div
-			hx-get={ fmt.Sprintf("%s/players", team.Slug) }
-			hx-swap="outerHTML"
-			hx-trigger="load"
-			class="center"
-		>
-			<progress class="circle"></progress>
+		<div>
+			<div class="tabs">
+				<a data-ui="#tournaments_tab" class="active">Tournaments</a>
+				<a data-ui="#players_tab">Players</a>
+			</div>
+			<div id="tournaments_tab" class="page padding active">
+				<div
+					hx-get={ fmt.Sprintf("%s/tournaments", team.Slug) }
+					hx-swap="outerHTML"
+					hx-trigger="load"
+					class="center"
+				>
+					<progress class="circle"></progress>
+				</div>
+			</div>
+			<div
+				id="players_tab"
+				class="page padding"
+			>
+				<div
+					hx-get={ fmt.Sprintf("%s/players", team.Slug) }
+					hx-swap="outerHTML"
+					hx-trigger="load"
+				>
+					<progress class="circle"></progress>
+				</div>
+			</div>
 		</div>
 	}
 }

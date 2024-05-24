@@ -16,7 +16,7 @@ CREATE TABLE team_managers (
     user INTEGER NOT NULL,
     FOREIGN KEY (team) REFERENCES teams(id) ON DELETE CASCADE,
     FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
- );
+);
 CREATE TABLE team_follow (
     team INTEGER NOT NULL,
     user INTEGER NOT NULL,
@@ -36,15 +36,17 @@ CREATE TABLE tournaments (
     id INTEGER PRIMARY KEY,
     team INTEGER NOT NULL,
     "name" TEXT NOT NULL,
-    slug TEXT NOT NULL GENERATED ALWAYS AS (LOWER(REPLACE("name", ' ', '-'))) STORED,
+    slug TEXT NOT NULL,
     "start_date" DATETIME,
     "end_date" DATETIME,
     "location" TEXT,
-    FOREIGN KEY (team) REFERENCES teams(id) ON DELETE CASCADE
+    FOREIGN KEY (team) REFERENCES teams(id) ON DELETE CASCADE,
+    UNIQUE(team, slug)
 );
 CREATE TABLE games (
     id INTEGER PRIMARY KEY,
     tournament INTEGER NOT NULL,
+    slug TEXT NOT NULL,
     opponent TEXT NOT NULL,
     schedule_status TEXT CHECK(
         schedule_status IN ('scheduled', 'live', 'final')
@@ -56,7 +58,8 @@ CREATE TABLE games (
     half_cap INTEGER,
     soft_cap INTEGER,
     hard_cap INTEGER,
-    FOREIGN KEY (tournament) REFERENCES tournaments(id) ON DELETE CASCADE
+    FOREIGN KEY (tournament) REFERENCES tournaments(id) ON DELETE CASCADE,
+    UNIQUE(tournament, slug)
 );
 CREATE TABLE events (
     id INTEGER PRIMARY KEY,

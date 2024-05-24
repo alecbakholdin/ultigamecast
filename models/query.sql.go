@@ -75,6 +75,33 @@ func (q *Queries) CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, e
 	return i, err
 }
 
+const createTournament = `-- name: CreateTournament :one
+INSERT INTO tournaments (team, "name", slug)
+VALUES (?, ?, ?)
+RETURNING id, team, name, slug, start_date, end_date, location
+`
+
+type CreateTournamentParams struct {
+	TeamId int64  `db:"teamId" json:"teamId"`
+	Name   string `db:"name" json:"name" validate:"required,max=64"`
+	Slug   string `db:"slug" json:"slug"`
+}
+
+func (q *Queries) CreateTournament(ctx context.Context, arg CreateTournamentParams) (Tournament, error) {
+	row := q.db.QueryRowContext(ctx, createTournament, arg.TeamId, arg.Name, arg.Slug)
+	var i Tournament
+	err := row.Scan(
+		&i.ID,
+		&i.Team,
+		&i.Name,
+		&i.Slug,
+		&i.StartDate,
+		&i.EndDate,
+		&i.Location,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (email, password_hash)
 VALUES (LOWER(?), ?)
@@ -133,6 +160,33 @@ func (q *Queries) GetTeam(ctx context.Context, slug string) (Team, error) {
 		&i.Name,
 		&i.Slug,
 		&i.Organization,
+	)
+	return i, err
+}
+
+const getTournament = `-- name: GetTournament :one
+SELECT id, team, name, slug, start_date, end_date, location
+FROM tournaments
+WHERE team = ?1
+    AND slug = ?2
+`
+
+type GetTournamentParams struct {
+	TeamId int64  `db:"teamId" json:"teamId"`
+	Slug   string `db:"slug" json:"slug"`
+}
+
+func (q *Queries) GetTournament(ctx context.Context, arg GetTournamentParams) (Tournament, error) {
+	row := q.db.QueryRowContext(ctx, getTournament, arg.TeamId, arg.Slug)
+	var i Tournament
+	err := row.Scan(
+		&i.ID,
+		&i.Team,
+		&i.Name,
+		&i.Slug,
+		&i.StartDate,
+		&i.EndDate,
+		&i.Location,
 	)
 	return i, err
 }
@@ -260,14 +314,13 @@ func (q *Queries) ListTeamPlayers(ctx context.Context, teamid int64) ([]Player, 
 }
 
 const listTournaments = `-- name: ListTournaments :many
-SELECT tournaments.id, tournaments.team, tournaments.name, tournaments.slug, tournaments.start_date, tournaments.end_date, tournaments.location
+SELECT id, team, name, slug, start_date, end_date, location
 FROM tournaments
-    INNER JOIN teams ON tournaments.team = teams.id
-WHERE teams.slug = LOWER(?1)
+WHERE team = ?1
 `
 
-func (q *Queries) ListTournaments(ctx context.Context, slug string) ([]Tournament, error) {
-	rows, err := q.db.QueryContext(ctx, listTournaments, slug)
+func (q *Queries) ListTournaments(ctx context.Context, teamid int64) ([]Tournament, error) {
+	rows, err := q.db.QueryContext(ctx, listTournaments, teamid)
 	if err != nil {
 		return nil, err
 	}
@@ -299,7 +352,8 @@ func (q *Queries) ListTournaments(ctx context.Context, slug string) ([]Tournamen
 
 const updatePlayer = `-- name: UpdatePlayer :one
 UPDATE players
-SET "name" = ?, slug = ?
+SET "name" = ?,
+    slug = ?
 WHERE id = ?
 RETURNING id, team, slug, name, "order"
 `
@@ -326,7 +380,8 @@ func (q *Queries) UpdatePlayer(ctx context.Context, arg UpdatePlayerParams) (Pla
 const updatePlayerOrder = `-- name: UpdatePlayerOrder :exec
 UPDATE players
 SET "order" = ?
-WHERE id = ? AND team = ?
+WHERE id = ?
+    AND team = ?
 `
 
 type UpdatePlayerOrderParams struct {
