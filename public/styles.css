@@ -18,6 +18,12 @@ body {
 .handle {
     cursor: pointer;
 }
+.relative {
+    position: relative;
+}
+.absolute {
+    position: absolute;
+}
 
 body>main.responsive {
     margin: 0;
