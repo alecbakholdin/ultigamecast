@@ -6,7 +6,7 @@ import "ultigamecast/view/component"
 
 type EditTournamentDatesDTO struct {
 	view_component.DTO
-	Dates string `json:"dates"`
+	Dates string
 }
 
 templ TournamentDates(t *models.Tournament, isNew bool) {
