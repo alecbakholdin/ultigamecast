@@ -72,13 +72,13 @@ func (t *Tournament) UpdateTournamentDates(ctx context.Context, dates string) (*
 		slog.ErrorContext(ctx, fmt.Sprintf("invalid number of dates in dates string: %d", len(dateSlice)))
 		return nil, errors.Join(ErrBadFormat, fmt.Errorf("invalid number of dates in dates string: %d", len(dateSlice)))
 	}
-	start, startErr := time.Parse("2006-01-02", strings.TrimSpace(dateSlice[0]))
+	start, startErr := time.Parse(t.DateFormat(), strings.TrimSpace(dateSlice[0]))
 	if startErr != nil {
 		err := errors.Join(ErrBadFormat, fmt.Errorf("error parsing start date: %w", startErr))
 		slog.ErrorContext(ctx, err.Error())
 		return nil, err
 	}
-	end, endErr := time.Parse("2006-01-02", strings.TrimSpace(dateSlice[1]))
+	end, endErr := time.Parse(t.DateFormat(), strings.TrimSpace(dateSlice[1]))
 	if endErr != nil {
 		err := errors.Join(ErrBadFormat, fmt.Errorf("error parsing end date: %w", endErr))
 		slog.ErrorContext(ctx, err.Error())
@@ -111,4 +111,8 @@ func (t *Tournament) getSafeSlug(ctx context.Context, tournamentId int64, name s
 		num++
 	}
 	return s, nil
+}
+
+func (t *Tournament) DateFormat() string {
+	return "Jan 2, 2006"
 }

@@ -42,11 +42,13 @@ templ EditTournamentDates(dto *EditTournamentDatesDTO) {
 		hx-put={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, "edit-date") }
 		hx-target="this"
 		hx-swap="outerHTML"
+		hx-disabled-elt="this button"
+		hx-indicator="#edit-tournament-date-submit"
 	>
 		<nav class="horizontal no-space">
 			<div class={ "small field border inline-date-field left-round", dto.FieldInvalidClass("Dates"), templ.KV("no-margin", !dto.FieldInvalid("Dates")) }>
 				<i>date_range</i>
-				<input id="edit_tournament_date" name="dates" placeholder="Dates" class="left-padding large-padding" onchange="console.log"/>
+				<input id="edit_tournament_date" name="dates" placeholder="Dates" class="left-padding large-padding" value={ dto.Dates }/>
 				if dto.FieldInvalid("Dates") {
 					<span class="error">{ dto.FieldError("Dates") }</span>
 				}
@@ -56,11 +58,12 @@ templ EditTournamentDates(dto *EditTournamentDatesDTO) {
 				hx-get={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, "row") }
 				hx-target="closest .tournament_row"
 				hx-swap="outerHTML"
+				hx-indicator="#edit-tournament-date-close-loading"
 			>
-				<i>close</i>
+				@view_component.LoadingIcon("edit-tournament-date-close-loading", "close", "small")
 			</button>
 			<button class="circle right-round">
-				<i>check</i>
+				@view_component.LoadingIcon("edit-tournament-date-submit", "check", "small")
 			</button>
 		</nav>
 		<script>
@@ -68,6 +71,7 @@ templ EditTournamentDates(dto *EditTournamentDatesDTO) {
                 element: "#edit_tournament_date",
                 css: ["https://cdn.jsdelivr.net/npm/@easepick/bundle@1.2.1/dist/index.css"],
                 zIndex: 10,
+				format: "MMM D, YYYY",
                 plugins: ["RangePlugin"]
             })
         </script>

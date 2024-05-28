@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"ultigamecast/app/ctxvar"
 	"ultigamecast/models"
@@ -17,6 +18,7 @@ type TournamentService interface {
 	GetTeamTournaments(ctx context.Context) ([]models.Tournament, error)
 	CreateTournament(ctx context.Context, name string) (*models.Tournament, error)
 	UpdateTournamentDates(ctx context.Context, dates string) (*models.Tournament, error)
+	DateFormat() string
 }
 
 func NewTournament(t TournamentService) *Tournament {
@@ -46,9 +48,10 @@ func (t *Tournament) GetTournamentRow(w http.ResponseWriter, r *http.Request) {
 func (t *Tournament) GetEditDate(w http.ResponseWriter, r *http.Request) {
 	tournament := ctxvar.GetTournament(r.Context())
 	dto := &view_tournament.EditTournamentDatesDTO{}
-	view_tournament.EditTournamentDates(&view_tournament.EditTournamentDatesDTO{
-		Dates: fmt.Sprintf("%s - %s"),
-	}).Render(r.Context(), w)
+	if tournament.StartDate.Valid && tournament.EndDate.Valid {
+		dto.Dates = fmt.Sprintf("%s - %s", tournament.StartDate.Time.Format(t.t.DateFormat()), tournament.EndDate.Time.Format(t.t.DateFormat()))
+	}
+	view_tournament.EditTournamentDates(dto).Render(r.Context(), w)
 }
 
 func (t *Tournament) PutEditDate(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +68,7 @@ func (t *Tournament) PutEditDate(w http.ResponseWriter, r *http.Request) {
 		view_tournament.EditTournamentDates(dto).Render(r.Context(), w)
 		return
 	}
-	view_tournament.TournamentRow(tournament, false)
+	view_tournament.TournamentDates(tournament, false).Render(r.Context(), w)
 }
 
 func (t *Tournament) PostTournaments(w http.ResponseWriter, r *http.Request) {
