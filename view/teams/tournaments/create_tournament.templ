@@ -25,7 +25,7 @@ templ CreateTournamentForm(dto *CreateTournamentDTO) {
 		class="vertical"
 	>
 		<nav class="no-space">
-			<div class={ "left-round field label border", dto.FieldInvalidClass("Name") }>
+			<div class={ "left-round small-width field label border", dto.FieldInvalidClass("Name") }>
 				<input type="text" name="name" id="create_tournament_name" autcomplete="off"/>
 				<label for="create_tournament_name">Tournament Name</label>
 				<span class="error">{ dto.FieldError("Name") }</span>

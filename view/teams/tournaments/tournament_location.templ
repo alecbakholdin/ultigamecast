@@ -1,0 +1,75 @@
+package view_tournament
+
+import "ultigamecast/view/component"
+import "ultigamecast/models"
+import "ultigamecast/app/ctxvar"
+import "fmt"
+
+type EditLocationDTO struct {
+	view_component.DTO
+	Location string
+}
+
+templ TournamentLocation(t *models.Tournament) {
+	if ctxvar.IsAdmin(ctx) {
+		<a
+			hx-get={ ctxvar.Url(ctx, ctxvar.Team, t, "edit-location") }
+			hx-target="this"
+			hx-swap="outerHTML"
+			class={ "hover-primary row tiny-space", templ.KV("underline", !t.Location.Valid) }
+		>
+			<i>location_on</i>
+			<span>
+				if t.Location.Valid {
+					{ t.Location.String }
+				} else {
+					?
+				}
+			</span>
+		</a>
+	} else if t.Location.Valid {
+		<div class="tiny-space">
+			<i>location_on</i>
+			<span>{ t.Location.String }</span>
+		</div>
+	}
+}
+
+templ EditTournamentLocation(dto *EditLocationDTO) {
+	<form
+		hx-put={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, "edit-location") }
+		hx-target="this"
+		hx-swap="outerHTML"
+		hx-disabled-elt="this button"
+		hx-indicator={ "#" + editLocationId(ctx, "submit") }
+	>
+		<nav class="no-space">
+			<div class={ "field label border left-round small", dto.FormInvalidClass() }>
+				<input id={ editLocationId(ctx, "input") } type="text" name="location" autofocus value={ dto.Location }/>
+				<label for={ editLocationId(ctx, "input") }>Location</label>
+				<span class="error">
+					{ dto.FieldError("Location") }
+					{ dto.FormError() }
+				</span>
+			</div>
+			<button
+				type="button"
+				class="square border"
+				hx-get={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, "row") }
+				hx-target="closest .tournament_row"
+				hx-swap="outerHTML"
+				hx-indicator={ "#" + editLocationId(ctx, "cancel") }
+			>
+				@view_component.LoadingIcon(editLocationId(ctx, "cancel"), "close", "small")
+			</button>
+			<button class="square right-round">
+				@view_component.LoadingIcon(editLocationId(ctx, "submit"), "check", "small")
+			</button>
+		</nav>
+	</form>
+}
+
+func editLocationId(ctx context.Context, suffix string) string {
+	tournament := ctxvar.GetTournament(ctx)
+	return fmt.Sprintf("edit-tournament-location-%d-%s", tournament.ID, suffix)
+}

@@ -317,6 +317,7 @@ const listTournaments = `-- name: ListTournaments :many
 SELECT id, team, name, slug, start_date, end_date, location
 FROM tournaments
 WHERE team = ?1
+ORDER BY "start_date" ASC, id ASC
 `
 
 func (q *Queries) ListTournaments(ctx context.Context, teamid int64) ([]Tournament, error) {
@@ -469,6 +470,33 @@ type UpdateTournamentDatesParams struct {
 
 func (q *Queries) UpdateTournamentDates(ctx context.Context, arg UpdateTournamentDatesParams) (Tournament, error) {
 	row := q.db.QueryRowContext(ctx, updateTournamentDates, arg.StartDate, arg.EndDate, arg.TournamentId)
+	var i Tournament
+	err := row.Scan(
+		&i.ID,
+		&i.Team,
+		&i.Name,
+		&i.Slug,
+		&i.StartDate,
+		&i.EndDate,
+		&i.Location,
+	)
+	return i, err
+}
+
+const updateTournamentLocation = `-- name: UpdateTournamentLocation :one
+UPDATE tournaments
+SET location = ?
+WHERE id = ?
+RETURNING id, team, name, slug, start_date, end_date, location
+`
+
+type UpdateTournamentLocationParams struct {
+	Location     sql.NullString `db:"location" json:"location"`
+	TournamentId int64          `db:"tournamentId" json:"tournamentId"`
+}
+
+func (q *Queries) UpdateTournamentLocation(ctx context.Context, arg UpdateTournamentLocationParams) (Tournament, error) {
+	row := q.db.QueryRowContext(ctx, updateTournamentLocation, arg.Location, arg.TournamentId)
 	var i Tournament
 	err := row.Scan(
 		&i.ID,

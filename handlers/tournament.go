@@ -18,6 +18,7 @@ type TournamentService interface {
 	GetTeamTournaments(ctx context.Context) ([]models.Tournament, error)
 	CreateTournament(ctx context.Context, name string) (*models.Tournament, error)
 	UpdateTournamentDates(ctx context.Context, dates string) (*models.Tournament, error)
+	UpdateTournamentLocation(ctx context.Context, dates string) (*models.Tournament, error)
 	DateFormat() string
 }
 
@@ -42,7 +43,7 @@ func (t *Tournament) GetTournament(w http.ResponseWriter, r *http.Request) {
 
 func (t *Tournament) GetTournamentRow(w http.ResponseWriter, r *http.Request) {
 	tournament := ctxvar.GetTournament(r.Context())
-	view_tournament.TournamentRow(tournament, false).Render(r.Context(), w)
+	view_tournament.TournamentRow(tournament).Render(r.Context(), w)
 }
 
 func (t *Tournament) GetEditDate(w http.ResponseWriter, r *http.Request) {
@@ -58,6 +59,7 @@ func (t *Tournament) PutEditDate(w http.ResponseWriter, r *http.Request) {
 	dto := &view_tournament.EditTournamentDatesDTO{
 		Dates: r.FormValue("dates"),
 	}
+	dto.AddFieldError("Dates", "testing")
 	if !dto.Validate(dto){ 
 		view_tournament.EditTournamentDates(dto).Render(r.Context(), w)
 		return
@@ -68,7 +70,29 @@ func (t *Tournament) PutEditDate(w http.ResponseWriter, r *http.Request) {
 		view_tournament.EditTournamentDates(dto).Render(r.Context(), w)
 		return
 	}
-	view_tournament.TournamentDates(tournament, false).Render(r.Context(), w)
+	hxRetarget(w, "closest .tournament_row", "outerHTML")
+	view_tournament.TournamentRow(tournament).Render(r.Context(), w)
+}
+
+func (t *Tournament) GetEditLocation(w http.ResponseWriter, r *http.Request) {
+	tournament := ctxvar.GetTournament(r.Context())
+	dto := &view_tournament.EditLocationDTO{Location: tournament.Location.String}
+	view_tournament.EditTournamentLocation(dto).Render(r.Context(), w)
+}
+
+func (t *Tournament) PutEditLocation(w http.ResponseWriter, r *http.Request) {
+	dto := &view_tournament.EditLocationDTO{
+		Location: r.FormValue("location"),
+	}
+	if !dto.Validate(dto) {
+		view_tournament.EditTournamentLocation(dto).Render(r.Context(), w)
+	} else if tournament, err := t.t.UpdateTournamentLocation(r.Context(), dto.Location); err != nil {
+		dto.AddFormError("unexpected error")
+		view_tournament.EditTournamentLocation(dto).Render(r.Context(), w)
+	} else {
+		hxRetarget(w, "closest .tournament_row", "outerHTML")
+		view_tournament.TournamentRow(tournament).Render(r.Context(), w)
+	}
 }
 
 func (t *Tournament) PostTournaments(w http.ResponseWriter, r *http.Request) {

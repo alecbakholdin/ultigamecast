@@ -3,20 +3,21 @@ package view_tournament
 import "ultigamecast/models"
 import "ultigamecast/app/ctxvar"
 import "ultigamecast/view/component"
+import "fmt"
 
 type EditTournamentDatesDTO struct {
 	view_component.DTO
 	Dates string
 }
 
-templ TournamentDates(t *models.Tournament, isNew bool) {
-	<a
-		hx-get={ ctxvar.Url(ctx, ctxvar.Team, t, "edit-date") }
-		hx-swap="outerHTML"
-		hx-target="this"
-		class={ "vertical-margin tiny-margin", templ.KV("hover-primary", ctxvar.IsAdmin(ctx)), templ.KV("underline", isNew) }
-	>
-		<span class="right-margin tiny-margin">
+templ TournamentDates(t *models.Tournament) {
+	if ctxvar.IsAdmin(ctx) {
+		<a
+			hx-get={ ctxvar.Url(ctx, ctxvar.Team, t, "edit-date") }
+			hx-swap="outerHTML"
+			hx-target="this"
+			class={ "hover-primary row tiny-space", templ.KV("underline", !t.StartDate.Valid || !t.EndDate.Valid) }
+		>
 			<i>date_range</i>
 			<span>
 				if t.StartDate.Valid {
@@ -24,17 +25,28 @@ templ TournamentDates(t *models.Tournament, isNew bool) {
 				} else {
 					?
 				}
-			</span>
-			<span>-</span>
-			<span>
+				-
 				if t.EndDate.Valid {
 					{ t.EndDate.Time.Format("Jan 2") }
 				} else {
 					?
 				}
 			</span>
-		</span>
-	</a>
+		</a>
+	} else if t.StartDate.Valid || t.EndDate.Valid {
+		<div class="row tiny-space">
+			<i>date_range</i>
+			if t.StartDate.Valid {
+				<span>{ t.StartDate.Time.Format("Jan 2") }</span>
+			}
+			if t.StartDate.Valid && t.EndDate.Valid {
+				<span>-</span>
+			}
+			if t.EndDate.Valid {
+				<span>{ t.EndDate.Time.Format("Jan 2") }</span>
+			}
+		</div>
+	}
 }
 
 templ EditTournamentDates(dto *EditTournamentDatesDTO) {
@@ -43,37 +55,54 @@ templ EditTournamentDates(dto *EditTournamentDatesDTO) {
 		hx-target="this"
 		hx-swap="outerHTML"
 		hx-disabled-elt="this button"
-		hx-indicator="#edit-tournament-date-submit"
+		hx-indicator={ "#" + editTournamentDateId(ctx, "submit") }
+		hx-on::after-settle={ createDateRangePicker(editTournamentDateId(ctx, "input")) }
 	>
 		<nav class="horizontal no-space">
-			<div class={ "small field border inline-date-field left-round", dto.FieldInvalidClass("Dates"), templ.KV("no-margin", !dto.FieldInvalid("Dates")) }>
+			<div class={ "small field border inline-date-field left-round", dto.FormInvalidClass(), templ.KV("no-margin", dto.Valid()) }>
 				<i>date_range</i>
-				<input id="edit_tournament_date" name="dates" placeholder="Dates" class="left-padding large-padding" value={ dto.Dates }/>
-				if dto.FieldInvalid("Dates") {
-					<span class="error">{ dto.FieldError("Dates") }</span>
-				}
+				<input
+					id={ editTournamentDateId(ctx, "input") }
+					name="dates"
+					placeholder="Dates"
+					class="left-padding large-padding"
+					value={ dto.Dates }
+				/>
+				<span class="error">
+					{ dto.FieldError("Name") }
+					{ dto.FormError() }
+				</span>
 			</div>
 			<button
+				type="button"
 				class="border square"
 				hx-get={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, "row") }
 				hx-target="closest .tournament_row"
 				hx-swap="outerHTML"
-				hx-indicator="#edit-tournament-date-close-loading"
+				hx-indicator={ "#" + editTournamentDateId(ctx, "close") }
 			>
-				@view_component.LoadingIcon("edit-tournament-date-close-loading", "close", "small")
+				@view_component.LoadingIcon(editTournamentDateId(ctx, "close"), "close", "small")
 			</button>
 			<button class="circle right-round">
-				@view_component.LoadingIcon("edit-tournament-date-submit", "check", "small")
+				@view_component.LoadingIcon(editTournamentDateId(ctx, "submit"), "check", "small")
 			</button>
 		</nav>
 		<script>
-            new easepick.create({
-                element: "#edit_tournament_date",
-                css: ["https://cdn.jsdelivr.net/npm/@easepick/bundle@1.2.1/dist/index.css"],
-                zIndex: 10,
-				format: "MMM D, YYYY",
-                plugins: ["RangePlugin"]
-            })
         </script>
 	</form>
+}
+
+script createDateRangePicker(id string) {
+	new easepick.create({
+		element: "#" + id,
+		css: ["https://cdn.jsdelivr.net/npm/@easepick/bundle@1.2.1/dist/index.css"],
+		zIndex: 10,
+		format: "MMM D, YYYY",
+		plugins: ["RangePlugin"]
+	})
+}
+
+func editTournamentDateId(ctx context.Context, suffix string) string {
+	tournament := ctxvar.GetTournament(ctx)
+	return fmt.Sprintf("edit-tournament-date-%d-%s", tournament.ID, suffix)
 }

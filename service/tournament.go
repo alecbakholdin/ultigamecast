@@ -88,12 +88,25 @@ func (t *Tournament) UpdateTournamentDates(ctx context.Context, dates string) (*
 		return nil, errors.Join(ErrBadFormat, errors.New("start is after end"))
 	}
 	tournament, err := t.q.UpdateTournamentDates(ctx, models.UpdateTournamentDatesParams{
-		StartDate: sql.NullTime{Time: start, Valid: true},
-		EndDate: sql.NullTime{Time: end, Valid: true},
+		StartDate: sql.NullTime{Time: start, Valid: !start.IsZero()},
+		EndDate: sql.NullTime{Time: end, Valid: !end.IsZero()},
 		TournamentId: ctxvar.GetTournament(ctx).ID,
 	})
 	if err != nil {
 		return nil, convertAndLogSqlError(ctx, "error updating tournament dates", err)
+	}
+	return &tournament, nil
+}
+
+// edits a tournament location with the given string
+func (t *Tournament) UpdateTournamentLocation(ctx context.Context, location string) (*models.Tournament, error) {
+	location = strings.TrimSpace(location)
+	tournament, err := t.q.UpdateTournamentLocation(ctx, models.UpdateTournamentLocationParams{
+		TournamentId: ctxvar.GetTournament(ctx).ID,
+		Location: sql.NullString{String: location, Valid: location != ""},
+	})
+	if err != nil {
+		return nil, convertAndLogSqlError(ctx, "error updating location", err)
 	}
 	return &tournament, nil
 }

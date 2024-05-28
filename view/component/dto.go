@@ -80,6 +80,10 @@ func (d *DTO) Invalid() bool {
 	return !d.Valid()
 }
 
+func (d *DTO) FormInvalidClass() templ.KeyValue[string, bool] {
+	return templ.KV("invalid", d.Invalid())
+}
+
 func (d *DTO) Validate(obj interface{}) bool {
 	err := validate.Struct(obj)
 	if err == nil {

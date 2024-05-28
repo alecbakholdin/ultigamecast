@@ -79,7 +79,8 @@ WHERE team = @teamId
 -- name: ListTournaments :many
 SELECT *
 FROM tournaments
-WHERE team = @teamId;
+WHERE team = @teamId
+ORDER BY "start_date" ASC, id ASC;
 -- name: CreateTournament :one
 INSERT INTO tournaments (team, "name", slug)
 VALUES (@teamId, ?, ?)
@@ -88,5 +89,10 @@ RETURNING *;
 UPDATE tournaments
 SET "start_date" = ?,
     "end_date" = ?
+WHERE id = @tournamentId
+RETURNING *;
+-- name: UpdateTournamentLocation :one
+UPDATE tournaments
+SET location = ?
 WHERE id = @tournamentId
 RETURNING *;

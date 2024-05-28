@@ -9,11 +9,11 @@ templ TeamTournaments(tournaments []models.Tournament) {
 		if ctxvar.IsAdmin(ctx) {
 			@CreateTournamentForm(&CreateTournamentDTO{})
 		}
-		<div class="horizontal">
+		<div class="relative fit left-margin">
 			<div class={ sidebar() }></div>
-			<div id="team_tournaments_list" class="vertical">
+			<div id="team_tournaments_list" class="vertical vertical-padding large-padding">
 				for _, t := range tournaments {
-					@TournamentRow(&t, false)
+					@TournamentRow(&t)
 				}
 			</div>
 		</div>
@@ -21,45 +21,76 @@ templ TeamTournaments(tournaments []models.Tournament) {
 }
 
 templ NewTournamentRow(tournament *models.Tournament) {
-	<div hx-swap-oob="beforeend:#team_tournaments_list">
-		@TournamentRow(tournament, true)
+	<div hx-swap-oob="afterstart:#team_tournaments_list">
+		@TournamentRow(tournament)
 	</div>
 }
 
-templ TournamentRow(tournament *models.Tournament, isNew bool) {
-	<nav
+templ TournamentRow(tournament *models.Tournament) {
+	<div
 		id={ fmt.Sprintf("tournament-%d", tournament.ID) }
-		class="vertical no-space tournament_row"
+		class={ "relative tournament_row", tournamentRow() }
 	>
-		<div class="horizontal relative bottom-margin tiny-margin">
-			<div class={ smallCircle() }></div>
-			<h6 class="medium">{ tournament.Name }</h6>
-		</div>
-		<nav class="vertical small-space">
-			@TournamentDates(tournament, isNew)
-			<a
-				class={ templ.KV("hover-primary", ctxvar.IsAdmin(ctx)), templ.KV("underline", isNew) }
-			>
-				<i>location_on</i>
-				<span>?</span>
-			</a>
+		<span class={ "small-round primary center-align small-text", tournamentDate(), topTournamentDate() }>
+			if tournament.StartDate.Valid {
+				{ tournament.StartDate.Time.Format("Jan 2") }
+			}
+		</span>
+		<span class={ "small-round primary center-align small-text", tournamentDate(), bottomTournamentDate() }>
+			if tournament.EndDate.Valid {
+				{ tournament.EndDate.Time.Format("Jan 2") }
+			}
+		</span>
+		<nav class={ "vertical no-space no-margin no-padding", tournamentRowContent() }>
+			<div class="horizontal relative bottom-margin tiny-margin">
+				<h6 class="medium">{ tournament.Name }</h6>
+			</div>
+			<nav class="vertical tiny-space">
+				@TournamentDates(tournament)
+				@TournamentLocation(tournament)
+			</nav>
 		</nav>
-	</nav>
+	</div>
 }
 
-css smallCircle() {
+css tournamentDate() {
 	position: absolute;
-	border-radius: 100%;
-	border: 4px solid var(--primary);
-	background-color: var(--primary-container);
-	top: 50%;
-	transform: translateY(-50%) translateX(-1rem) translateX(-50%) translateX(-2px);
-	width: 20px;
-	height: 20px;
+	left: 0;
+	width: 3.25rem;
+}
+
+css topTournamentDate() {
+	top: 0;
+	transform: translateX(-50%);
+}
+
+css bottomTournamentDate() {
+	bottom: 0;
+	transform: translateX(-50%) translateY(50%);
 }
 
 css sidebar() {
-	margin-left: 6px;
-	width: 4px;
-	background-color: var(--primary);
+	position: absolute;
+	left: 0px;
+	height: 100%;
+	border: none;
+	border-right: 4px dotted var(--primary);
+}
+
+css tournamentRow() {
+	border-left: 4px solid var(--primary);
+	padding-top: 0;
+	padding-left: 3rem;
+	padding-bottom: 2rem;
+	margin-top: 2rem;
+	margin-bottom: 2rem;
+}
+
+css tournamentRowContent() {
+	transform: translateY(-0.4rem);
+}
+
+css addGameButton() {
+	position: absolute;
+	
 }

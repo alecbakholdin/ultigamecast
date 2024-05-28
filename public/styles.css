@@ -54,13 +54,17 @@ body>main.responsive {
 }
 
 .inline-date-field.small:has(i) {
-    width: 270px !important;
+    width: 300px !important;
 }
 
 .inline-date-field.small i {
-    transform: translateX(-10px) translateY(-50%);
+    transform: translateX(-6px) translateY(-50%);
 }
 
 .inline-date-field.small:has(i) input {
-    padding-left: 32px !important;
+    padding-left: 36px !important;
+}
+
+:is(nav, .row).tiny-space {
+    gap: 0.5rem;
 }
