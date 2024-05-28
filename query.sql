@@ -84,3 +84,9 @@ WHERE team = @teamId;
 INSERT INTO tournaments (team, "name", slug)
 VALUES (@teamId, ?, ?)
 RETURNING *;
+-- name: UpdateTournamentDates :one
+UPDATE tournaments
+SET "start_date" = ?,
+    "end_date" = ?
+WHERE id = @tournamentId
+RETURNING *;

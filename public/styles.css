@@ -24,6 +24,12 @@ body {
 .absolute {
     position: absolute;
 }
+.hover-primary:hover {
+    color: var(--primary);
+}
+.cursor-pointer {
+    cursor: pointer
+}
 
 body>main.responsive {
     margin: 0;
@@ -45,4 +51,16 @@ body>main.responsive {
     to {
         opactiy: 0;
     }
+}
+
+.inline-date-field.small:has(i) {
+    width: 270px !important;
+}
+
+.inline-date-field.small i {
+    transform: translateX(-10px) translateY(-50%);
+}
+
+.inline-date-field.small:has(i) input {
+    padding-left: 32px !important;
 }

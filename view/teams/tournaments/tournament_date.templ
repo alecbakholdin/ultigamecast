@@ -1,0 +1,75 @@
+package view_tournament
+
+import "ultigamecast/models"
+import "ultigamecast/app/ctxvar"
+import "ultigamecast/view/component"
+
+type EditTournamentDatesDTO struct {
+	view_component.DTO
+	Dates string `json:"dates"`
+}
+
+templ TournamentDates(t *models.Tournament, isNew bool) {
+	<a
+		hx-get={ ctxvar.Url(ctx, ctxvar.Team, t, "edit-date") }
+		hx-swap="outerHTML"
+		hx-target="this"
+		class={ "vertical-margin tiny-margin", templ.KV("hover-primary", ctxvar.IsAdmin(ctx)), templ.KV("underline", isNew) }
+	>
+		<span class="right-margin tiny-margin">
+			<i>date_range</i>
+			<span>
+				if t.StartDate.Time.IsZero() {
+					?
+				} else {
+					{ t.StartDate.Time.Format("Jan 2") }
+				}
+			</span>
+			<span>-</span>
+			<span>
+				if t.EndDate.Time.IsZero() {
+					?
+				} else {
+					{ t.EndDate.Time.Format("Jan 2") }
+				}
+			</span>
+		</span>
+	</a>
+}
+
+templ EditTournamentDates(dto *EditTournamentDatesDTO) {
+	<form
+		hx-put={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, "edit-date") }
+		hx-target="this"
+		hx-swap="outerHTML"
+	>
+		<nav class="horizontal no-space">
+			<div class={ "small field border inline-date-field left-round", dto.FieldInvalidClass("Dates"), templ.KV("no-margin", !dto.FieldInvalid("Dates")) }>
+				<i>date_range</i>
+				<input id="edit_tournament_date" name="dates" placeholder="Dates" class="left-padding large-padding" onchange="console.log"/>
+				if dto.FieldInvalid("Dates") {
+					<span class="error">{ dto.FieldError("Dates") }</span>
+				}
+			</div>
+			<button
+				class="border square"
+				hx-get={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, "row") }
+				hx-target="closest .tournament_row"
+				hx-swap="outerHTML"
+			>
+				<i>close</i>
+			</button>
+			<button class="circle right-round">
+				<i>check</i>
+			</button>
+		</nav>
+		<script>
+            new easepick.create({
+                element: "#edit_tournament_date",
+                css: ["https://cdn.jsdelivr.net/npm/@easepick/bundle@1.2.1/dist/index.css"],
+                zIndex: 10,
+                plugins: ["RangePlugin"]
+            })
+        </script>
+	</form>
+}

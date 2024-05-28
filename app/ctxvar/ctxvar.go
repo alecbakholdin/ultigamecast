@@ -3,6 +3,8 @@ package ctxvar
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 	"ultigamecast/models"
 )
 
@@ -18,10 +20,44 @@ const (
 	Tournament ContextVar = "Tournament"
 	Game       ContextVar = "Game"
 	Admin      ContextVar = "Admin"
+	Event      ContextVar = "Event"
 )
 
 var LogMessageVars = []ContextVar{HttpMethod, Path}
 var LogAttrVars = []ContextVar{ReqId, User}
+
+func Url(ctx context.Context, segments ...any) string {
+	urlParts := make([]string, 0)
+	for _, cv := range segments {
+		val := cv
+		if ctxVal, ok := val.(ContextVar); ok {
+			val = ctx.Value(ctxVal)
+			if val == nil {
+				panic(fmt.Sprintf("missing context value for key %s", ctxVal))
+			}
+		}
+
+		switch v := val.(type) {
+		case string:
+			if v = strings.TrimSpace(v); len(v) > 0 {
+				urlParts = append(urlParts, v)
+			}
+		case *models.Team:
+			urlParts = append(urlParts, "teams", v.Slug)
+		case *models.Tournament:
+			urlParts = append(urlParts, "tournaments", v.Slug)
+		case *models.Player:
+			urlParts = append(urlParts, "players", v.Slug)
+		case *models.Game:
+			urlParts = append(urlParts, "games", v.Slug)
+		case *models.Event:
+			urlParts = append(urlParts, "events", strconv.FormatInt(v.ID, 10))
+		default:
+			panic(fmt.Sprintf("unexpected type %T", v))
+		}
+	}
+	return "/" + strings.Join(urlParts, "/")
+}
 
 func IsAdmin(ctx context.Context) bool {
 	if val, ok := ctx.Value(Admin).(bool); ok {
@@ -55,6 +91,10 @@ func GetGame(ctx context.Context) *models.Game {
 	return getModel[models.Game](ctx, Game)
 }
 
+func GetEvent(ctx context.Context) *models.Event {
+	return getModel[models.Event](ctx, Event)
+}
+
 func getModel[T interface{}](ctx context.Context, key ContextVar) *T {
 	if m, ok := ctx.Value(key).(*T); ok {
 		return m
@@ -83,6 +123,10 @@ func GetValue(ctx context.Context, key ContextVar) string {
 	case Game:
 		if game := GetGame(ctx); game != nil {
 			return fmt.Sprintf("[%d] %s", game.ID, game.Opponent)
+		}
+	case Event:
+		if event := GetEvent(ctx); event != nil {
+			return fmt.Sprintf("[%d] %s", event.ID, event.Type)
 		}
 
 	default:

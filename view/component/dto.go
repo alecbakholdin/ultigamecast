@@ -1,6 +1,7 @@
 package view_component
 
 import (
+	"encoding/json"
 	"errors"
 	"strings"
 
@@ -111,4 +112,16 @@ func (d *DTO) FormError() string {
 		return ""
 	}
 	return strings.Join(d.FormErrors, ", ")
+}
+
+func (d *DTO) UnmarshalJson(data []byte, dto *struct{DTO}) {
+	err := json.Unmarshal(data, dto)
+	if err != nil {
+		d.AddFormError("error parsing data")
+	}
+}
+
+func (d *DTO) UnmarshalJsonValidate(data []byte, dto *struct{DTO}) bool {
+	d.UnmarshalJson(data, dto)
+	return d.Valid()
 }

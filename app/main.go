@@ -80,8 +80,9 @@ func main() {
 	tournamentHandler := handlers.NewTournament(tournamentService)
 	http.Handle("GET /teams/{teamSlug}/tournaments", withTeam.ThenFunc(tournamentHandler.GetTournaments))
 	http.Handle("POST /teams/{teamSlug}/tournaments", withTeamAdminOnly.ThenFunc(tournamentHandler.PostTournaments))
-	http.Handle("GET /teams/{teamSlug}/tournaments/{tournamentSlug}", withTournament.ThenFunc(tournamentHandler.GetTournament))
-	http.Handle("PUT /teams/{teamSlug}/tournaments/{tournamentSlug}", withTournamentAdminOnly.ThenFunc(tournamentHandler.PutTournament))
+	http.Handle("GET /teams/{teamSlug}/tournaments/{tournamentSlug}/row", withTournament.ThenFunc(tournamentHandler.GetTournamentRow))
+	http.Handle("GET /teams/{teamSlug}/tournaments/{tournamentSlug}/edit-date", withTournamentAdminOnly.ThenFunc(tournamentHandler.GetEditDate))
+	http.Handle("PUT /teams/{teamSlug}/tournaments/{tournamentSlug}/edit-date", withTournamentAdminOnly.ThenFunc(tournamentHandler.PutEditDate))
 
 	log.Fatal(http.ListenAndServe("localhost:8090", nil))
 }

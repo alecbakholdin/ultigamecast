@@ -13,7 +13,7 @@ templ TeamTournaments(tournaments []models.Tournament) {
 			<div class={ sidebar() }></div>
 			<div id="team_tournaments_list" class="vertical">
 				for _, t := range tournaments {
-					@TournamentRow(&t)
+					@TournamentRow(&t, false)
 				}
 			</div>
 		</div>
@@ -22,42 +22,44 @@ templ TeamTournaments(tournaments []models.Tournament) {
 
 templ NewTournamentRow(tournament *models.Tournament) {
 	<div hx-swap-oob="beforeend:#team_tournaments_list">
-		@TournamentRow(tournament)
+		@TournamentRow(tournament, true)
 	</div>
 }
 
-templ TournamentRow(tournament *models.Tournament) {
-	<div
+templ TournamentRow(tournament *models.Tournament, isNew bool) {
+	<nav
 		id={ fmt.Sprintf("tournament-%d", tournament.ID) }
-		class="vertical vertical-margin"
+		class="vertical no-space tournament_row"
 	>
-		<div class="horizontal relative">
+		<div class="horizontal relative bottom-margin tiny-margin">
 			<div class={ smallCircle() }></div>
-			<h6 class="small">{ tournament.Name }</h6>
+			<h6 class="medium">{ tournament.Name }</h6>
 		</div>
-		<div>
-			<div class="relative horizontal no-space">
-				<i>date_range</i>
-				// add hover effect to show editability
-				<span class="underline">? - ?</span>
-			</div>
-		</div>
-	</div>
+		<nav class="vertical small-space">
+			@TournamentDates(tournament, isNew)
+			<a
+				class={ templ.KV("hover-primary", ctxvar.IsAdmin(ctx)), templ.KV("underline", isNew) }
+			>
+				<i>location_on</i>
+				<span>?</span>
+			</a>
+		</nav>
+	</nav>
 }
 
 css smallCircle() {
 	position: absolute;
 	border-radius: 100%;
-	border: 3px solid var(--primary);
+	border: 4px solid var(--primary);
 	background-color: var(--primary-container);
 	top: 50%;
-	transform: translateY(-50%) translateX(-1rem) translateX(-50%) translateX(-1.5px);
-	width: 12px;
-	height: 12px;
+	transform: translateY(-50%) translateX(-1rem) translateX(-50%) translateX(-2px);
+	width: 20px;
+	height: 20px;
 }
 
 css sidebar() {
 	margin-left: 6px;
-	width: 3px;
+	width: 4px;
 	background-color: var(--primary);
 }

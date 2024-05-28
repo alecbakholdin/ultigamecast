@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"ultigamecast/app/ctxvar"
 	"ultigamecast/models"
 
 	view_tournament "ultigamecast/view/teams/tournaments"
@@ -13,8 +14,9 @@ type Tournament struct {
 }
 
 type TournamentService interface {
-	CreateTournament(ctx context.Context, name string) (*models.Tournament, error)
 	GetTeamTournaments(ctx context.Context) ([]models.Tournament, error)
+	CreateTournament(ctx context.Context, name string) (*models.Tournament, error)
+	UpdateTournamentDates(ctx context.Context, dates string) (*models.Tournament, error)
 }
 
 func NewTournament(t TournamentService) *Tournament {
@@ -34,6 +36,36 @@ func (t *Tournament) GetTournaments(w http.ResponseWriter, r *http.Request) {
 
 func (t *Tournament) GetTournament(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "not implemented", http.StatusNotImplemented)
+}
+
+func (t *Tournament) GetTournamentRow(w http.ResponseWriter, r *http.Request) {
+	tournament := ctxvar.GetTournament(r.Context())
+	view_tournament.TournamentRow(tournament, false).Render(r.Context(), w)
+}
+
+func (t *Tournament) GetEditDate(w http.ResponseWriter, r *http.Request) {
+	tournament := ctxvar.GetTournament(r.Context())
+	dto := &view_tournament.EditTournamentDatesDTO{}
+	view_tournament.EditTournamentDates(&view_tournament.EditTournamentDatesDTO{
+		Dates: fmt.Sprintf("%s - %s"),
+	}).Render(r.Context(), w)
+}
+
+func (t *Tournament) PutEditDate(w http.ResponseWriter, r *http.Request) {
+	dto := &view_tournament.EditTournamentDatesDTO{
+		Dates: r.FormValue("dates"),
+	}
+	if !dto.Validate(dto){ 
+		view_tournament.EditTournamentDates(dto).Render(r.Context(), w)
+		return
+	}
+	tournament, err := t.t.UpdateTournamentDates(r.Context(), dto.Dates)
+	if err != nil {
+		dto.AddFormError("unexpected error")
+		view_tournament.EditTournamentDates(dto).Render(r.Context(), w)
+		return
+	}
+	view_tournament.TournamentRow(tournament, false)
 }
 
 func (t *Tournament) PostTournaments(w http.ResponseWriter, r *http.Request) {

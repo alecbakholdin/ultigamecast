@@ -12,7 +12,7 @@ templ TeamPage(team *models.Team) {
 				<a data-ui="#tournaments_tab" class="active">Tournaments</a>
 				<a data-ui="#players_tab">Players</a>
 			</div>
-			<div id="tournaments_tab" class="page padding active">
+			<div id="tournaments_tab" class="page right padding active">
 				<div
 					hx-get={ fmt.Sprintf("%s/tournaments", team.Slug) }
 					hx-swap="outerHTML"
@@ -24,7 +24,7 @@ templ TeamPage(team *models.Team) {
 			</div>
 			<div
 				id="players_tab"
-				class="page padding"
+				class="page left padding"
 			>
 				<div
 					hx-get={ fmt.Sprintf("%s/players", team.Slug) }

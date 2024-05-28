@@ -452,3 +452,32 @@ func (q *Queries) UpdateTeamOwner(ctx context.Context, arg UpdateTeamOwnerParams
 	)
 	return i, err
 }
+
+const updateTournamentDates = `-- name: UpdateTournamentDates :one
+UPDATE tournaments
+SET "start_date" = ?,
+    "end_date" = ?
+WHERE id = ?
+RETURNING id, team, name, slug, start_date, end_date, location
+`
+
+type UpdateTournamentDatesParams struct {
+	StartDate    sql.NullTime `db:"start_date" json:"start_date"`
+	EndDate      sql.NullTime `db:"end_date" json:"end_date"`
+	TournamentId int64        `db:"tournamentId" json:"tournamentId"`
+}
+
+func (q *Queries) UpdateTournamentDates(ctx context.Context, arg UpdateTournamentDatesParams) (Tournament, error) {
+	row := q.db.QueryRowContext(ctx, updateTournamentDates, arg.StartDate, arg.EndDate, arg.TournamentId)
+	var i Tournament
+	err := row.Scan(
+		&i.ID,
+		&i.Team,
+		&i.Name,
+		&i.Slug,
+		&i.StartDate,
+		&i.EndDate,
+		&i.Location,
+	)
+	return i, err
+}
