@@ -19,18 +19,18 @@ templ TournamentDates(t *models.Tournament, isNew bool) {
 		<span class="right-margin tiny-margin">
 			<i>date_range</i>
 			<span>
-				if t.StartDate.Time.IsZero() {
-					?
-				} else {
+				if t.StartDate.Valid {
 					{ t.StartDate.Time.Format("Jan 2") }
+				} else {
+					?
 				}
 			</span>
 			<span>-</span>
 			<span>
-				if t.EndDate.Time.IsZero() {
-					?
-				} else {
+				if t.EndDate.Valid {
 					{ t.EndDate.Time.Format("Jan 2") }
+				} else {
+					?
 				}
 			</span>
 		</span>
