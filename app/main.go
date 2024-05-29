@@ -41,12 +41,6 @@ func main() {
 		base = base.Append(middleware.Delay)
 	}
 	authenticatedOnly := base.Append(middleware.GuardAuthenticated)
-	withTeam := base.Append(middleware.LoadTeam(teamService))
-	withTeamAdminOnly := withTeam.Append(middleware.GuardTeamAdmin)
-	withPlayer := base.Append(middleware.LoadPlayer(playerService))
-	withPlayerAdminOnly := withPlayer.Append(middleware.GuardTeamAdmin)
-	withTournament := withTeam.Append(middleware.LoadTournament(tournamentService))
-	withTournamentAdminOnly := withTournament.Append(middleware.GuardTeamAdmin)
 
 	http.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/favicon.ico") })
 	http.HandleFunc("GET /frisbee.png", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/frisbee.png") })
@@ -64,6 +58,8 @@ func main() {
 	http.Handle("POST /logout", base.ThenFunc(authHandler.PostLogout))
 
 	teamHandler := handlers.NewTeam(teamService)
+	withTeam := base.Append(middleware.LoadTeam(teamService))
+	withTeamAdminOnly := withTeam.Append(middleware.GuardTeamAdmin)
 	http.Handle("GET /teams", authenticatedOnly.ThenFunc(teamHandler.GetTeams))
 	http.Handle("POST /teams", authenticatedOnly.ThenFunc(teamHandler.PostTeams))
 	http.Handle("GET /teams/{teamSlug}", withTeam.ThenFunc(teamHandler.GetTeam))
@@ -72,19 +68,26 @@ func main() {
 	http.Handle("GET /teams-create", authenticatedOnly.ThenFunc(teamHandler.GetTeamsCreate))
 
 	playerHandler := handlers.NewPlayer(playerService)
+	withPlayer := base.Append(middleware.LoadPlayer(playerService))
+	withPlayerAdminOnly := withPlayer.Append(middleware.GuardTeamAdmin)
 	http.Handle("GET /teams/{teamSlug}/players", withTeam.ThenFunc(playerHandler.GetPlayers))
 	http.Handle("POST /teams/{teamSlug}/players", withTeamAdminOnly.ThenFunc(playerHandler.PostPlayers))
 	http.Handle("PUT /teams/{teamSlug}/players/{playerSlug}", withPlayerAdminOnly.ThenFunc(playerHandler.PutPlayer))
 	http.Handle("POST /teams/{teamSlug}/players-order", withTeamAdminOnly.ThenFunc(playerHandler.PostPlayersOrder))
 
 	tournamentHandler := handlers.NewTournament(tournamentService)
+	withTournament := withTeam.Append(middleware.LoadTournament(tournamentService))
+	withTournamentAdminOnly := withTournament.Append(middleware.GuardTeamAdmin)
 	http.Handle("GET /teams/{teamSlug}/tournaments", withTeam.ThenFunc(tournamentHandler.GetTournaments))
 	http.Handle("POST /teams/{teamSlug}/tournaments", withTeamAdminOnly.ThenFunc(tournamentHandler.PostTournaments))
+	http.Handle("GET /teams/{teamSlug}/tournaments/{tournamentSlug}", withTournament.ThenFunc(tournamentHandler.GetTournament))
+	http.Handle("POST /teams/{teamSlug}/tournaments/{tournamentSlug}/data", withTournamentAdminOnly.ThenFunc(tournamentHandler.PostData))
+	http.Handle("PUT /teams/{teamSlug}/tournaments/{tournamentSlug}/data/{datumSlug}", withTournamentAdminOnly.ThenFunc(tournamentHandler.PutData))
+	http.Handle("DELETE /teams/{teamSlug}/tournaments/{tournamentSlug}/data/{datumSlug}", withTournamentAdminOnly.ThenFunc(tournamentHandler.DeleteData))
 	http.Handle("GET /teams/{teamSlug}/tournaments/{tournamentSlug}/row", withTournament.ThenFunc(tournamentHandler.GetTournamentRow))
+	http.Handle("GET /teams/{teamSlug}/tournaments/{tournamentSlug}/date", withTournament.ThenFunc(tournamentHandler.GetDate))
 	http.Handle("GET /teams/{teamSlug}/tournaments/{tournamentSlug}/edit-date", withTournamentAdminOnly.ThenFunc(tournamentHandler.GetEditDate))
 	http.Handle("PUT /teams/{teamSlug}/tournaments/{tournamentSlug}/edit-date", withTournamentAdminOnly.ThenFunc(tournamentHandler.PutEditDate))
-	http.Handle("GET /teams/{teamSlug}/tournaments/{tournamentSlug}/edit-location", withTournamentAdminOnly.ThenFunc(tournamentHandler.GetEditLocation))
-	http.Handle("PUT /teams/{teamSlug}/tournaments/{tournamentSlug}/edit-location", withTournamentAdminOnly.ThenFunc(tournamentHandler.PutEditLocation))
 
 	log.Fatal(http.ListenAndServe("localhost:8090", nil))
 }

@@ -75,9 +75,7 @@ templ EditTournamentDates(dto *EditTournamentDatesDTO) {
 			<button
 				type="button"
 				class="border square"
-				hx-get={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, "row") }
-				hx-target="closest .tournament_row"
-				hx-swap="outerHTML"
+				hx-get={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, "date") }
 				hx-indicator={ "#" + editTournamentDateId(ctx, "close") }
 			>
 				@view_component.LoadingIcon(editTournamentDateId(ctx, "close"), "close", "small")

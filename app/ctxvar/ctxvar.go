@@ -11,16 +11,17 @@ import (
 type ContextVar string
 
 const (
-	HttpMethod ContextVar = "method"
-	Path       ContextVar = "path"
-	ReqId      ContextVar = "RequestId"
-	User       ContextVar = "User"
-	Team       ContextVar = "Team"
-	Player     ContextVar = "Player"
-	Tournament ContextVar = "Tournament"
-	Game       ContextVar = "Game"
-	Admin      ContextVar = "Admin"
-	Event      ContextVar = "Event"
+	HttpMethod      ContextVar = "method"
+	Path            ContextVar = "path"
+	ReqId           ContextVar = "RequestId"
+	User            ContextVar = "User"
+	Team            ContextVar = "Team"
+	Player          ContextVar = "Player"
+	Tournament      ContextVar = "Tournament"
+	Game            ContextVar = "Game"
+	Admin           ContextVar = "Admin"
+	Event           ContextVar = "Event"
+	TournamentDatum ContextVar = "TournamentDatum"
 )
 
 var LogMessageVars = []ContextVar{HttpMethod, Path}
@@ -51,6 +52,8 @@ func Url(ctx context.Context, segments ...any) string {
 		case *models.Game:
 			urlParts = append(urlParts, "games", v.Slug)
 		case *models.Event:
+			urlParts = append(urlParts, "events", strconv.FormatInt(v.ID, 10))
+		case *models.TournamentDatum:
 			urlParts = append(urlParts, "events", strconv.FormatInt(v.ID, 10))
 		default:
 			panic(fmt.Sprintf("unexpected type %T", v))
@@ -95,6 +98,10 @@ func GetEvent(ctx context.Context) *models.Event {
 	return getModel[models.Event](ctx, Event)
 }
 
+func GetTournamentDatum(ctx context.Context) *models.TournamentDatum {
+	return getModel[models.TournamentDatum](ctx, TournamentDatum)
+}
+
 func getModel[T interface{}](ctx context.Context, key ContextVar) *T {
 	if m, ok := ctx.Value(key).(*T); ok {
 		return m
@@ -127,6 +134,10 @@ func GetValue(ctx context.Context, key ContextVar) string {
 	case Event:
 		if event := GetEvent(ctx); event != nil {
 			return fmt.Sprintf("[%d] %s", event.ID, event.Type)
+		}
+	case TournamentDatum:
+		if datum := GetTournamentDatum(ctx); datum != nil {
+			return fmt.Sprintf("[%d] %s", datum.ID, datum.Title)
 		}
 
 	default:

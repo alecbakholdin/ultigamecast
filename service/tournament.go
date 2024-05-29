@@ -41,7 +41,7 @@ func (t *Tournament) GetTournament(ctx context.Context, slug string) (*models.To
 func (t *Tournament) GetTeamTournaments(ctx context.Context) ([]models.Tournament, error) {
 	team := ctxvar.GetTeam(ctx)
 	tournaments, err := t.q.ListTournaments(ctx, team.ID)
-	if err != nil && !errors.Is(sql.ErrNoRows, err){
+	if err != nil && !errors.Is(sql.ErrNoRows, err) {
 		return nil, convertAndLogSqlError(ctx, "error fetching team tournaments", err)
 	}
 	return tournaments, nil
@@ -55,8 +55,8 @@ func (t *Tournament) CreateTournament(ctx context.Context, name string) (*models
 	team := ctxvar.GetTeam(ctx)
 	tournament, err := t.q.CreateTournament(ctx, models.CreateTournamentParams{
 		TeamId: team.ID,
-		Slug: slug,
-		Name: name,
+		Slug:   slug,
+		Name:   name,
 	})
 	if err != nil {
 		return nil, convertAndLogSqlError(ctx, "error creating tournament", err)
@@ -88,8 +88,8 @@ func (t *Tournament) UpdateTournamentDates(ctx context.Context, dates string) (*
 		return nil, errors.Join(ErrBadFormat, errors.New("start is after end"))
 	}
 	tournament, err := t.q.UpdateTournamentDates(ctx, models.UpdateTournamentDatesParams{
-		StartDate: sql.NullTime{Time: start, Valid: !start.IsZero()},
-		EndDate: sql.NullTime{Time: end, Valid: !end.IsZero()},
+		StartDate:    sql.NullTime{Time: start, Valid: !start.IsZero()},
+		EndDate:      sql.NullTime{Time: end, Valid: !end.IsZero()},
 		TournamentId: ctxvar.GetTournament(ctx).ID,
 	})
 	if err != nil {
@@ -98,17 +98,23 @@ func (t *Tournament) UpdateTournamentDates(ctx context.Context, dates string) (*
 	return &tournament, nil
 }
 
-// edits a tournament location with the given string
-func (t *Tournament) UpdateTournamentLocation(ctx context.Context, location string) (*models.Tournament, error) {
-	location = strings.TrimSpace(location)
-	tournament, err := t.q.UpdateTournamentLocation(ctx, models.UpdateTournamentLocationParams{
-		TournamentId: ctxvar.GetTournament(ctx).ID,
-		Location: sql.NullString{String: location, Valid: location != ""},
-	})
-	if err != nil {
-		return nil, convertAndLogSqlError(ctx, "error updating location", err)
+// get all the tournament data for the tournament found in ctx
+func (t *Tournament) Data(ctx context.Context) ([]models.TournamentDatum, error) {
+	tournament := ctxvar.GetTournament(ctx)
+	data, err := t.q.ListTournamentData(ctx, tournament.ID)
+	if err != nil && !errors.Is(sql.ErrNoRows, err) {
+		return nil, convertAndLogSqlError(ctx, "error fetching tournament data", err)
 	}
-	return &tournament, nil
+	return data, nil
+}
+
+// create a new datum with default values for the tournament in ctx
+func (t *Tournament) NewDatum(ctx context.Context) (*models.TournamentDatum, error) {
+	if datum, err := t.q.CreateTournamentDatum(ctx, ctxvar.GetTournament(ctx).ID); err != nil {
+		return nil, convertAndLogSqlError(ctx, "error creating datum", err)
+	} else {
+		return &datum, err
+	}
 }
 
 func (t *Tournament) getSafeSlug(ctx context.Context, tournamentId int64, name string) (string, error) {
@@ -119,7 +125,7 @@ func (t *Tournament) getSafeSlug(ctx context.Context, tournamentId int64, name s
 	}
 	s := slug.From(name)
 	num := 2
-	for slices.ContainsFunc(tournaments, func(to models.Tournament) bool {return to.ID != tournamentId && to.Slug == s}) {
+	for slices.ContainsFunc(tournaments, func(to models.Tournament) bool { return to.ID != tournamentId && to.Slug == s }) {
 		s = fmt.Sprintf("%s-%d", slug.From(name), num)
 		num++
 	}

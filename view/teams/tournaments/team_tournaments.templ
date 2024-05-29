@@ -3,7 +3,6 @@ package view_tournament
 import "ultigamecast/models"
 import "ultigamecast/app/ctxvar"
 import "fmt"
-import "ultigamecast/view/component"
 
 templ TeamTournaments(tournaments []models.Tournament) {
 	<div id="team_tournaments" class="vertical">
@@ -31,24 +30,16 @@ templ NewTournamentRow(t *models.Tournament) {
 templ TournamentRow(t *models.Tournament) {
 	<div id={ fmt.Sprintf("tournament-%d", t.ID) } class="tournament_row">
 		<span class="marker_ball"></span>
-		<span class="marker_time">
-			{ t.StartDate.Time.Format("Jan 2") }
-		</span>
+		if t.StartDate.Valid {
+			<span class="marker_time">
+				{ t.StartDate.Time.Format("Jan 2") }
+			</span>
+		}
 		<nav class="vertical">
 			<div class="row vertical tiny-space">
 				<span class="large-text bold">{ t.Name }</span>
-				<nav class="vertical tiny-space">
-					@TournamentDates(t)
-					@TournamentLocation(t)
-				</nav>
+				<nav class="vertical tiny-space"></nav>
 			</div>
-			<button
-				type="button"
-				class="transparent small"
-			>
-				@view_component.LoadingIcon(fmt.Sprintf("tournament-%d-add-game-loading", t.ID), "add", "small")
-				Add Game
-			</button>
 		</nav>
 	</div>
 }

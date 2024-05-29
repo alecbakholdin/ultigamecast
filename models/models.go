@@ -65,6 +65,19 @@ type Tournament struct {
 	Location  sql.NullString `db:"location" json:"location"`
 }
 
+type TournamentDatum struct {
+	ID            int64          `db:"id" json:"id"`
+	Tournament    int64          `db:"tournament" json:"tournament"`
+	Icon          string         `db:"icon" json:"icon"`
+	Title         string         `db:"title" json:"title"`
+	ShowInPreview sql.NullInt64  `db:"show_in_preview" json:"show_in_preview"`
+	TextPreview   string         `db:"text_preview" json:"text_preview"`
+	DataType      int64          `db:"data_type" json:"data_type"`
+	ValueText     sql.NullString `db:"value_text" json:"value_text"`
+	ValueLink     sql.NullString `db:"value_link" json:"value_link"`
+	Order         int64          `db:"order" json:"order"`
+}
+
 type User struct {
 	ID           int64          `db:"id" json:"id"`
 	Email        string         `db:"email" json:"email"`

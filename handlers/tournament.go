@@ -18,7 +18,8 @@ type TournamentService interface {
 	GetTeamTournaments(ctx context.Context) ([]models.Tournament, error)
 	CreateTournament(ctx context.Context, name string) (*models.Tournament, error)
 	UpdateTournamentDates(ctx context.Context, dates string) (*models.Tournament, error)
-	UpdateTournamentLocation(ctx context.Context, dates string) (*models.Tournament, error)
+	Data(ctx context.Context) ([]models.TournamentDatum, error)
+	NewDatum(ctx context.Context) (*models.TournamentDatum, error)
 	DateFormat() string
 }
 
@@ -38,12 +39,22 @@ func (t *Tournament) GetTournaments(w http.ResponseWriter, r *http.Request) {
 }
 
 func (t *Tournament) GetTournament(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "not implemented", http.StatusNotImplemented)
+	tournament := ctxvar.GetTournament(r.Context())
+	if data, err := t.t.Data(r.Context()); err != nil {
+		http.Error(w, "unexpected error", http.StatusInternalServerError)
+		return
+	} else {
+		view_tournament.TournamentPage(tournament, data).Render(r.Context(), w)
+	}
 }
 
 func (t *Tournament) GetTournamentRow(w http.ResponseWriter, r *http.Request) {
 	tournament := ctxvar.GetTournament(r.Context())
 	view_tournament.TournamentRow(tournament).Render(r.Context(), w)
+}
+
+func (t *Tournament) GetDate(w http.ResponseWriter, r *http.Request) {
+	view_tournament.TournamentDates(ctxvar.GetTournament(r.Context())).Render(r.Context(), w)
 }
 
 func (t *Tournament) GetEditDate(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +71,7 @@ func (t *Tournament) PutEditDate(w http.ResponseWriter, r *http.Request) {
 		Dates: r.FormValue("dates"),
 	}
 	dto.AddFieldError("Dates", "testing")
-	if !dto.Validate(dto){ 
+	if !dto.Validate(dto) {
 		view_tournament.EditTournamentDates(dto).Render(r.Context(), w)
 		return
 	}
@@ -70,29 +81,7 @@ func (t *Tournament) PutEditDate(w http.ResponseWriter, r *http.Request) {
 		view_tournament.EditTournamentDates(dto).Render(r.Context(), w)
 		return
 	}
-	hxRetarget(w, "closest .tournament_row", "outerHTML")
-	view_tournament.TournamentRow(tournament).Render(r.Context(), w)
-}
-
-func (t *Tournament) GetEditLocation(w http.ResponseWriter, r *http.Request) {
-	tournament := ctxvar.GetTournament(r.Context())
-	dto := &view_tournament.EditLocationDTO{Location: tournament.Location.String}
-	view_tournament.EditTournamentLocation(dto).Render(r.Context(), w)
-}
-
-func (t *Tournament) PutEditLocation(w http.ResponseWriter, r *http.Request) {
-	dto := &view_tournament.EditLocationDTO{
-		Location: r.FormValue("location"),
-	}
-	if !dto.Validate(dto) {
-		view_tournament.EditTournamentLocation(dto).Render(r.Context(), w)
-	} else if tournament, err := t.t.UpdateTournamentLocation(r.Context(), dto.Location); err != nil {
-		dto.AddFormError("unexpected error")
-		view_tournament.EditTournamentLocation(dto).Render(r.Context(), w)
-	} else {
-		hxRetarget(w, "closest .tournament_row", "outerHTML")
-		view_tournament.TournamentRow(tournament).Render(r.Context(), w)
-	}
+	view_tournament.TournamentDates(tournament).Render(r.Context(), w)
 }
 
 func (t *Tournament) PostTournaments(w http.ResponseWriter, r *http.Request) {
@@ -107,11 +96,24 @@ func (t *Tournament) PostTournaments(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		dto.AddFormError("unexpected error")
 		return
-	} 
+	}
 	view_tournament.CreateTournamentForm(&view_tournament.CreateTournamentDTO{}).Render(r.Context(), w)
 	view_tournament.NewTournamentRow(tournament).Render(r.Context(), w)
 }
 
-func (t *Tournament) PutTournament(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "not implemented", http.StatusNotImplemented)
+func (t *Tournament) PostData(w http.ResponseWriter, r *http.Request) {
+	if datum, err := t.t.NewDatum(r.Context()); err != nil {
+		http.Error(w, "unexpected error", http.StatusInternalServerError)
+		return
+	} else {
+		view_tournament.TournamentDatum(datum).Render(r.Context(), w)
+	}
+}
+
+func (t *Tournament) PutData(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (t *Tournament) DeleteData(w http.ResponseWriter, r *http.Request) {
+
 }

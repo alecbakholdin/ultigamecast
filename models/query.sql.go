@@ -102,6 +102,37 @@ func (q *Queries) CreateTournament(ctx context.Context, arg CreateTournamentPara
 	return i, err
 }
 
+const createTournamentDatum = `-- name: CreateTournamentDatum :one
+INSERT INTO tournament_data (tournament, "order")
+VALUES (
+        ?1,
+        (
+            SELECT 1 + IFNULL(MAX("order"), -1)
+            FROM tournament_data
+            WHERE tournament = ?1
+        )
+    )
+RETURNING id, tournament, icon, title, show_in_preview, text_preview, data_type, value_text, value_link, "order"
+`
+
+func (q *Queries) CreateTournamentDatum(ctx context.Context, tournamentid int64) (TournamentDatum, error) {
+	row := q.db.QueryRowContext(ctx, createTournamentDatum, tournamentid)
+	var i TournamentDatum
+	err := row.Scan(
+		&i.ID,
+		&i.Tournament,
+		&i.Icon,
+		&i.Title,
+		&i.ShowInPreview,
+		&i.TextPreview,
+		&i.DataType,
+		&i.ValueText,
+		&i.ValueLink,
+		&i.Order,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (email, password_hash)
 VALUES (LOWER(?), ?)
@@ -313,11 +344,53 @@ func (q *Queries) ListTeamPlayers(ctx context.Context, teamid int64) ([]Player, 
 	return items, nil
 }
 
+const listTournamentData = `-- name: ListTournamentData :many
+SELECT id, tournament, icon, title, show_in_preview, text_preview, data_type, value_text, value_link, "order"
+FROM tournament_data
+WHERE tournament = ?1
+ORDER BY "order" ASC
+`
+
+func (q *Queries) ListTournamentData(ctx context.Context, tournamentid int64) ([]TournamentDatum, error) {
+	rows, err := q.db.QueryContext(ctx, listTournamentData, tournamentid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TournamentDatum
+	for rows.Next() {
+		var i TournamentDatum
+		if err := rows.Scan(
+			&i.ID,
+			&i.Tournament,
+			&i.Icon,
+			&i.Title,
+			&i.ShowInPreview,
+			&i.TextPreview,
+			&i.DataType,
+			&i.ValueText,
+			&i.ValueLink,
+			&i.Order,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listTournaments = `-- name: ListTournaments :many
 SELECT id, team, name, slug, start_date, end_date, location
 FROM tournaments
 WHERE team = ?1
-ORDER BY "start_date" ASC, id ASC
+ORDER BY "start_date" ASC,
+    id ASC
 `
 
 func (q *Queries) ListTournaments(ctx context.Context, teamid int64) ([]Tournament, error) {
@@ -485,7 +558,7 @@ func (q *Queries) UpdateTournamentDates(ctx context.Context, arg UpdateTournamen
 
 const updateTournamentLocation = `-- name: UpdateTournamentLocation :one
 UPDATE tournaments
-SET location = ?
+SET "location" = ?
 WHERE id = ?
 RETURNING id, team, name, slug, start_date, end_date, location
 `
