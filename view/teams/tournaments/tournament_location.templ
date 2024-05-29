@@ -43,10 +43,10 @@ templ EditTournamentLocation(dto *EditLocationDTO) {
 		hx-disabled-elt="this button"
 		hx-indicator={ "#" + editLocationId(ctx, "submit") }
 	>
-		<nav class="no-space">
-			<div class={ "field label border left-round small", dto.FormInvalidClass() }>
+		<nav class="horizontal no-space">
+			<div class={ "small max field prefix border left-round small", dto.FormInvalidClass() }>
+				<i>location_on</i>
 				<input id={ editLocationId(ctx, "input") } type="text" name="location" autofocus value={ dto.Location }/>
-				<label for={ editLocationId(ctx, "input") }>Location</label>
 				<span class="error">
 					{ dto.FieldError("Location") }
 					{ dto.FormError() }

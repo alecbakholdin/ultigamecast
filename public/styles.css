@@ -53,10 +53,6 @@ body>main.responsive {
     }
 }
 
-.inline-date-field.small:has(i) {
-    width: 300px !important;
-}
-
 .inline-date-field.small i {
     transform: translateX(-6px) translateY(-50%);
 }

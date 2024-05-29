@@ -59,13 +59,12 @@ templ EditTournamentDates(dto *EditTournamentDatesDTO) {
 		hx-on::after-settle={ createDateRangePicker(editTournamentDateId(ctx, "input")) }
 	>
 		<nav class="horizontal no-space">
-			<div class={ "small field border inline-date-field left-round", dto.FormInvalidClass(), templ.KV("no-margin", dto.Valid()) }>
+			<div class={ "small max field border prefix left-round", dto.FormInvalidClass(), templ.KV("no-margin", dto.Valid()) }>
 				<i>date_range</i>
 				<input
 					id={ editTournamentDateId(ctx, "input") }
 					name="dates"
 					placeholder="Dates"
-					class="left-padding large-padding"
 					value={ dto.Dates }
 				/>
 				<span class="error">
@@ -96,7 +95,7 @@ script createDateRangePicker(id string) {
 	new easepick.create({
 		element: "#" + id,
 		css: ["https://cdn.jsdelivr.net/npm/@easepick/bundle@1.2.1/dist/index.css"],
-		zIndex: 10,
+		zIndex: 110,
 		format: "MMM D, YYYY",
 		plugins: ["RangePlugin"]
 	})
