@@ -1,96 +1,98 @@
 package view_tournament
 
 import "ultigamecast/models"
-import "fmt"
 import "ultigamecast/app/ctxvar"
+import "fmt"
+import "ultigamecast/view/component"
 
 templ TeamTournaments(tournaments []models.Tournament) {
 	<div id="team_tournaments" class="vertical">
 		if ctxvar.IsAdmin(ctx) {
 			@CreateTournamentForm(&CreateTournamentDTO{})
 		}
-		<div class="relative fit left-margin">
-			<div class={ sidebar() }></div>
-			<div id="team_tournaments_list" class="vertical vertical-padding large-padding">
+		<div class="team_tournaments_timeline">
+			<div class="sidebar"></div>
+			<nav id="team_tournaments_list" class="vertical large-space vertical-padding large-padding">
 				for _, t := range tournaments {
 					@TournamentRow(&t)
 				}
-			</div>
-		</div>
-	</div>
-}
-
-templ NewTournamentRow(tournament *models.Tournament) {
-	<div hx-swap-oob="afterstart:#team_tournaments_list">
-		@TournamentRow(tournament)
-	</div>
-}
-
-templ TournamentRow(tournament *models.Tournament) {
-	<div
-		id={ fmt.Sprintf("tournament-%d", tournament.ID) }
-		class={ "relative tournament_row", tournamentRow() }
-	>
-		<span class={ "small-round primary center-align small-text", tournamentDate(), topTournamentDate() }>
-			if tournament.StartDate.Valid {
-				{ tournament.StartDate.Time.Format("Jan 2") }
-			}
-		</span>
-		<span class={ "small-round primary center-align small-text", tournamentDate(), bottomTournamentDate() }>
-			if tournament.EndDate.Valid {
-				{ tournament.EndDate.Time.Format("Jan 2") }
-			}
-		</span>
-		<nav class={ "vertical no-space no-margin no-padding", tournamentRowContent() }>
-			<div class="horizontal relative bottom-margin tiny-margin">
-				<h6 class="medium">{ tournament.Name }</h6>
-			</div>
-			<nav class="vertical tiny-space">
-				@TournamentDates(tournament)
-				@TournamentLocation(tournament)
 			</nav>
+		</div>
+		@teamTournamentStyles()
+	</div>
+}
+
+templ NewTournamentRow(t *models.Tournament) {
+	<div hx-swap-oob="afterstart:#team_tournaments_list">
+		@TournamentRow(t)
+	</div>
+}
+
+templ TournamentRow(t *models.Tournament) {
+	<div id={ fmt.Sprintf("tournament-%d", t.ID) } class="tournament_row">
+		<span class="marker_ball"></span>
+		<span class="marker_time">
+			{ t.StartDate.Time.Format("Jan 2") }
+		</span>
+		<nav class="vertical">
+			<div class="row vertical tiny-space">
+				<span class="large-text bold">{ t.Name }</span>
+				<nav class="vertical tiny-space">
+					@TournamentDates(t)
+					@TournamentLocation(t)
+				</nav>
+			</div>
+			<button
+				type="button"
+				class="transparent small"
+			>
+				@view_component.LoadingIcon(fmt.Sprintf("tournament-%d-add-game-loading", t.ID), "add", "small")
+				Add Game
+			</button>
 		</nav>
 	</div>
 }
 
-css tournamentDate() {
-	position: absolute;
-	left: 0;
-	width: 3.25rem;
-}
+templ teamTournamentStyles() {
+	<style>
+		.team_tournaments_timeline {
+			--sidebar-thickness: 3px;
+			--marker-ball-size: 1rem;
+			--tournament-row-padding: 1rem;
+			margin-left: 3.5rem !important;
+		}
+		.sidebar {
+			position: absolute;
+			left: 0px;
+			height: 100%;
+			border: none;
+			border-right: var(--sidebar-thickness) dotted var(--primary);
+		}
+		.tournament_row {
+			position: relative;
+			border-left: var(--sidebar-thickness) solid var(--primary);
+			padding-left: var(--tournament-row-padding);
+		}
+		.tournament_row span.marker_ball {
+			width: var(--marker-ball-size);
+			height: var(--marker-ball-size);
 
-css topTournamentDate() {
-	top: 0;
-	transform: translateX(-50%);
-}
+			position: absolute;
+			left: 0px;
+			transform: translateX(calc(50% - (var(--sidebar-thickness)/2) - var(--tournament-row-padding)));
 
-css bottomTournamentDate() {
-	bottom: 0;
-	transform: translateX(-50%) translateY(50%);
-}
-
-css sidebar() {
-	position: absolute;
-	left: 0px;
-	height: 100%;
-	border: none;
-	border-right: 4px dotted var(--primary);
-}
-
-css tournamentRow() {
-	border-left: 4px solid var(--primary);
-	padding-top: 0;
-	padding-left: 2.5rem;
-	padding-bottom: 2rem;
-	margin-top: 2rem;
-	margin-bottom: 2rem;
-}
-
-css tournamentRowContent() {
-	transform: translateY(-0.4rem);
-}
-
-css addGameButton() {
-	position: absolute;
-
+			border: calc(var(--marker-ball-size)/6) solid var(--primary);
+			background-color: var(--primary-container);
+			border-radius: 100%;
+		}
+		.tournament_row span.marker_time {
+			position: absolute;
+			left: 0px;
+			font-size: small;
+			transform: translateX(calc(-100% - var(--sidebar-thickness) - var(--marker-ball-size)/2 - 0.25rem)) translateY(-3px);
+		}
+		.tournament_row article{
+			width: 250px;
+		}
+	</style>
 }
