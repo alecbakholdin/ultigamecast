@@ -1,0 +1,69 @@
+package view_layout
+
+import "ultigamecast/internal/ctxvar"
+
+templ NavLayout() {
+	@Root() {
+		<style type="text/css">
+			.dark .hide-dark {
+				display: none !important;
+			}
+
+			.light .hide-light {
+				display: none !important;
+			}
+			nav.primary-nav {
+				box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+			}
+		</style>
+		for i, c := range []string{"bottom s", "left m l"} {
+			<nav class={ c, "primary-nav" }>
+				if i == 0 {
+					<a href="/">
+						<i>home</i>
+						<span>Home</span>
+					</a>
+				} else {
+					<a href="/">
+						<img class="circle" src="/frisbee.png" height="40" width="40"/>
+					</a>
+				}
+				if ctxvar.IsAuthenticated(ctx) {
+					<a href="/teams">
+						<i>groups</i>
+						<span>Teams</span>
+					</a>
+				}
+				if i == 1 {
+					<div class="max"></div>
+				}
+				if ctxvar.IsAuthenticated(ctx) {
+					<a hx-post="/logout" hx-swap="none">
+						<i>logout</i>
+						<span>Logout</span>
+					</a>
+				} else {
+					<a href="/login">
+						<i>person</i>
+						<span>Login</span>
+					</a>
+				}
+				<a
+					class="hide-dark"
+					onclick="setDark(true)"
+				>
+					<i>dark_mode</i>
+					<span>Dark</span>
+				</a>
+				<a
+					class="hide-light"
+					onclick="setDark(false)"
+				>
+					<i>light_mode</i>
+					<span>Light</span>
+				</a>
+			</nav>
+		}
+		{ children... }
+	}
+}
