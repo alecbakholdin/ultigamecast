@@ -2,15 +2,18 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
+	"ultigamecast/internal/app/handlers"
+	"ultigamecast/internal/app/middleware"
+	"ultigamecast/internal/app/service"
 	"ultigamecast/internal/env"
 	"ultigamecast/internal/logger"
-	"ultigamecast/internal/app/middleware"
-	"ultigamecast/internal/app/handlers"
-	"ultigamecast/internal/app/service"
 	"ultigamecast/internal/models"
 
 	"github.com/justinas/alice"
@@ -42,10 +45,14 @@ func main() {
 	}
 	authenticatedOnly := base.Append(middleware.GuardAuthenticated)
 
-	http.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/favicon.ico") })
-	http.HandleFunc("GET /frisbee.png", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/frisbee.png") })
-	http.HandleFunc("GET /styles.css", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/styles.css") })
-	http.HandleFunc("GET /theme.css", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "public/theme.css") })
+	// public directory
+	if dir, err := filepath.Glob("./web/public/**"); err != nil {
+		panic(fmt.Errorf("could not read directory web/dir: %w", err))
+	} else  {
+		for _, f := range dir {
+			http.HandleFunc(fmt.Sprintf("GET %s", strings.TrimPrefix(f, "web/public")), func(w http.ResponseWriter, r *http.Request) {http.ServeFile(w, r, f)})
+		}
+	}
 
 	homeHandler := handlers.NewHome()
 	http.Handle("GET /", base.ThenFunc(homeHandler.GetHome))

@@ -37,7 +37,7 @@ templ TournamentRow(t *models.Tournament) {
 		}
 		<nav class="vertical">
 			<div class="row vertical tiny-space">
-				<span class="large-text bold">{ t.Name }</span>
+				<a class="large-text bold hover-primary" href={ ctxvar.SafeUrl(ctx, ctxvar.Team, t) }>{ t.Name }</a>
 				<nav class="vertical tiny-space"></nav>
 			</div>
 		</nav>

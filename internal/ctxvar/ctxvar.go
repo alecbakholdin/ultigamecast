@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"ultigamecast/internal/models"
+
+	"github.com/a-h/templ"
 )
 
 type ContextVar string
@@ -61,6 +63,10 @@ func Url(ctx context.Context, segments ...any) string {
 		}
 	}
 	return "/" + strings.Join(urlParts, "/")
+}
+
+func SafeUrl(ctx context.Context, segments ...any) templ.SafeURL {
+	return templ.SafeURL(Url(ctx, segments...))
 }
 
 func IsAdmin(ctx context.Context) bool {
