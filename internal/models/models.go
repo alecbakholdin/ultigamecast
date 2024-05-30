@@ -33,14 +33,14 @@ type Player struct {
 	ID    int64  `db:"id" json:"id"`
 	Team  int64  `db:"team" json:"team"`
 	Slug  string `db:"slug" json:"slug"`
-	Name  string `db:"name" json:"name" validate:"required,max=64"`
+	Name  string `db:"name" json:"name"`
 	Order int64  `db:"order" json:"order"`
 }
 
 type Team struct {
 	ID           int64          `db:"id" json:"id"`
 	Owner        int64          `db:"owner" json:"owner"`
-	Name         string         `db:"name" json:"name" validate:"required,max=64"`
+	Name         string         `db:"name" json:"name"`
 	Slug         string         `db:"slug" json:"slug"`
 	Organization sql.NullString `db:"organization" json:"organization"`
 }
@@ -58,7 +58,7 @@ type TeamManager struct {
 type Tournament struct {
 	ID        int64          `db:"id" json:"id"`
 	Team      int64          `db:"team" json:"team"`
-	Name      string         `db:"name" json:"name" validate:"required,max=64"`
+	Name      string         `db:"name" json:"name"`
 	Slug      string         `db:"slug" json:"slug"`
 	StartDate sql.NullTime   `db:"start_date" json:"start_date"`
 	EndDate   sql.NullTime   `db:"end_date" json:"end_date"`

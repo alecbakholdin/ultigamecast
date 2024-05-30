@@ -28,7 +28,7 @@ RETURNING id, team, slug, name, "order"
 type CreatePlayerParams struct {
 	Team int64  `db:"team" json:"team"`
 	Slug string `db:"slug" json:"slug"`
-	Name string `db:"name" json:"name" validate:"required,max=64"`
+	Name string `db:"name" json:"name"`
 }
 
 func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (Player, error) {
@@ -52,7 +52,7 @@ RETURNING id, owner, name, slug, organization
 
 type CreateTeamParams struct {
 	Owner        int64          `db:"owner" json:"owner"`
-	Name         string         `db:"name" json:"name" validate:"required,max=64"`
+	Name         string         `db:"name" json:"name"`
 	Slug         string         `db:"slug" json:"slug"`
 	Organization sql.NullString `db:"organization" json:"organization"`
 }
@@ -83,7 +83,7 @@ RETURNING id, team, name, slug, start_date, end_date, location
 
 type CreateTournamentParams struct {
 	TeamId int64  `db:"teamId" json:"teamId"`
-	Name   string `db:"name" json:"name" validate:"required,max=64"`
+	Name   string `db:"name" json:"name"`
 	Slug   string `db:"slug" json:"slug"`
 }
 
@@ -433,7 +433,7 @@ RETURNING id, team, slug, name, "order"
 `
 
 type UpdatePlayerParams struct {
-	Name string `db:"name" json:"name" validate:"required,max=64"`
+	Name string `db:"name" json:"name"`
 	Slug string `db:"slug" json:"slug"`
 	ID   int64  `db:"id" json:"id"`
 }
@@ -479,7 +479,7 @@ RETURNING id, owner, name, slug, organization
 `
 
 type UpdateTeamParams struct {
-	Name         string         `db:"name" json:"name" validate:"required,max=64"`
+	Name         string         `db:"name" json:"name"`
 	Slug         string         `db:"slug" json:"slug"`
 	Organization sql.NullString `db:"organization" json:"organization"`
 }
