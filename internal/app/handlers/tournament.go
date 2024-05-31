@@ -101,6 +101,10 @@ func (t *Tournament) PostTournaments(w http.ResponseWriter, r *http.Request) {
 	view_tournament.NewTournamentRow(tournament).Render(r.Context(), w)
 }
 
+func (t *Tournament) GetDatum(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func (t *Tournament) PostData(w http.ResponseWriter, r *http.Request) {
 	if datum, err := t.t.NewDatum(r.Context()); err != nil {
 		http.Error(w, "unexpected error", http.StatusInternalServerError)
@@ -114,6 +118,10 @@ func (t *Tournament) PutData(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (t *Tournament) DeleteData(w http.ResponseWriter, r *http.Request) {
+func (t *Tournament) DeleteDatum(w http.ResponseWriter, r *http.Request) {
 
+}
+
+func (t *Tournament) PutDataOrder(w http.ResponseWriter, r *http.Request) {
+	
 }

@@ -16,6 +16,10 @@ func TournamentSlug(r *http.Request) string {
 	return r.PathValue("tournamentSlug")
 }
 
+func TournamentDatumSlug(r *http.Request) string {
+	return r.PathValue("datumSlug")
+}
+
 func GameSlug(r *http.Request) string {
 	return r.PathValue("gameSlug")
 }

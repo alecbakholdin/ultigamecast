@@ -117,6 +117,33 @@ func (t *Tournament) NewDatum(ctx context.Context) (*models.TournamentDatum, err
 	}
 }
 
+func (t *Tournament) UpdateDataOrder(ctx context.Context, ids []int64) (error) {
+	tid := ctxvar.GetTournament(ctx).ID
+	tx, err := t.db.Begin()
+	if err != nil {
+		return convertAndLogSqlError(ctx, "error opening tx", err)
+	}
+	db := t.q.WithTx(tx)
+	defer tx.Rollback()
+	for i, id := range ids {
+		if _, err = db.GetTournamentDatum(ctx, models.GetTournamentDatumParams{DataId: id, TournamentId: tid}); err != nil {
+			return convertAndLogSqlError(ctx, fmt.Sprintf("error updating order of id %d to %d", id, i), err)
+		}
+		if err = db.UpdateTournamentDatumOrder(ctx, models.UpdateTournamentDatumOrderParams{
+			Order: int64(i),
+			DataId: id,
+			TournamentId: tid,
+		}); err != nil {
+			return convertAndLogSqlError(ctx, fmt.Sprintf("error updating order of id %d to %d", id, i), err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return convertAndLogSqlError(ctx, "error committing tx", err)
+	}
+
+	return nil
+}
+
 func (t *Tournament) getSafeSlug(ctx context.Context, tournamentId int64, name string) (string, error) {
 	team := ctxvar.GetTeam(ctx)
 	tournaments, err := t.q.ListTournaments(ctx, team.ID)

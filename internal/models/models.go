@@ -6,6 +6,8 @@ package models
 
 import (
 	"database/sql"
+
+	"ultigamecast/internal/models/tournament_data_types"
 )
 
 type Event struct {
@@ -66,16 +68,16 @@ type Tournament struct {
 }
 
 type TournamentDatum struct {
-	ID            int64          `db:"id" json:"id"`
-	Tournament    int64          `db:"tournament" json:"tournament"`
-	Icon          string         `db:"icon" json:"icon"`
-	Title         string         `db:"title" json:"title"`
-	ShowInPreview sql.NullInt64  `db:"show_in_preview" json:"show_in_preview"`
-	TextPreview   string         `db:"text_preview" json:"text_preview"`
-	DataType      int64          `db:"data_type" json:"data_type"`
-	ValueText     sql.NullString `db:"value_text" json:"value_text"`
-	ValueLink     sql.NullString `db:"value_link" json:"value_link"`
-	Order         int64          `db:"order" json:"order"`
+	ID            int64                        `db:"id" json:"id"`
+	Tournament    int64                        `db:"tournament" json:"tournament"`
+	Icon          string                       `db:"icon" json:"icon"`
+	Title         string                       `db:"title" json:"title"`
+	ShowInPreview sql.NullInt64                `db:"show_in_preview" json:"show_in_preview"`
+	TextPreview   string                       `db:"text_preview" json:"text_preview"`
+	DataType      tournament_data_types.Option `db:"data_type" json:"data_type"`
+	ValueText     sql.NullString               `db:"value_text" json:"value_text"`
+	ValueLink     sql.NullString               `db:"value_link" json:"value_link"`
+	Order         int64                        `db:"order" json:"order"`
 }
 
 type User struct {

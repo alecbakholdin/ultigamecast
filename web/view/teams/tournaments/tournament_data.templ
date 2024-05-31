@@ -1,0 +1,54 @@
+package view_tournament
+
+import "ultigamecast/internal/models"
+import "ultigamecast/internal/ctxvar"
+import "ultigamecast/web/view/component"
+import "fmt"
+import "ultigamecast/internal/models/tournament_data_types"
+
+templ TournamentDatum(td *models.TournamentDatum) {
+	if ctxvar.IsAdmin(ctx) {
+		@tournamentDataAdmin(&TournamentDataDTO{TournamentDatum: td})
+	} else {
+		@tournamentDataDisplayOnly(td)
+	}
+}
+
+templ tournamentDataDisplayOnly(td *models.TournamentDatum) {
+	<div>{ td.Title }</div>
+}
+
+type TournamentDataDTO struct {
+	view_component.DTO
+	*models.TournamentDatum
+}
+
+templ tournamentDataAdmin(dto *TournamentDataDTO) {
+	<div
+		id={ fmt.Sprintf("td-admin-%d", dto.ID) }
+		hx-target="this"
+		hx-swap="outerHTML"
+	>
+		<div class="s2 m1 l1 handle top-padding large-padding"><i>drag_indicator</i></div>
+		<div>testing</div>
+	</div>
+}
+
+script dispatchChangeIcon(o tournament_data_types.Option, icon, title string) {
+    htmx.trigger(event.target, 'changeicon', {
+        dataType: o,
+        icon: icon,
+        title: title,
+    })
+}
+
+templ tournamentDataStyles() {
+	<style>
+        .data_type_0 .hide_when_text {
+            display: none;
+        }
+        .data_type_1 .hide_when_location {
+            display: none;
+        }
+    </style>
+}

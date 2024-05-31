@@ -222,6 +222,36 @@ func (q *Queries) GetTournament(ctx context.Context, arg GetTournamentParams) (T
 	return i, err
 }
 
+const getTournamentDatum = `-- name: GetTournamentDatum :one
+SELECT id, tournament, icon, title, show_in_preview, text_preview, data_type, value_text, value_link, "order"
+FROM tournament_data
+WHERE id = ?1
+    AND tournament = ?2
+`
+
+type GetTournamentDatumParams struct {
+	DataId       int64 `db:"dataId" json:"dataId"`
+	TournamentId int64 `db:"tournamentId" json:"tournamentId"`
+}
+
+func (q *Queries) GetTournamentDatum(ctx context.Context, arg GetTournamentDatumParams) (TournamentDatum, error) {
+	row := q.db.QueryRowContext(ctx, getTournamentDatum, arg.DataId, arg.TournamentId)
+	var i TournamentDatum
+	err := row.Scan(
+		&i.ID,
+		&i.Tournament,
+		&i.Icon,
+		&i.Title,
+		&i.ShowInPreview,
+		&i.TextPreview,
+		&i.DataType,
+		&i.ValueText,
+		&i.ValueLink,
+		&i.Order,
+	)
+	return i, err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, email, password_hash
 FROM users
@@ -554,6 +584,24 @@ func (q *Queries) UpdateTournamentDates(ctx context.Context, arg UpdateTournamen
 		&i.Location,
 	)
 	return i, err
+}
+
+const updateTournamentDatumOrder = `-- name: UpdateTournamentDatumOrder :exec
+UPDATE tournament_data
+SET "order" = ?
+WHERE id = ?
+    AND tournament = ?
+`
+
+type UpdateTournamentDatumOrderParams struct {
+	Order        int64 `db:"order" json:"order"`
+	DataId       int64 `db:"dataId" json:"dataId"`
+	TournamentId int64 `db:"tournamentId" json:"tournamentId"`
+}
+
+func (q *Queries) UpdateTournamentDatumOrder(ctx context.Context, arg UpdateTournamentDatumOrderParams) error {
+	_, err := q.db.ExecContext(ctx, updateTournamentDatumOrder, arg.Order, arg.DataId, arg.TournamentId)
+	return err
 }
 
 const updateTournamentLocation = `-- name: UpdateTournamentLocation :one

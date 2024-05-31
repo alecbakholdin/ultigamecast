@@ -12,24 +12,22 @@ import (
 	"github.com/justinas/alice"
 )
 
-type TeamService interface {
-	GetTeam(ctx context.Context, slug string) (*models.Team, error)
-	IsTeamAdmin(ctx context.Context) bool
+type DatumService interface {
+	GetDatum(ctx context.Context, id int64) (*models.TournamentDatum, error)
 }
 
-func LoadTeam(t TeamService) alice.Constructor {
+func LoadDatum(t DatumService) alice.Constructor {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			teamSlug := pathvar.TeamSlug(r)
-			if teamSlug == "" {
-				http.Error(w, "missing team identifier", http.StatusBadRequest)
-			} else if team, err := t.GetTeam(r.Context(), teamSlug); errors.Is(service.ErrNotFound, err) {
+			datumSlug := pathvar.TournamentDatumSlug(r)
+			if datumSlug == "" {
+				http.Error(w, "missing datum identifier", http.StatusBadRequest)
+			} else if datum, err := t.GetDatum(r.Context(), 0); errors.Is(service.ErrNotFound, err) {
 				http.NotFound(w, r)
 			} else if err != nil {
 				http.Error(w, "unexpected error", http.StatusInternalServerError)
 			} else {
-				ctx := context.WithValue(r.Context(), ctxvar.Team, team)
-				ctx = context.WithValue(ctx, ctxvar.Admin, t.IsTeamAdmin(ctx))
+				ctx := context.WithValue(r.Context(), ctxvar.TournamentDatum, datum)
 				*r = *r.WithContext(ctx)
 			}
 			h.ServeHTTP(w, r)

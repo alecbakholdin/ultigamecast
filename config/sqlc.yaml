@@ -9,3 +9,8 @@ sql:
         emit_db_tags: true
         package: "models"
         out: "../internal/models"
+        overrides:
+          - column: "tournament_data.data_type"
+            go_type:
+              import: "ultigamecast/internal/models/tournament_data_types"
+              type: "Option"

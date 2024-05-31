@@ -113,3 +113,13 @@ VALUES (
         )
     )
 RETURNING *;
+-- name: GetTournamentDatum :one
+SELECT *
+FROM tournament_data
+WHERE id = @dataId
+    AND tournament = @tournamentId;
+-- name: UpdateTournamentDatumOrder :exec
+UPDATE tournament_data
+SET "order" = ?
+WHERE id = @dataId
+    AND tournament = @tournamentId;
