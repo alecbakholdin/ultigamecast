@@ -57,7 +57,7 @@ func Url(ctx context.Context, segments ...any) string {
 		case *models.Event:
 			urlParts = append(urlParts, "events", strconv.FormatInt(v.ID, 10))
 		case *models.TournamentDatum:
-			urlParts = append(urlParts, "events", strconv.FormatInt(v.ID, 10))
+			urlParts = append(urlParts, "data", strconv.FormatInt(v.ID, 10))
 		default:
 			panic(fmt.Sprintf("unexpected type %T", v))
 		}

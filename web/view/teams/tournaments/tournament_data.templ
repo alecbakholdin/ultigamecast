@@ -5,6 +5,7 @@ import "ultigamecast/internal/ctxvar"
 import "ultigamecast/web/view/component"
 import "fmt"
 import "ultigamecast/internal/models/tournament_data_types"
+import "strconv"
 
 templ TournamentDatum(td *models.TournamentDatum) {
 	if ctxvar.IsAdmin(ctx) {
@@ -28,9 +29,85 @@ templ tournamentDataAdmin(dto *TournamentDataDTO) {
 		id={ fmt.Sprintf("td-admin-%d", dto.ID) }
 		hx-target="this"
 		hx-swap="outerHTML"
+		class="grid vertical-margin"
 	>
-		<div class="s2 m1 l1 handle top-padding large-padding"><i>drag_indicator</i></div>
-		<div>testing</div>
+		<div class="s2 m1 l1 handle top-padding large-padding top-margin large-margin"><i>drag_indicator</i></div>
+		<form
+			class={ "grid no-space s10 m11 l11", fmt.Sprintf("data_type_%d", dto.DataType) }
+			hx-put={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, dto.TournamentDatum) }
+			x-data={ fmt.Sprintf("{dataType: %d, icon: '%s', dirty: false}", dto.DataType, tournament_data_types.Icon(dto.DataType)) }
+			@change="dirty = true"
+		>
+			<input type="hidden" name="id" value={ strconv.FormatInt(dto.ID, 10) }/>
+			<div class={ "s12 m6 field medium-margin label",  dto.FieldInvalidClass("Title") }>
+				<input type="text" name="title" value={ dto.Title }/>
+				<label>Title</label>
+				<span class="error">{ dto.FieldError("Title") }</span>
+			</div>
+			<div
+				class={ "s12 m6 field label medium-margin suffix", dto.FieldInvalidClass("DataType") }
+			>
+				<select
+					name="data_type"
+					value={ fmt.Sprintf("%d", dto.DataType) }
+					@change="icon = $event.target.options[$event.target.selectedIndex].dataset['icon']; dataType = parseInt($event.target.value)"
+				>
+					for _, o := range tournament_data_types.Options {
+						<option value={ fmt.Sprintf("%d", o) } data-icon={ tournament_data_types.Icon(o) }>
+							{ tournament_data_types.Title(o) }
+						</option>
+					}
+				</select>
+				<label>Data Type</label>
+				<i>arrow_drop_down</i>
+				<span class="error">{ dto.FieldError("DataType") }</span>
+			</div>
+			<div
+				class={ "s12 prefix field medium-margin label", dto.FieldInvalidClass("ValueText") }
+			>
+				<i>edit_note</i>
+				<input type="text" value={ dto.ValueText.String }/>
+				<label>Text Value</label>
+				<span class="error">{ dto.FieldError("ValueText") }</span>
+			</div>
+			<div
+				class={ "s12 prefix field medium-margin label", dto.FieldInvalidClass("ValueLink") }
+				x-show={ fmt.Sprintf("dataType === %d", tournament_data_types.Link) }
+			>
+				<i>link</i>
+				<input type="text" value={ dto.ValueLink.String }/>
+				<label>Link</label>
+				<span class="error">{ dto.FieldError("ValueLink") }</span>
+			</div>
+			<nav class="s12">
+				<dialog hx-on:close="this.close()">
+					<h5>Are you sure?</h5>
+					<div>You are about to delete this text. This action is irreversible. Are you sure?</div>
+					<nav class="right-align no-space">
+						<button type="button" class="transparent link" hx-on:click="htmx.trigger(this, 'close')">
+							<i>close</i>
+							Cancel
+						</button>
+						<button
+							hx-delete={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, dto.TournamentDatum) }
+							class="transparent link"
+						>
+							<i>check</i>
+							Confirm
+						</button>
+					</nav>
+				</dialog>
+				<a
+					class="chip small"
+                    onclick="console.log(this.previousElementSibling.showModal())"
+				>
+					<i>delete</i> Delete
+				</a>
+				<button class="chip small small-round" x-show="dirty">
+					<i>check</i> Update
+				</button>
+			</nav>
+		</form>
 	</div>
 }
 

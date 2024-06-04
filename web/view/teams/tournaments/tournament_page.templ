@@ -7,7 +7,7 @@ import "ultigamecast/web/view/component"
 import "ultigamecast/internal/ctxvar"
 
 templ TournamentPage(t *models.Tournament, data []models.TournamentDatum) {
-	@view_layout.Root() {
+	@view_layout.NavLayout() {
 		@tournamentDataStyles()
 		<main class="responsive">
 			<section>
@@ -25,11 +25,12 @@ templ TournamentPage(t *models.Tournament, data []models.TournamentDatum) {
 				</nav>
 			</section>
 			<section class="max">
-				<form
+				<nav
 					id="data-list"
 					class="sortable vertical large-width center"
 					hx-put={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, "data-order") }
 					hx-trigger="end"
+					hx-on::before-request="event.detail.requestConfig.parameters['id'] = Array.from(this.querySelectorAll('input[name=\'id\']')).map(x => x.value)"
 					hx-swap="none"
 				>
 					if len(data) == 0 {
@@ -62,10 +63,10 @@ templ TournamentPage(t *models.Tournament, data []models.TournamentDatum) {
 					for _, d := range data {
 						@TournamentDatum(&d)
 					}
-				</form>
-				if len(data) > 0 && ctxvar.IsAdmin(ctx) {
-					@NewDataButton()
-				}
+					if len(data) > 0 && ctxvar.IsAdmin(ctx) {
+						@NewDataButton()
+					}
+				</nav>
 			</section>
 		</main>
 	}
