@@ -1,67 +1,35 @@
 package view_home
 
 import "ultigamecast/web/view/layout"
-import "fmt"
 
-var colors = []string{"primary-container", "secondary-container", "tertiary-container"}
-var heights = []string{"medium-height", "small-height"}
+var colors = []string{"has-background-primary-95", "has-background-link-80", "has-background-primary-80"}
+var sizes = []string{"h-16", "h-24", "h-32"}
 
 templ HomePage() {
 	@view_layout.NavLayout() {
-		<style type="text/css">
-            #top_banner {
-				background-color: #f2f0eb;
-				width: 100%;
-				color: black;
-				border-radius: 0 0 50px 50px;
-            }
-			.image_carousel {
-				overflow-y: hidden;
-				height: 100%;
-			}
-			.image_container {
-				transform: translateY(-25%)
-			}
-        </style>
-		<div class="surface-container bottom-round large-round">
-			<div class="large-width grid center">
-				<div class="s12 m6 l6 medium-padding">
-					<div class="medium-space"></div>
-					<h3 class="bold">
+		<section class="section !py-0 has-background-primary-90 rounded-b-3xl">
+			<div class="container !max-w-screen-md flex flex-col md:flex-row">
+				<div class="w-full !py-12 md:w-1/2 md:pr-6">
+					<h3 class="has-text-weight-bold is-size-3">
 						Your team's analytics start here
 					</h3>
 					<p>
 						Track your team's score and statistics live. Keep your audience connected
 						with real-time score updates.
 					</p>
-					<div class="small-space"></div>
-					<a href="/signup" class="button">
-						Get Started
-						<i>arrow_forward</i>
-					</a>
-					<div class="medium-space"></div>
 				</div>
-				<div class="no-margin s12 m6 l6 large-height no-round horizontal grid">
-					@ImageCarousel(0)
-					@ImageCarousel(1)
-				</div>
-			</div>
-		</div>
-	}
-}
-
-templ ImageCarousel(start int) {
-	<div class="image_carousel m6 l6">
-		<div class="image_container vertical">
-			for i := range 10 {
-				<div class="tiny-margin vertical-margin">
-					<div
-						class={ "small-width medium-round outline", colors[(i + start) % len(colors)]}
-						{ templ.Attributes(map[string]any{"style": fmt.Sprintf("height: %dpx;", ((((i + start + 1) * 37) % 5) + 1) * 50)})... }
-					>
+				<div class="w-1/2 h-80 overflow-y-hidden hidden md:block">
+					<div class="flex gap-2 -translate-y-6">
+						for o := range 2 {
+						<div class="flex flex-row md:flex-col gap-2 md:w-1/2" >
+							for i := range 8 {
+								<div class={"rounded-3xl w-full", colors[(i * 23 + o) % len(colors)], sizes[(i * 37 + o) % len(sizes)]}></div>
+							}
+						</div>
+						}
 					</div>
 				</div>
-			}
-		</div>
-	</div>
+			</div>
+		</section>
+	}
 }
