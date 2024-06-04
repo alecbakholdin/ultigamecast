@@ -17,17 +17,23 @@ const (
 	FaSizeLarge  FaSize = "fa-lg"
 )
 
-func MediumField(c *FieldConfig) {
-	c.Size = SizeMedium
-	c.FaIconSize = FaSizeLarge
+func MediumField() Modifier {
+	return func(c *FieldConfig) {
+		c.Size = SizeMedium
+		c.FaIconSize = FaSizeLarge
+	}
 }
 
-func SmallField(c *FieldConfig) {
-	c.Size = SizeSmall
-	c.FaIconSize = FaSizeNormal
+func SmallField() Modifier {
+	return func(c *FieldConfig) {
+		c.Size = SizeSmall
+		c.FaIconSize = FaSizeNormal
+	}
 }
 
-func LargeField(c *FieldConfig) {
-	c.Size = SizeLarge
-	c.FaIconSize = FaSizeLarge
+func LargeField() Modifier {
+	return func(c *FieldConfig) {
+		c.Size = SizeLarge
+		c.FaIconSize = FaSizeLarge
+	}
 }

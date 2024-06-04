@@ -15,24 +15,27 @@ templ FieldFromConfig(fc *FieldConfig) {
 				if fc.Placeholder != "" {
 					placeholder={ fc.Placeholder }
 				}
+				if fc.Autocomplete != "" {
+					autocomplete={ fc.Autocomplete }
+				}
 				if fc.Name != "" {
 					name={ fc.Name }
 				}
-				class={ "input", fc.FieldColor, templ.Class(string(fc.Size)) }
+				class={ "input", string(fc.FieldColor), string(fc.Size) }
 			/>
 			if fc.FaLeftIcon != "" {
-				<span class={ "icon is-left", fc.IconSize }>
-					<i class={ "fas", fc.FaLeftIcon, fc.FaIconSize }></i>
+				<span class={ "icon is-left", string(fc.IconSize) }>
+					<i class={ "fas", string(fc.FaLeftIcon), string(fc.FaIconSize) }></i>
 				</span>
 			}
 			if fc.FaRightIcon != "" {
-				<span class={ "icon is-right", fc.IconSize }>
-					<i class={ "fas", fc.FaRightIcon, fc.FaIconSize }></i>
+				<span class={ "icon is-right", string(fc.IconSize) }>
+					<i class={ "fas", string(fc.FaRightIcon), string(fc.FaIconSize) }></i>
 				</span>
 			}
 		</div>
 		if fc.HelpText != "" {
-			<p class={ "help", fc.HelpTextColor }>
+			<p class={ "help", string(fc.HelpTextColor) }>
 				{ fc.HelpText }
 			</p>
 		}

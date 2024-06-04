@@ -14,6 +14,18 @@ func Name(n string) Modifier {
 	}
 }
 
+func Placeholder(p string) Modifier {
+	return func(fc *FieldConfig) {
+		fc.Placeholder = p
+	}
+}
+
+func Autocomplete(p string) Modifier {
+	return func(fc *FieldConfig) {
+		fc.Autocomplete = p
+	}
+}
+
 func HelpText(h string) Modifier {
 	return func(fc *FieldConfig) {
 		fc.HelpText = h
@@ -32,14 +44,14 @@ func Error(e string) Modifier {
 }
 
 // icon class generally starting with "fa-"
-func LeftIcon(li string) Modifier {
+func IconLeft(li string) Modifier {
 	return func(fc *FieldConfig) {
 		fc.FaLeftIcon = li
 	}
 }
 
 // icon class generally starting with "fa-"
-func RightIcon(ri string) Modifier {
+func IconRight(ri string) Modifier {
 	return func(fc *FieldConfig) {
 		fc.FaRightIcon = ri
 	}

@@ -13,7 +13,8 @@ const (
 )
 
 type FieldColor string
- const (
+
+const (
 	FieldColorDefault FieldColor = ""
 	FieldColorLink    FieldColor = "is-link"
 	FieldColorPrimary FieldColor = "is-primary"
@@ -21,4 +22,4 @@ type FieldColor string
 	FieldColorSuccess FieldColor = "is-success"
 	FieldColorWarning FieldColor = "is-warning"
 	FieldColorDanger  FieldColor = "is-danger"
- )
+)

@@ -52,11 +52,11 @@ func (d *DTO) FieldInvalidClass(field string) templ.KeyValue[string, bool] {
 	return templ.KV("invalid", d.FieldInvalid(field))
 }
 
-func (d *DTO) FieldInputClasses(field, baseClasses string) (string) {
+func (d *DTO) FieldInputClasses(field, baseClasses string) templ.CSSClass {
 	if d.FieldInvalid(field) {
-		return baseClasses + " is-danger"
+		return templ.Class(baseClasses + " is-danger")
 	}
-	return baseClasses
+	return templ.Class(baseClasses)
 }
 
 func (d *DTO) FieldError(field string) string {
@@ -125,14 +125,14 @@ func (d *DTO) FormError() string {
 	return strings.Join(d.FormErrors, ", ")
 }
 
-func (d *DTO) UnmarshalJson(data []byte, dto *struct{DTO}) {
+func (d *DTO) UnmarshalJson(data []byte, dto *struct{ DTO }) {
 	err := json.Unmarshal(data, dto)
 	if err != nil {
 		d.AddFormError("error parsing data")
 	}
 }
 
-func (d *DTO) UnmarshalJsonValidate(data []byte, dto *struct{DTO}) bool {
+func (d *DTO) UnmarshalJsonValidate(data []byte, dto *struct{ DTO }) bool {
 	d.UnmarshalJson(data, dto)
 	return d.Valid()
 }

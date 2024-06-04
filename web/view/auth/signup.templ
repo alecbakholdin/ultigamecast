@@ -2,6 +2,7 @@ package view_auth
 
 import "ultigamecast/web/view/component"
 import "ultigamecast/web/view/layout"
+import "ultigamecast/web/view/component/dto_field"
 
 type SignUpDTO struct {
 	view_component.DTO
@@ -12,16 +13,15 @@ type SignUpDTO struct {
 
 templ SignUpPage() {
 	@view_layout.NavLayout() {
-		<main class="responsive surface-container">
-			<div class="large-space"></div>
-			<div class="medium-width center">
-				<h4>Sign Up</h4>
-				<div class="small-space"></div>
+		<section class="section">
+			<div class="container !max-w-md">
+				<h4 class="is-size-4 font-bold">Log In</h4>
 				@SignUpForm(&SignUpDTO{})
-                <div class="small-space"></div>
-				<span>Already have an account? <a href="/login">Log in</a></span>
+				<div class="mt-2">
+					Already have an account? Log in <a href="/login" class="has-text-link">here</a>
+				</div>
 			</div>
-		</main>
+		</section>
 	}
 }
 
@@ -30,27 +30,40 @@ templ SignUpForm(dto *SignUpDTO) {
 		hx-post="/signup"
 		hx-swap="outerHTML"
 		hx-disabled-elt="button"
-        hx-indicator="button"
 	>
-		<div class={ "field label border", dto.FieldInvalidClass("Email") }>
-			<input type="email" name="email" id="email" autocomplete="email"/>
-			<label for="email">Email</label>
-			<span class="error">{ dto.FieldError("Email") }</span>
-		</div>
-		<div class={ "field label border", dto.FieldInvalidClass("Password") }>
-			<input type="password" name="password" id="password" autocomplete="new-password"/>
-			<label for="password">Password</label>
-			<span class="error">{ dto.FieldError("Password") }</span>
-		</div>
-		<div class={ "field label border", dto.FieldInvalidClass("ConfirmPassword") }>
-			<input type="password" name="confirm-password" id="confirm-password" autocomplete="new-password"/>
-			<label for="confirm-password">Confirm Password</label>
-			<span class="error">{ dto.FieldError("ConfirmPassword") }</span>
-		</div>
-        @view_component.FormError(dto)
-		<button class="responsive small-round no-margin">
-			<progress class="loading-appear circle small inverse-primary-text"></progress>
-			<span class="loading-disappear">Sign Up</span>
+		@dto_field.Field(dto, "Email",
+			dto_field.MediumField(),
+			dto_field.TypeEmail(),
+			dto_field.Label("Email"),
+			dto_field.Name("email"),
+			dto_field.Placeholder("Email"),
+			dto_field.IconLeft("fa-envelope"),
+			dto_field.Autocomplete("email"),
+		)
+		@dto_field.Field(dto, "Password",
+			dto_field.MediumField(),
+			dto_field.TypePassword(),
+			dto_field.Label("Password"),
+			dto_field.Name("password"),
+			dto_field.Placeholder("Password"),
+			dto_field.IconLeft("fa-lock"),
+			dto_field.Autocomplete("new-password"),
+		)
+		@dto_field.Field(dto, "ConfirmPassword",
+			dto_field.MediumField(),
+			dto_field.TypePassword(),
+			dto_field.Label("Confirm Password"),
+			dto_field.Placeholder("Confirm Password"),
+			dto_field.Name("confirm-password"),
+			dto_field.IconLeft("fa-lock"),
+			dto_field.Autocomplete("new-password"),
+		)
+		<button class="button htmx-loading is-medium is-fullwidth is-primary">
+			<span class="icon is-large"><i class="fas fa-check fa-lg"></i></span>
+			<span>Submit</span>
 		</button>
+		<div class="block">
+			<span class="has-text-danger">{ dto.FormError() }</span>
+		</div>
 	</form>
 }

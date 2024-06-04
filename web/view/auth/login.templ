@@ -2,7 +2,6 @@ package view_auth
 
 import "ultigamecast/web/view/layout"
 import "ultigamecast/web/view/component"
-import "ultigamecast/web/view/component/dto_field"
 
 type LoginFormDTO struct {
 	view_component.DTO
@@ -14,7 +13,7 @@ templ LoginPage() {
 	@view_layout.NavLayout() {
 		<section class="section">
 			<div class="container !max-w-md">
-				<h5 class="is-size-4 font-bold">Log In</h5>
+				<h4 class="is-size-4 font-bold">Log In</h4>
 				@LoginForm(&LoginFormDTO{})
 				<div class="mt-2">
 					Don't have an account? Register <a href="/signup" class="has-text-link">here</a>
@@ -31,25 +30,48 @@ templ LoginForm(dto *LoginFormDTO) {
 		hx-swap="outerHTML"
 		hx-disabled-elt="button"
 	>
-		@dto_field.Field(dto, "Email",
-			dto_field.EmailType,
-			dto_field.Label("Email"),
-			dto_field.Name("email"),
-			dto_field.LeftIcon("fa-envelope"),
-			dto_field.MediumField,
-		)
-		@dto_field.Field(dto, "Password",
-			dto_field.PasswordType,
-			dto_field.Label("Password"),
-			dto_field.Name("password"),
-			dto_field.LeftIcon("fa-lock"),
-			dto_field.MediumField,
-		)
-		<button class="button htmx-loading is-medium is-fullwidth">
-			Submit
+		<div class="field">
+			<label for="email" class="label">Email</label>
+			<div class="control has-icons-left">
+				<input
+					type="email"
+					name="email"
+					id="email"
+					placeholder="Email"
+					class={ dto.FieldInputClasses("Email", "input is-medium") }
+					autocomplete="email"
+				/>
+				<span class="icon is-left is-large"><i class="fas fa-envelope fa-lg"></i></span>
+			</div>
+			<span class="help is-danger">
+				{ dto.FieldError("Email") }
+			</span>
+		</div>
+		<div class="field">
+			<label for="password" class="label">Password</label>
+			<div class="control has-icons-left">
+				<input
+					type="password"
+					name="password"
+					id="password"
+					placeholder="Password"
+					class={ dto.FieldInputClasses("Password", "input is-medium") }
+					autocomplete="current-password"
+				/>
+				<span class="icon is-left is-large">
+					<i class="fa-solid fa-lock fa-lg"></i>
+				</span>
+				<span class="help is-danger">
+					{ dto.FieldError("Email") }
+				</span>
+			</div>
+		</div>
+		<button class="button htmx-loading is-medium is-fullwidth is-primary">
+			<span class="icon is-large"><i class="fas fa-check fa-lg"></i></span>
+			<span>Submit</span>
 		</button>
 		<div class="block">
-			@view_component.FormError(dto)
+			<span class="has-text-danger">{ dto.FormError() }</span>
 		</div>
 	</form>
 }
