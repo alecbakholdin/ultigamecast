@@ -2,28 +2,25 @@ package view_auth
 
 import "ultigamecast/web/view/layout"
 import "ultigamecast/web/view/component"
+import "ultigamecast/web/view/component/dto_field"
 
 type LoginFormDTO struct {
 	view_component.DTO
-	Email    string `validate:"required,email"`
-	Password string `validate:"required"`
+	Email    string `validate:"required,email" json:"email"`
+	Password string `validate:"required" json:"password"`
 }
 
 templ LoginPage() {
 	@view_layout.NavLayout() {
-		<main class="responsive surface-container">
-			<div class="large-space"></div>
-			<div class="medium-width center">
-				<h4>
-					Login
-				</h4>
-				<div class="small-space"></div>
+		<section class="section">
+			<div class="container !max-w-md">
+				<h5 class="is-size-4 font-bold">Log In</h5>
 				@LoginForm(&LoginFormDTO{})
-				<p>
-					Don't have an account? <a href="/signup">Sign up</a>
-				</p>
+				<div class="mt-2">
+					Don't have an account? Register <a href="/signup" class="has-text-link">here</a>
+				</div>
 			</div>
-		</main>
+		</section>
 	}
 }
 
@@ -33,22 +30,26 @@ templ LoginForm(dto *LoginFormDTO) {
 		hx-post="/login"
 		hx-swap="outerHTML"
 		hx-disabled-elt="button"
-		hx-indicator="button"
 	>
-		<div class={ "field label border", dto.FieldInvalidClass("Email") }>
-			<input id="email" name="email" type="email" autocomplete="email"/>
-			<label for="email">Email</label>
-			<span class="error">{ dto.FieldError("Email") }</span>
-		</div>
-		<div class={ "field label border", dto.FieldInvalidClass("Password") }>
-			<input id="password" name="password" type="password" autocomplete="current-password"/>
-			<label>Password</label>
-			<span class="error">{ dto.FieldError("Password") }</span>
-		</div>
-		@view_component.FormError(dto)
-		<button class="responsive small-round no-margin">
-			<progress class="loading-appear circle small inverse-primary-text"></progress>
-			<span class="loading-disappear">Login</span>
+		@dto_field.Field(dto, "Email",
+			dto_field.EmailType,
+			dto_field.Label("Email"),
+			dto_field.Name("email"),
+			dto_field.LeftIcon("fa-envelope"),
+			dto_field.MediumField,
+		)
+		@dto_field.Field(dto, "Password",
+			dto_field.PasswordType,
+			dto_field.Label("Password"),
+			dto_field.Name("password"),
+			dto_field.LeftIcon("fa-lock"),
+			dto_field.MediumField,
+		)
+		<button class="button htmx-loading is-medium is-fullwidth">
+			Submit
 		</button>
+		<div class="block">
+			@view_component.FormError(dto)
+		</div>
 	</form>
 }

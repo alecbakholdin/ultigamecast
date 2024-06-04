@@ -1,0 +1,40 @@
+package dto_field
+
+templ Field(dto FieldErrorAccessor, dtoField string, modifiers ...Modifier) {
+	@FieldFromConfig(NewFieldConfig(dto, dtoField, modifiers...))
+}
+
+templ FieldFromConfig(fc *FieldConfig) {
+	<div class="field">
+		if fc.Label != "" {
+			<label class="label">{ fc.Label }</label>
+		}
+		<div class={ "control", fc.LeftIconClass(), fc.RightIconClass() }>
+			<input
+				type={ string(fc.Type) }
+				if fc.Placeholder != "" {
+					placeholder={ fc.Placeholder }
+				}
+				if fc.Name != "" {
+					name={ fc.Name }
+				}
+				class={ "input", fc.FieldColor, templ.Class(string(fc.Size)) }
+			/>
+			if fc.FaLeftIcon != "" {
+				<span class={ "icon is-left", fc.IconSize }>
+					<i class={ "fas", fc.FaLeftIcon, fc.FaIconSize }></i>
+				</span>
+			}
+			if fc.FaRightIcon != "" {
+				<span class={ "icon is-right", fc.IconSize }>
+					<i class={ "fas", fc.FaRightIcon, fc.FaIconSize }></i>
+				</span>
+			}
+		</div>
+		if fc.HelpText != "" {
+			<p class={ "help", fc.HelpTextColor }>
+				{ fc.HelpText }
+			</p>
+		}
+	</div>
+}

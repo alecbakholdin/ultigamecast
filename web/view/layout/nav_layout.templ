@@ -1,69 +1,44 @@
 package view_layout
 
-import "ultigamecast/internal/ctxvar"
-
 templ NavLayout() {
 	@Root() {
-		<style type="text/css">
-			.dark .hide-dark {
-				display: none !important;
+		<nav class="navbar is-fixed-bottom is-hidden-desktop is-flex is-justify-content-space-evenly ">
+			@IconNavButton("/") {
+				<span class="icon is-large"><i class="fas fa-home fa-lg"></i></span>
+				Home
 			}
-
-			.light .hide-light {
-				display: none !important;
+			@IconNavButton("/login") {
+				<span class="icon is-large"><i class="fa-solid fa-user fa-lg"></i></span>
+				Log In
 			}
-			nav.primary-nav {
-				box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-			}
-		</style>
-		for i, c := range []string{"bottom s", "left m l"} {
-			<nav class={ c, "primary-nav" }>
-				if i == 0 {
-					<a href="/">
-						<i>home</i>
-						<span>Home</span>
-					</a>
-				} else {
-					<a href="/">
-						<img class="circle" src="/frisbee.png" height="40" width="40"/>
-					</a>
-				}
-				if ctxvar.IsAuthenticated(ctx) {
-					<a href="/teams">
-						<i>groups</i>
-						<span>Teams</span>
-					</a>
-				}
-				if i == 1 {
-					<div class="max"></div>
-				}
-				if ctxvar.IsAuthenticated(ctx) {
-					<a hx-post="/logout" hx-swap="none">
-						<i>logout</i>
-						<span>Logout</span>
-					</a>
-				} else {
-					<a href="/login">
-						<i>person</i>
-						<span>Login</span>
-					</a>
-				}
-				<a
-					class="hide-dark"
-					onclick="setDark(true)"
-				>
-					<i>dark_mode</i>
-					<span>Dark</span>
+		</nav>
+		<nav class="navbar is-hidden-touch">
+			<div class="navbar-brand">
+				<a href="/" class="navbar-item is-flex is-gap-1">
+					<img src="/frisbee.png" alt="Ultigamecast"/>
+					<h4 class="is-size-4 has-text-weight-bold">Ultigamecast</h4>
 				</a>
-				<a
-					class="hide-light"
-					onclick="setDark(false)"
-				>
-					<i>light_mode</i>
-					<span>Light</span>
-				</a>
-			</nav>
-		}
-		{ children... }
+			</div>
+			<div class="navbar-end px-4">
+				<div class="buttons">
+					<a href="/login" class="button">
+						<span class="icon"><i class="fas fa-user"></i></span>
+						<span>Log In</span>
+					</a>
+					<a href="/signup" class="button is-primary">
+						<span>Get Started</span> <span class="icon"><i class="fas fa-arrow-right"></i></span>
+					</a>
+				</div>
+			</div>
+		</nav>
+		<main>
+			{ children... }
+		</main>
 	}
+}
+
+templ IconNavButton(href templ.SafeURL) {
+	<a href="/" class="navbar-item is-flex is-flex-direction-column is-align-items-center px-4">
+		{ children... }
+	</a>
 }

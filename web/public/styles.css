@@ -1,66 +1,87 @@
 body {
-    font-family: Poppins
+  font-family: Poppins;
 }
 
-.loading-appear {
-    display: none !important;
+is-gap-0 {
+  gap: 0;
 }
-.htmx-request .loading-appear {
-    display: inline !important;
+is-gap-1 {
+  gap: 0.25 rem;
 }
-.htmx-request .loading-disappear {
-    display: none !important;
+is-gap-2 {
+  gap: 0.5 rem;
 }
-:is(button,.button,.chip)>.loading-icon {
-    display: inline;
-    margin: 0 -.5rem;
+is-gap-3 {
+  gap: 0.75 rem;
 }
-.handle {
-    cursor: pointer;
-}
-.relative {
-    position: relative;
-}
-.absolute {
-    position: absolute;
-}
-.hover-primary:hover {
-    color: var(--primary);
-}
-.cursor-pointer {
-    cursor: pointer
+is-gap-4 {
+  gap: 1 rem;
 }
 
-body>main.responsive {
-    margin: 0;
-    min-width: 100%;
+.htmx-request .button.htmx-loading:after,
+.htmx-request .control.htmx-loading:after,
+.htmx-request .select.htmx-loading:after {
+  animation: spinAround 0.5s linear infinite;
+  border-bottom: 2px solid var(--bulma-loading-color);
+  border-left: 2px solid var(--bulma-loading-color);
+  border-radius: var(--bulma-radius-rounded);
+  border-right: 2px solid transparent;
+  border-top: 2px solid transparent;
+  content: "";
+  display: block;
+  height: 1em;
+  position: relative;
+  width: 1em;
 }
 
-.fade-in-out-1s {
-    animation-name: fade-in-out-1s-animation;
-    animation-duration: 1s;
+.htmx-request .button.htmx-loading {
+  box-shadow: none;
+  color: transparent !important;
+  pointer-events: none;
 }
 
-@keyframes fade-in-out-1s-animation {
-    from {
-        opacity: 0;
-    }
-    20%, 80% {
-        opacity: 1;
-    }
-    to {
-        opactiy: 0;
-    }
+.htmx-request .button.htmx-loading:after {
+  left: calc(50% - 0.5em);
+  position: absolute;
+  position: absolute !important;
+  top: calc(50% - 0.5em);
 }
 
-.inline-date-field.small i {
-    transform: translateX(-6px) translateY(-50%);
+.htmx-request .select.htmx-loading:after {
+  inset-inline-end: 0.625em;
+  margin-top: 0;
+  position: absolute;
+  top: 0.625em;
+  transform: none;
 }
 
-.inline-date-field.small:has(i) input {
-    padding-left: 36px !important;
+.htmx-request .select.htmx-loading.is-small:after {
+  font-size: var(--bulma-size-small);
 }
 
-:is(nav, .row).tiny-space {
-    gap: 0.5rem;
+.htmx-request .select.htmx-loading.is-medium:after {
+  font-size: var(--bulma-size-medium);
+}
+
+.htmx-request .select.htmx-loading.is-large:after {
+  font-size: var(--bulma-size-large);
+}
+
+.htmx-request .control.htmx-loading:after {
+  inset-inline-end: 0.75em;
+  position: absolute !important;
+  top: 0.75em;
+  z-index: 4;
+}
+
+.htmx-request .control.htmx-loading.is-small:after {
+  font-size: var(--bulma-size-small);
+}
+
+.htmx-request .control.htmx-loading.is-medium:after {
+  font-size: var(--bulma-size-medium);
+}
+
+.htmx-request .control.htmx-loading.is-large:after {
+  font-size: var(--bulma-size-large);
 }
