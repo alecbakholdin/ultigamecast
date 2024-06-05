@@ -2,6 +2,7 @@ package view_team
 
 import "ultigamecast/web/view/component"
 import "ultigamecast/internal/ctxvar"
+import "ultigamecast/web/view/component/dto_field"
 
 type TeamFormDTO struct {
 	view_component.DTO
@@ -16,27 +17,27 @@ const (
 )
 
 templ TeamModal(isNew bool, dto *TeamFormDTO) {
-	<h5>
-		if isNew {
-			New Team
-		} else {
-			Edit Team
-		}
-	</h5>
-	<div class="small-space"></div>
-	@TeamForm(isNew, dto)
-	<nav class="responsive">
-		<form method="dialog">
-			<button class="border">
-				<i>close</i>
+	<header class="modal-card-head">
+		<p class="modal-card-title">New Team</p>
+		<button class="delete" aria-label="close" onclick="htmx.trigger(this, 'closemodal')"></button>
+	</header>
+	<div class="modal-card-body">
+		@TeamForm(isNew, dto)
+	</div>
+	<footer class="modal-card-foot">
+		<div class="buttons">
+			<button class="button">
 				Cancel
 			</button>
-		</form>
-		<button id={ createTeamSubmitId } form={ createTeamFormId }>
-			@view_component.LoadingIcon(createTeamLoadingId, "check", "small")
-			Confirm
-		</button>
-	</nav>
+			<button
+				id={ createTeamSubmitId }
+				form={ createTeamFormId }
+				class="button is-success htmx-loading"
+			>
+				Submit
+			</button>
+		</div>
+	</footer>
 }
 
 templ TeamForm(new bool, dto *TeamFormDTO) {
@@ -48,19 +49,26 @@ templ TeamForm(new bool, dto *TeamFormDTO) {
 			hx-put={ "/teams/" + ctxvar.GetTeam(ctx).Slug }
 		}
 		hx-swap="outerHTML"
-		hx-indicator={ "#" + createTeamLoadingId }
+		hx-indicator="closest .modal"
 		hx-disabled-elt={ "#" + createTeamSubmitId }
 	>
-		<div class={ "field label border", templ.KV("invalid", dto.FieldInvalid("Name")) }>
-			<input type="text" name="name" id="create_team_name" required="true" autocomplete="off" value={dto.Name} autofocus />
-			<label for="create_team_name" value={ dto.Name }>Name*</label>
-			<span class="error">{ dto.FieldError("Name") }</span>
-		</div>
-		<div class={ "field label border", templ.KV("invalid", dto.FieldInvalid("Organization")) }>
-			<input type="text" name="organization" id="create_team_organization" autocomplete="off" value={dto.Organization}/>
-			<label for="create_team_organization" value={ dto.Organization }>Organization</label>
-			<span class="error">{ dto.FieldError("Organization") }</span>
-		</div>
-		@view_component.FormError(dto)
+		@dto_field.Field(dto, "Name",
+			dto_field.Label("Name"),
+			dto_field.Name("name"),
+			dto_field.Placeholder("Name"),
+			dto_field.Autocomplete("off"),
+			dto_field.IconLeft("fa-heading"),
+		)
+		@dto_field.Field(dto, "Organization",
+			dto_field.Label("Organization"),
+			dto_field.Name("organization"),
+			dto_field.Placeholder("Organization"),
+			dto_field.Autocomplete("off"),
+			dto_field.IconLeft("fa-user-group"),
+			dto_field.TooltipHelpText("e.g. Example University"),
+		)
+		<span class="is-danger">
+			{ dto.FormError() }
+		</span>
 	</form>
 }

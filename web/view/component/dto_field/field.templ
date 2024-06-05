@@ -7,7 +7,12 @@ templ Field(dto FieldErrorAccessor, dtoField string, modifiers ...Modifier) {
 templ FieldFromConfig(fc *FieldConfig) {
 	<div class="field">
 		if fc.Label != "" {
-			<label class="label">{ fc.Label }</label>
+			<label class="label level justify-start">
+				<span>{ fc.Label }</span>
+				if fc.TooltipHelpText != "" {
+					<span class="icon" data-tooltip={ fc.TooltipHelpText }><i class="fa-regular fa-circle-question"></i></span>
+				}
+			</label>
 		}
 		<div class={ "control", fc.LeftIconClass(), fc.RightIconClass() }>
 			<input

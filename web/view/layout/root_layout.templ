@@ -7,6 +7,7 @@ templ Root() {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			// bulma css
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css"/>
+			<link href="https://cdn.jsdelivr.net/npm/@creativebulma/bulma-tooltip@1.2.0/dist/bulma-tooltip.min.css" rel="stylesheet"/>
 			// tailwind css
 			<script src="https://cdn.tailwindcss.com"></script>
 			// fontawesome
@@ -36,12 +37,16 @@ templ Root() {
 			@RootScripts()
 		</head>
 		<body
-			hx-on:openmodal="modal.showModal()"
-			hx-on:closemodal="modal.close()"
+			hx-on:openmodal="modal.classList.add('is-active')"
+			hx-on:closemodal="modal.classList.remove('is-active')"
 			hx-on::response-error="console.log(event.detail.xhr.responseText)"
 		>
 			{ children... }
-			<dialog id="modal" class="modal"></dialog>
+			<div id="modal" class="modal">
+				<div class="modal-background"></div>
+				<div id="modal-content" class="modal-card"></div>
+				<button class="modal-close is-large" aria-label="close"></button>
+			</div>
 		</body>
 	</html>
 }

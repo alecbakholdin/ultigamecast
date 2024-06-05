@@ -32,6 +32,12 @@ func HelpText(h string) Modifier {
 	}
 }
 
+func TooltipHelpText(h string) Modifier {
+	return func(fc *FieldConfig) {
+		fc.TooltipHelpText = h
+	}
+}
+
 func Error(e string) Modifier {
 	return func(fc *FieldConfig) {
 		fc.HelpText = e

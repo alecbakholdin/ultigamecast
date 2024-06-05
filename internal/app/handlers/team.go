@@ -70,7 +70,6 @@ func (t *Team) PostTeams(w http.ResponseWriter, r *http.Request) {
 		dto.AddFormError("unexpected error")
 		view_team.TeamForm(true, dto).Render(r.Context(), w)
 	} else {
-		hxRetarget(w, "#owned_team_list", "afterbegin")
 		hxCloseModal(w)
 		view_team.TeamRow(team).Render(r.Context(), w)
 	}

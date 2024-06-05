@@ -1,5 +1,7 @@
 package view_layout
 
+import "ultigamecast/internal/ctxvar"
+
 templ NavLayout() {
 	@Root() {
 		<nav class="navbar is-fixed-bottom is-hidden-desktop is-flex is-justify-content-space-evenly ">
@@ -21,6 +23,7 @@ templ NavLayout() {
 			</div>
 			<div class="navbar-end px-4">
 				<div class="buttons">
+					if ctxvar.GetUser(ctx) == nil{
 					<a href="/login" class="button">
 						<span class="icon"><i class="fas fa-user"></i></span>
 						<span>Log In</span>
@@ -28,6 +31,15 @@ templ NavLayout() {
 					<a href="/signup" class="button is-primary">
 						<span>Get Started</span> <span class="icon"><i class="fas fa-arrow-right"></i></span>
 					</a>
+					} else {
+						<a href="/teams">
+							Teams
+						</a>
+						<a hx-post="/logout" class="button">
+							<span class="icon"><i class="fas fa-arrow-right-from-bracket"></i></span>
+							<span>Log Out</span>
+						</a>
+					}
 				</div>
 			</div>
 		</nav>

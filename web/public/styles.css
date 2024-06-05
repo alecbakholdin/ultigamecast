@@ -19,8 +19,11 @@ is-gap-4 {
 }
 
 .htmx-request .button.htmx-loading:after,
+.htmx-request.button.htmx-loading:after,
 .htmx-request .control.htmx-loading:after,
-.htmx-request .select.htmx-loading:after {
+.htmx-request.control.htmx-loading:after,
+.htmx-request .select.htmx-loading:after,
+.htmx-request.select.htmx-loading:after {
   animation: spinAround 0.5s linear infinite;
   border-bottom: 2px solid var(--bulma-loading-color);
   border-left: 2px solid var(--bulma-loading-color);
@@ -34,39 +37,44 @@ is-gap-4 {
   width: 1em;
 }
 
+.htmx-request.button.htmx-loading,
 .htmx-request .button.htmx-loading {
   box-shadow: none;
   color: transparent !important;
   pointer-events: none;
 }
 
-.htmx-request .button.htmx-loading:after {
-  left: calc(50% - 0.5em);
+.htmx-request .button.htmx-loading:after,
+.htmx-request.button.htmx-loading:after {
   position: absolute;
   position: absolute !important;
   top: calc(50% - 0.5em);
 }
 
+.htmx-request.select.htmx-loading:after,
 .htmx-request .select.htmx-loading:after {
-  inset-inline-end: 0.625em;
   margin-top: 0;
   position: absolute;
   top: 0.625em;
   transform: none;
 }
 
+.htmx-request.select.htmx-loading.is-small:after,
 .htmx-request .select.htmx-loading.is-small:after {
   font-size: var(--bulma-size-small);
 }
 
+.htmx-request.select.htmx-loading.is-medium:after,
 .htmx-request .select.htmx-loading.is-medium:after {
   font-size: var(--bulma-size-medium);
 }
 
+.htmx-request.select.htmx-loading.is-large:after,
 .htmx-request .select.htmx-loading.is-large:after {
   font-size: var(--bulma-size-large);
 }
 
+.htmx-request.control.htmx-loading:after,
 .htmx-request .control.htmx-loading:after {
   inset-inline-end: 0.75em;
   position: absolute !important;
@@ -74,14 +82,17 @@ is-gap-4 {
   z-index: 4;
 }
 
+.htmx-request.control.htmx-loading.is-small:after,
 .htmx-request .control.htmx-loading.is-small:after {
   font-size: var(--bulma-size-small);
 }
 
+.htmx-request.control.htmx-loading.is-medium:after,
 .htmx-request .control.htmx-loading.is-medium:after {
   font-size: var(--bulma-size-medium);
 }
 
+.htmx-request.control.htmx-loading.is-large:after,
 .htmx-request .control.htmx-loading.is-large:after {
   font-size: var(--bulma-size-large);
 }

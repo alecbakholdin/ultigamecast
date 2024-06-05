@@ -20,6 +20,8 @@ type FieldConfig struct {
 	HelpText      string
 	HelpTextColor TextColor
 
+	TooltipHelpText string
+
 	Autocomplete string
 	Placeholder  string
 	Size         Size
