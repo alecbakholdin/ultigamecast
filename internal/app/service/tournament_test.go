@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"testing"
+	"ultigamecast/test/testctx"
 	"ultigamecast/test/testdb"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -11,7 +12,7 @@ import (
 
 func TestCreateTournamentWithDuplicateNames(t *testing.T) {
 	to := NewTournament(testdb.DB())
-	ctx := testdb.LoadTeam(to.q)
+	ctx := testctx.LoadTeam(to.q)
 	t1, err := to.CreateTournament(ctx, "Tournament  Name")
 	if err != nil {
 		t.Fatalf("error creating tourment: %s", err)
@@ -27,12 +28,12 @@ func TestCreateTournamentWithDuplicateNames(t *testing.T) {
 
 func TestUpdateDataOrder(t *testing.T) {
 	to := NewTournament(testdb.DB())
-	ctx := testdb.LoadTeam(to.q)
+	ctx := testctx.LoadTeam(to.q)
 	tournament, err := to.CreateTournament(ctx, "Tournament Name")
 	if err != nil {
 		t.Fatalf("error creating tournament: %s", err)
 	}
-	ctx = testdb.LoadCtxValue(ctx, tournament)
+	ctx = testctx.Load(ctx, tournament)
 	var ids []int64
 	for range 5 {
 		datum, err := to.NewDatum(ctx)
@@ -72,12 +73,12 @@ func TestUpdateDataOrder(t *testing.T) {
 
 func TestUpdateDataOrderFailsWhenNotProperTournament(t *testing.T) {
 	to := NewTournament(testdb.DB())
-	withTeam := testdb.LoadTeam(to.q)
+	withTeam := testctx.LoadTeam(to.q)
 	t1, err := to.CreateTournament(withTeam, "random name")
 	if err != nil {
 		t.Fatalf("error creating tournament: %s", err)
 	}
-	withT1 := testdb.LoadCtxValue(withTeam, t1)
+	withT1 := testctx.Load(withTeam, t1)
 	datum1, err := to.NewDatum(withT1)
 	if err != nil {
 		t.Fatalf("error creating datumw for t1: %s", err)
@@ -87,7 +88,7 @@ func TestUpdateDataOrderFailsWhenNotProperTournament(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error creating tournament 2: %s", err)
 	}
-	withT2 := testdb.LoadCtxValue(withTeam, t2)
+	withT2 := testctx.Load(withTeam, t2)
 	_, err = to.NewDatum(withT2)
 	if err != nil {
 		t.Fatalf("error creating datumw for t1: %s", err)
