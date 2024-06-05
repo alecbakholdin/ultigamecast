@@ -22,7 +22,7 @@ func LoadDatum(t DatumService) alice.Constructor {
 			datumSlug := pathvar.TournamentDatumSlug(r)
 			if datumSlug == "" {
 				http.Error(w, "missing datum identifier", http.StatusBadRequest)
-			} else if datum, err := t.GetDatum(r.Context(), 0); errors.Is(service.ErrNotFound, err) {
+			} else if datum, err := t.GetDatum(r.Context(), 0); errors.Is(err, service.ErrNotFound) {
 				http.NotFound(w, r)
 			} else if err != nil {
 				http.Error(w, "unexpected error", http.StatusInternalServerError)

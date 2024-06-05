@@ -1,7 +1,6 @@
 package view_team
 
 import "ultigamecast/web/view/component"
-import "ultigamecast/internal/ctxvar"
 import "ultigamecast/web/view/component/dto_field"
 
 type TeamFormDTO struct {
@@ -43,11 +42,7 @@ templ TeamModal(isNew bool, dto *TeamFormDTO) {
 templ TeamForm(new bool, dto *TeamFormDTO) {
 	<form
 		id={ createTeamFormId }
-		if new {
-			hx-post="/teams"
-		} else {
-			hx-put={ "/teams/" + ctxvar.GetTeam(ctx).Slug }
-		}
+		hx-post="/teams"
 		hx-swap="outerHTML"
 		hx-indicator="closest .modal"
 		hx-disabled-elt={ "#" + createTeamSubmitId }

@@ -41,7 +41,7 @@ func (t *Tournament) GetTournament(ctx context.Context, slug string) (*models.To
 func (t *Tournament) GetTeamTournaments(ctx context.Context) ([]models.Tournament, error) {
 	team := ctxvar.GetTeam(ctx)
 	tournaments, err := t.q.ListTournaments(ctx, team.ID)
-	if err != nil && !errors.Is(sql.ErrNoRows, err) {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, convertAndLogSqlError(ctx, "error fetching team tournaments", err)
 	}
 	return tournaments, nil
@@ -102,7 +102,7 @@ func (t *Tournament) UpdateTournamentDates(ctx context.Context, dates string) (*
 func (t *Tournament) Data(ctx context.Context) ([]models.TournamentDatum, error) {
 	tournament := ctxvar.GetTournament(ctx)
 	data, err := t.q.ListTournamentData(ctx, tournament.ID)
-	if err != nil && !errors.Is(sql.ErrNoRows, err) {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, convertAndLogSqlError(ctx, "error fetching tournament data", err)
 	}
 	return data, nil
@@ -147,7 +147,7 @@ func (t *Tournament) UpdateDataOrder(ctx context.Context, ids []int64) (error) {
 func (t *Tournament) getSafeSlug(ctx context.Context, tournamentId int64, name string) (string, error) {
 	team := ctxvar.GetTeam(ctx)
 	tournaments, err := t.q.ListTournaments(ctx, team.ID)
-	if err != nil && !errors.Is(sql.ErrNoRows, err) {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return "", err
 	}
 	s := slug.From(name)

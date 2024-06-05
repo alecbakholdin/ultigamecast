@@ -38,7 +38,7 @@ func (p *Player) GetPlayer(ctx context.Context, slug string) (*models.Player, er
 func (p *Player) GetTeamPlayers(ctx context.Context) ([]models.Player, error) {
 	team := ctxvar.GetTeam(ctx)
 	players, err := p.q.ListTeamPlayers(ctx, team.ID)
-	if err != nil && !errors.Is(sql.ErrNoRows, err) {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, convertAndLogSqlError(ctx, "error fetching team players", err)
 	}
 	return players, nil
@@ -104,7 +104,7 @@ func (p *Player) UpdatePlayerOrder(ctx context.Context, playerIds []int64) error
 	q := p.q.WithTx(tx)
 
 	team := ctxvar.GetTeam(ctx)
-	if teamPlayers, err := q.ListTeamPlayers(ctx, team.ID); err != nil && !errors.Is(sql.ErrNoRows, err) {
+	if teamPlayers, err := q.ListTeamPlayers(ctx, team.ID); err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return convertAndLogSqlError(ctx, "error fetching team players", err)
 	} else if len(teamPlayers) != len(playerIds) {
 		return errors.Join(ErrBadFormat, fmt.Errorf("expected %d players when updating order but found %d", len(teamPlayers), len(playerIds)))

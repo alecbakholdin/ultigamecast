@@ -19,7 +19,7 @@ func convertAndLogSqlError(ctx context.Context, message string, sqlErr error) er
 	}
 
 	slog.ErrorContext(ctx, message, "SQL error", sqlErr)
-	if errors.Is(sql.ErrNoRows, sqlErr) {
+	if errors.Is(sqlErr, sql.ErrNoRows) {
 		return ErrNotFound
 	} else {
 		return errors.Join(ErrUnexpected, sqlErr)

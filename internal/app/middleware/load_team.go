@@ -23,7 +23,7 @@ func LoadTeam(t TeamService) alice.Constructor {
 			teamSlug := pathvar.TeamSlug(r)
 			if teamSlug == "" {
 				http.Error(w, "missing team identifier", http.StatusBadRequest)
-			} else if team, err := t.GetTeam(r.Context(), teamSlug); errors.Is(service.ErrNotFound, err) {
+			} else if team, err := t.GetTeam(r.Context(), teamSlug); errors.Is(err, service.ErrNotFound) {
 				http.NotFound(w, r)
 			} else if err != nil {
 				http.Error(w, "unexpected error", http.StatusInternalServerError)

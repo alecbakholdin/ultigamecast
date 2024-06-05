@@ -22,7 +22,7 @@ func LoadTournament(t TournamentService) alice.Constructor {
 			tournamentSlug := pathvar.TournamentSlug(r)
 			if tournamentSlug == "" {
 				http.Error(w, "missing tournament identifier", http.StatusBadRequest)
-			} else if tournament, err := t.GetTournament(r.Context(), tournamentSlug); errors.Is(service.ErrNotFound, err) {
+			} else if tournament, err := t.GetTournament(r.Context(), tournamentSlug); errors.Is(err, service.ErrNotFound) {
 				http.NotFound(w, r)
 			} else if err != nil {
 				http.Error(w, "unexpected error", http.StatusInternalServerError)

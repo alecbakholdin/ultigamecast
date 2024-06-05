@@ -22,7 +22,7 @@ func LoadPlayer(t PlayerService) alice.Constructor {
 			playerSlug := pathvar.PlayerSlug(r)
 			if playerSlug == "" {
 				http.Error(w, "missing player identifier", http.StatusBadRequest)
-			} else if player, err := t.GetPlayer(r.Context(), playerSlug); errors.Is(service.ErrNotFound, err) {
+			} else if player, err := t.GetPlayer(r.Context(), playerSlug); errors.Is(err, service.ErrNotFound) {
 				http.NotFound(w, r)
 			} else if err != nil {
 				http.Error(w, "unexpected error", http.StatusInternalServerError)

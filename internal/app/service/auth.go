@@ -41,7 +41,7 @@ var (
 // or [ErrFailedToAuth] if something unexpected happens
 func (a *Auth) SignInWithPassword(email, password string) (jwt string, err error) {
 	user, err := a.q.GetUser(context.Background(), email)
-	if errors.Is(sql.ErrNoRows, err) {
+	if errors.Is(err, sql.ErrNoRows) {
 		return "", errors.Join(ErrInvalidCredentials, errors.New("account with that email does not exist"))
 	} else if err != nil {
 		return "", errors.Join(ErrFailedToAuth, err)

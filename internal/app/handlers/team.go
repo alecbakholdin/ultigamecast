@@ -44,7 +44,7 @@ func (t *Team) GetTeamsCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (t *Team) GetTeam(w http.ResponseWriter, r *http.Request) {
-	if team, err := t.t.GetTeam(r.Context(), pathvar.TeamSlug(r)); errors.Is(service.ErrNotFound, err) {
+	if team, err := t.t.GetTeam(r.Context(), pathvar.TeamSlug(r)); errors.Is(err, service.ErrNotFound) {
 		http.Error(w, "Team doesn't exist", http.StatusNotFound)
 	} else if err != nil {
 		http.Error(w, "unexpected error", http.StatusInternalServerError)
@@ -63,7 +63,7 @@ func (t *Team) PostTeams(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team, err := t.t.CreateTeam(r.Context(), dto.Name, dto.Organization); errors.Is(service.ErrTeamExists, err) {
+	if team, err := t.t.CreateTeam(r.Context(), dto.Name, dto.Organization); errors.Is(err, service.ErrTeamExists) {
 		dto.AddFieldError("Name", "Name is already taken")
 		view_team.TeamForm(true, dto).Render(r.Context(), w)
 	} else if err != nil {
@@ -97,7 +97,7 @@ func (t *Team) PutTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team, err := t.t.UpdateTeam(r.Context(), dto.Name, dto.Organization); errors.Is(service.ErrTeamExists, err) {
+	if team, err := t.t.UpdateTeam(r.Context(), dto.Name, dto.Organization); errors.Is(err, service.ErrTeamExists) {
 		dto.AddFieldError("Name", "Name is already taken")
 		view_team.TeamForm(true, dto).Render(r.Context(), w)
 	} else if err != nil {

@@ -1,4 +1,4 @@
-package test_setup
+package testdb
 
 import (
 	"context"
@@ -19,8 +19,16 @@ var (
 	basepath   = filepath.Dir(b)
 	testDbPath = filepath.Join(basepath, "..", "test.db")
 )
+var testdb *sql.DB
 
-func TestDB() (*sql.DB, *models.Queries) {
+func DB() (*models.Queries, *sql.DB) {
+	if testdb == nil {
+		Init()
+	}
+	return models.New(testdb), testdb
+}
+
+func Init() {
 	ogTestDb, err := os.Open(testDbPath)
 	if err != nil {
 		panic(fmt.Errorf("error opening file: %w", err))
@@ -37,12 +45,10 @@ func TestDB() (*sql.DB, *models.Queries) {
 		panic(fmt.Errorf("error copying to new file: %w", err))
 	}
 
-	db, err := sql.Open("sqlite3", newTestDb.Name())
+	testdb, err = sql.Open("sqlite3", newTestDb.Name())
 	if err != nil {
 		panic(err)
 	}
-	queries := models.New(db)
-	return db, queries
 }
 
 func LoadUser(q *models.Queries) context.Context {
