@@ -40,7 +40,7 @@ func (t *Team) GetTeams(w http.ResponseWriter, r *http.Request) {
 
 func (t *Team) GetTeamsCreate(w http.ResponseWriter, r *http.Request) {
 	hxOpenModal(w)
-	view_team.TeamModal(true, &view_team.TeamFormDTO{}).Render(r.Context(), w)
+	view_team.TeamModal(true, &view_team.TeamFormDTO{IsFirstTeam: r.URL.Query().Get("firstTeam") != ""}).Render(r.Context(), w)
 }
 
 func (t *Team) GetTeam(w http.ResponseWriter, r *http.Request) {
@@ -55,6 +55,7 @@ func (t *Team) GetTeam(w http.ResponseWriter, r *http.Request) {
 
 func (t *Team) PostTeams(w http.ResponseWriter, r *http.Request) {
 	dto := &view_team.TeamFormDTO{
+		IsFirstTeam:  r.FormValue("firstTeam") != "",
 		Name:         r.FormValue("name"),
 		Organization: r.FormValue("organization"),
 	}
@@ -71,6 +72,7 @@ func (t *Team) PostTeams(w http.ResponseWriter, r *http.Request) {
 		view_team.TeamForm(true, dto).Render(r.Context(), w)
 	} else {
 		hxCloseModal(w)
+		hxRetarget(w, "#owned-teams-list", "beforeend")
 		view_team.TeamRow(team).Render(r.Context(), w)
 	}
 }

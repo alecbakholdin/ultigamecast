@@ -15,7 +15,7 @@ templ TeamsPage(teams []models.Team) {
 						class="block"
 					>
 						<a
-							hx-get="/teams-create"
+							hx-get="/teams-create?firstTeam=true"
 							hx-indicator="closest div"
 							hx-target="#modal-content"
 							hx-swap="innerHTML"
@@ -26,27 +26,29 @@ templ TeamsPage(teams []models.Team) {
 					</div>
 				</div>
 			</section>
-		}
-		if owned := getOwnedTeams(ctx, teams); len(owned) > 0 {
-			<section class="section">
-				<div class="container">
-					for _, t := range owned {
+	}
+		<section
+			class="section [&:has(.team-list:empty)]:hidden"
+		>
+			<div class="container">
+				<div id="owned-teams-list" class="team-list">
+					for _, t := range getOwnedTeams(ctx, teams) {
 						@TeamRow(&t)
 					}
-					<div class="buttons">
-						<a
-							class="button is-primary htmx-loading"
-							hx-get="/teams-create"
-							hx-target="#modal-content"
-							hx-swap="innerHTMl"
-							hx-indicator="closest div"
-						>
-							Create a team
-						</a>
-					</div>
 				</div>
-			</section>
-		}
+				<div class="buttons">
+					<a
+						class="button is-primary htmx-loading"
+						hx-get="/teams-create"
+						hx-target="#modal-content"
+						hx-swap="innerHTMl"
+						hx-indicator="closest div"
+					>
+						Create a team
+					</a>
+				</div>
+			</div>
+		</section>
 	}
 }
 

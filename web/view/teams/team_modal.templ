@@ -5,6 +5,7 @@ import "ultigamecast/web/view/component/dto_field"
 
 type TeamFormDTO struct {
 	view_component.DTO
+	IsFirstTeam  bool
 	Name         string `validate:"required,max=64,ascii"`
 	Organization string `validate:"max=64,ascii"`
 }
@@ -25,7 +26,7 @@ templ TeamModal(isNew bool, dto *TeamFormDTO) {
 	</div>
 	<footer class="modal-card-foot">
 		<div class="buttons">
-			<button class="button">
+			<button class="button" onclick="htmx.trigger(this, 'closemodal')">
 				Cancel
 			</button>
 			<button
@@ -47,6 +48,9 @@ templ TeamForm(new bool, dto *TeamFormDTO) {
 		hx-indicator="closest .modal"
 		hx-disabled-elt={ "#" + createTeamSubmitId }
 	>
+		if dto.IsFirstTeam {
+			<input type="hidden" name="firstTeam" value="true"/>
+		}
 		@dto_field.Field(dto, "Name",
 			dto_field.Label("Name"),
 			dto_field.Name("name"),
