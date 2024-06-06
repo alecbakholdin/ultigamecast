@@ -70,6 +70,8 @@ func (t *Team) PostTeams(w http.ResponseWriter, r *http.Request) {
 	} else if err != nil {
 		dto.AddFormError("unexpected error")
 		view_team.TeamForm(true, dto).Render(r.Context(), w)
+	} else if dto.IsFirstTeam {
+		hxRefresh(w)
 	} else {
 		hxCloseModal(w)
 		hxRetarget(w, "#owned-teams-list", "beforeend")
