@@ -1,10 +1,11 @@
 package view_team
 
-import "ultigamecast/web/view/component"
-import "ultigamecast/web/view/component/dto_field"
+import "ultigamecast/web/view/component/dto"
+import "ultigamecast/web/view/component/dto/field"
+import "ultigamecast/web/view/component/dto/field/mod"
 
 type TeamFormDTO struct {
-	view_component.DTO
+	dto.DTO
 	IsFirstTeam  bool
 	Name         string `validate:"required,max=64,ascii"`
 	Organization string `validate:"max=64,ascii"`
@@ -51,20 +52,16 @@ templ TeamForm(new bool, dto *TeamFormDTO) {
 		if dto.IsFirstTeam {
 			<input type="hidden" name="firstTeam" value="true"/>
 		}
-		@dto_field.Field(dto, "Name",
-			dto_field.Label("Name"),
-			dto_field.Name("name"),
-			dto_field.Placeholder("Name"),
-			dto_field.Autocomplete("off"),
-			dto_field.IconLeft("fa-t"),
+		@field.Field(dto, "Name",
+			mod.FieldNameGuesser(),
+			mod.Autocomplete("off"),
+			mod.IconLeft("fa-t"),
 		)
-		@dto_field.Field(dto, "Organization",
-			dto_field.Label("Organization"),
-			dto_field.Name("organization"),
-			dto_field.Placeholder("Organization"),
-			dto_field.Autocomplete("off"),
-			dto_field.IconLeft("fa-user-group"),
-			dto_field.TooltipHelpText("e.g. Example University"),
+		@field.Field(dto, "Organization",
+			mod.FieldNameGuesser(),
+			mod.Autocomplete("off"),
+			mod.IconLeft("fa-user-group"),
+			mod.TooltipHelpText("e.g. Example University"),
 		)
 		<span class="is-danger">
 			{ dto.FormError() }

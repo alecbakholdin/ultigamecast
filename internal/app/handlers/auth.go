@@ -67,7 +67,7 @@ func (a *Auth) PostSignup(w http.ResponseWriter, r *http.Request) {
 	dto := &view_auth.SignUpDTO{
 		Email:           r.FormValue("email"),
 		Password:        r.FormValue("password"),
-		ConfirmPassword: r.FormValue("confirm-password"),
+		ConfirmPassword: r.FormValue("confirm_password"),
 	}
 	if !dto.Validate(dto) {
 		view_auth.SignUpForm(dto).Render(r.Context(), w)

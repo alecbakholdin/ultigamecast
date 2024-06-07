@@ -1,11 +1,12 @@
 package view_auth
 
-import "ultigamecast/web/view/component"
 import "ultigamecast/web/view/layout"
-import "ultigamecast/web/view/component/dto_field"
+import "ultigamecast/web/view/component/dto"
+import "ultigamecast/web/view/component/dto/field"
+import "ultigamecast/web/view/component/dto/field/mod"
 
 type SignUpDTO struct {
-	view_component.DTO
+	dto.DTO
 	Email           string `validate:"email,required"`
 	Password        string `validate:"required,min=8,max=64"`
 	ConfirmPassword string `validate:"required,eqcsfield=Password"`
@@ -31,32 +32,25 @@ templ SignUpForm(dto *SignUpDTO) {
 		hx-swap="outerHTML"
 		hx-disabled-elt="button"
 	>
-		@dto_field.Field(dto, "Email",
-			dto_field.MediumField(),
-			dto_field.TypeEmail(),
-			dto_field.Label("Email"),
-			dto_field.Name("email"),
-			dto_field.Placeholder("Email"),
-			dto_field.IconLeft("fa-envelope"),
-			dto_field.Autocomplete("email"),
+		@field.Field(dto, "Email",
+			mod.FieldNameGuesser(),
+			mod.InputTypeEmail(),
+			mod.Autocomplete("email"),
+			mod.IconLeft("fa-envelope"),
 		)
-		@dto_field.Field(dto, "Password",
-			dto_field.MediumField(),
-			dto_field.TypePassword(),
-			dto_field.Label("Password"),
-			dto_field.Name("password"),
-			dto_field.Placeholder("Password"),
-			dto_field.IconLeft("fa-lock"),
-			dto_field.Autocomplete("new-password"),
+		@field.Field(dto, "Password",
+			mod.FieldNameGuesser(),
+			mod.FieldSizeMedium(),
+			mod.InputTypePassword(),
+			mod.IconLeft("fa-lock"),
+			mod.Autocomplete("new-password"),
 		)
-		@dto_field.Field(dto, "ConfirmPassword",
-			dto_field.MediumField(),
-			dto_field.TypePassword(),
-			dto_field.Label("Confirm Password"),
-			dto_field.Placeholder("Confirm Password"),
-			dto_field.Name("confirm-password"),
-			dto_field.IconLeft("fa-lock"),
-			dto_field.Autocomplete("new-password"),
+		@field.Field(dto, "ConfirmPassword",
+			mod.FieldNameGuesser(),
+			mod.FieldSizeMedium(),
+			mod.InputTypePassword(),
+			mod.IconLeft("fa-lock"),
+			mod.Autocomplete("new-password"),
 		)
 		<button class="button htmx-loading is-medium is-fullwidth is-primary">
 			<span class="icon is-large"><i class="fas fa-check fa-lg"></i></span>

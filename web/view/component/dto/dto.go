@@ -1,4 +1,4 @@
-package view_component
+package dto
 
 import (
 	"encoding/json"

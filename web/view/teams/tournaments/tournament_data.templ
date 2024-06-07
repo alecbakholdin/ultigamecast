@@ -2,10 +2,10 @@ package view_tournament
 
 import "ultigamecast/internal/models"
 import "ultigamecast/internal/ctxvar"
-import "ultigamecast/web/view/component"
 import "fmt"
 import "ultigamecast/internal/models/tournament_data_types"
 import "strconv"
+import "ultigamecast/web/view/component/dto"
 
 templ TournamentDatum(td *models.TournamentDatum) {
 	if ctxvar.IsAdmin(ctx) {
@@ -20,7 +20,7 @@ templ tournamentDataDisplayOnly(td *models.TournamentDatum) {
 }
 
 type TournamentDataDTO struct {
-	view_component.DTO
+	dto.DTO
 	*models.TournamentDatum
 }
 

@@ -1,13 +1,13 @@
-package dto_field
+package field
 
 templ Field(dto FieldErrorAccessor, dtoField string, modifiers ...Modifier) {
 	@FieldFromConfig(NewFieldConfig(dto, dtoField, modifiers...))
 }
 
 templ FieldFromConfig(fc *FieldConfig) {
-	<div class="field">
+	<div class="field" x-id="['input']">
 		if fc.Label != "" {
-			<label class="label level justify-start">
+			<label class="label level justify-start" :for="$id('input')">
 				<span>{ fc.Label }</span>
 				if fc.TooltipHelpText != "" {
 					<span class="icon" data-tooltip={ fc.TooltipHelpText }><i class="fa-regular fa-circle-question"></i></span>
@@ -16,25 +16,17 @@ templ FieldFromConfig(fc *FieldConfig) {
 		}
 		<div class={ "control", fc.LeftIconClass(), fc.RightIconClass() }>
 			<input
-				type={ string(fc.Type) }
-				if fc.Placeholder != "" {
-					placeholder={ fc.Placeholder }
-				}
-				if fc.Autocomplete != "" {
-					autocomplete={ fc.Autocomplete }
-				}
-				if fc.Name != "" {
-					name={ fc.Name }
-				}
+				:id="$id('input')"
 				class={ "input", string(fc.FieldColor), string(fc.Size) }
+				{fc.InputAttributes...}
 			/>
 			if fc.FaLeftIcon != "" {
-				<span class={ "icon is-left", string(fc.IconSize) }>
+				<span class={ "icon is-left", string(fc.IconSize), string(fc.LeftIconColor) }>
 					<i class={ "fas", string(fc.FaLeftIcon), string(fc.FaIconSize) }></i>
 				</span>
 			}
 			if fc.FaRightIcon != "" {
-				<span class={ "icon is-right", string(fc.IconSize) }>
+				<span class={ "icon is-right", string(fc.IconSize), string(fc.RightIconColor) }>
 					<i class={ "fas", string(fc.FaRightIcon), string(fc.FaIconSize) }></i>
 				</span>
 			}

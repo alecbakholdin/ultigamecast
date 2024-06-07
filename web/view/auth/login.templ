@@ -1,10 +1,12 @@
 package view_auth
 
 import "ultigamecast/web/view/layout"
-import "ultigamecast/web/view/component"
+import "ultigamecast/web/view/component/dto"
+import "ultigamecast/web/view/component/dto/field"
+import "ultigamecast/web/view/component/dto/field/mod"
 
 type LoginFormDTO struct {
-	view_component.DTO
+	dto.DTO
 	Email    string `validate:"required,email" json:"email"`
 	Password string `validate:"required" json:"password"`
 }
@@ -30,42 +32,18 @@ templ LoginForm(dto *LoginFormDTO) {
 		hx-swap="outerHTML"
 		hx-disabled-elt="button"
 	>
-		<div class="field">
-			<label for="email" class="label">Email</label>
-			<div class="control has-icons-left">
-				<input
-					type="email"
-					name="email"
-					id="email"
-					placeholder="Email"
-					class={ dto.FieldInputClasses("Email", "input is-medium") }
-					autocomplete="email"
-				/>
-				<span class="icon is-left is-large"><i class="fas fa-envelope fa-lg"></i></span>
-			</div>
-			<span class="help is-danger">
-				{ dto.FieldError("Email") }
-			</span>
-		</div>
-		<div class="field">
-			<label for="password" class="label">Password</label>
-			<div class="control has-icons-left">
-				<input
-					type="password"
-					name="password"
-					id="password"
-					placeholder="Password"
-					class={ dto.FieldInputClasses("Password", "input is-medium") }
-					autocomplete="current-password"
-				/>
-				<span class="icon is-left is-large">
-					<i class="fa-solid fa-lock fa-lg"></i>
-				</span>
-				<span class="help is-danger">
-					{ dto.FieldError("Email") }
-				</span>
-			</div>
-		</div>
+		@field.Field(dto, "Email",
+			mod.FieldNameGuesser(),
+			mod.FieldSizeMedium(),
+			mod.InputTypeEmail(),
+			mod.IconLeft("fa-envelope"),
+		)
+		@field.Field(dto, "Password",
+			mod.FieldNameGuesser(),
+			mod.FieldSizeMedium(),
+			mod.InputTypePassword(),
+			mod.IconLeft("fa-lock"),
+		)
 		<button class="button htmx-loading is-medium is-fullwidth is-primary">
 			<span class="icon is-large"><i class="fas fa-check fa-lg"></i></span>
 			<span>Submit</span>

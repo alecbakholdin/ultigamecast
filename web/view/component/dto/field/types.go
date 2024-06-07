@@ -1,4 +1,8 @@
-package dto_field
+package field
+
+type Modifier interface {
+	Apply(*FieldConfig)
+}
 
 type TextColor string
 
@@ -22,4 +26,29 @@ const (
 	FieldColorSuccess FieldColor = "is-success"
 	FieldColorWarning FieldColor = "is-warning"
 	FieldColorDanger  FieldColor = "is-danger"
+)
+
+type InputType string
+
+const (
+	InputTypeText     InputType = "text"
+	InputTypeEmail    InputType = "email"
+	InputTypePassword InputType = "password"
+)
+
+type Size string
+
+const (
+	SizeSmall  Size = "is-small"
+	SizeNormal Size = ""
+	SizeMedium Size = "is-medium"
+	SizeLarge  Size = "is-large"
+)
+
+type FaSize string
+
+const (
+	FaSizeSmall  FaSize = "fa-sm"
+	FaSizeNormal FaSize = ""
+	FaSizeLarge  FaSize = "fa-lg"
 )

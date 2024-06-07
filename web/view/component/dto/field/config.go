@@ -1,4 +1,4 @@
-package dto_field
+package field
 
 import (
 	"github.com/a-h/templ"
@@ -11,24 +11,22 @@ type FieldErrorAccessor interface {
 type FieldConfig struct {
 	Dto      FieldErrorAccessor
 	DtoField string
-
-	Type       InputType
+	
 	Label      string
-	Name       string
+	Size         Size
 	FieldColor FieldColor
-
+	
 	HelpText      string
 	HelpTextColor TextColor
-
 	TooltipHelpText string
-
-	Autocomplete string
-	Placeholder  string
-	Size         Size
+	
+	InputAttributes templ.Attributes
 
 	IconSize    Size
 	FaLeftIcon  string
+	LeftIconColor TextColor
 	FaRightIcon string
+	RightIconColor TextColor
 	FaIconSize  FaSize
 }
 
@@ -39,15 +37,24 @@ func NewFieldConfig(dto FieldErrorAccessor, dtoField string, modifiers ...Modifi
 		Size:       SizeNormal,
 		IconSize:   SizeNormal,
 		FaIconSize: FaSizeLarge,
+		InputAttributes: templ.Attributes{},
+	}
+
+
+	for _, m := range modifiers {
+		m.Apply(config)
 	}
 
 	if e := dto.FieldError(dtoField); e != "" {
-		modifiers = append(modifiers, Error(e))
+		config.HelpText = e
+		config.HelpTextColor = TextColorDanger
+		config.FieldColor = FieldColorDanger
+		if config.FaRightIcon == "" {
+			config.FaRightIcon = "fa-exclamation-triangle"
+			config.RightIconColor = TextColorDanger
+		}
 	}
 
-	for _, m := range modifiers {
-		m(config)
-	}
 	return config
 }
 

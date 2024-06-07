@@ -3,9 +3,10 @@ package view_players
 import "ultigamecast/web/view/component"
 import "fmt"
 import "ultigamecast/internal/ctxvar"
+import "ultigamecast/web/view/component/dto"
 
 type CreatePlayerDTO struct {
-	view_component.DTO
+	dto.DTO
 	Name string `validate:"required,ascii,max=64"`
 }
 
