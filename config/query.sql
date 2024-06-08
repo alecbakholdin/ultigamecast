@@ -25,11 +25,15 @@ FROM team_follow tf
     INNER JOIN teams t ON t.id = tf.team
 WHERE tf.user = @userId
 ORDER BY t.name ASC;
--- name: UpdateTeam :one
+-- name: UpdateTeamName :one
 UPDATE teams
 SET "name" = ?,
-    "slug" = ?,
-    organization = ?
+    "slug" = @newSlug
+WHERE teams.slug = @oldSlug
+RETURNING *;
+-- name: UpdateTeamOrganization :one
+UPDATE teams
+SET organization = ?
 WHERE teams.slug = @slug
 RETURNING *;
 -- name: UpdateTeamOwner :one

@@ -96,3 +96,9 @@ is-gap-4 {
 .htmx-request .control.htmx-loading.is-large:after {
   font-size: var(--bulma-size-large);
 }
+
+.hover-primary-text:hover {
+  --bulma-color-l: var(--bulma-primary-l);
+  --bulma-color-l-delta: 0%;
+  color: hsl(171deg, 100%, calc(41% + 0%)) !important;
+}

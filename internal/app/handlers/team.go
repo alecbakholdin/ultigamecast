@@ -21,7 +21,8 @@ type TeamService interface {
 	GetTeams(ctx context.Context) ([]models.Team, error)
 
 	CreateTeam(ctx context.Context, name, organization string) (*models.Team, error)
-	UpdateTeam(ctx context.Context, name, organization string) (*models.Team, error)
+	UpdateName(ctx context.Context, name string) (*models.Team, error)
+	UpdateOrganization(ctx context.Context, organization string) (*models.Team, error)
 }
 
 func NewTeam(t TeamService) *Team {
@@ -79,37 +80,47 @@ func (t *Team) PostTeams(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (t *Team) GetTeamsEdit(w http.ResponseWriter, r *http.Request) {
-	if team := ctxvar.GetTeam(r.Context()); team == nil {
-		http.NotFound(w, r)
-	} else {
-		hxOpenModal(w)
-		view_team.TeamModal(false, &view_team.TeamFormDTO{
-			Name:         team.Name,
-			Organization: team.Organization.String,
-		}).Render(r.Context(), w)
+func (t *Team) GetEdit(w http.ResponseWriter, r *http.Request) {
+	field := r.URL.Query().Get("field")
+	switch field {
+	case "Organization":
+		view_team.OrganizationForm(ctxvar.GetTeam(r.Context())).Render(r.Context(), w)
+	case "Name":
+		view_team.NameForm(ctxvar.GetTeam(r.Context())).Render(r.Context(), w)
+	default:
+		panic(fmt.Sprintf("unexpected field %s", field))
 	}
 }
 
-func (t *Team) PutTeam(w http.ResponseWriter, r *http.Request) {
-	dto := &view_team.TeamFormDTO{
-		Name:         r.FormValue("name"),
-		Organization: r.FormValue("organization"),
+func (t *Team) PutEdit(w http.ResponseWriter, r *http.Request) {
+	field := r.URL.Query().Get("field")
+	switch field {
+	case "Organization":
+		if team, err := t.t.UpdateOrganization(r.Context(), r.FormValue("organization")); err != nil {
+			view_team.OrganizationForm(ctxvar.GetTeam(r.Context())).Render(r.Context(), w)
+		} else {
+			view_team.Organization(team).Render(r.Context(), w)
+		}
+	case "Name":
+		if team, err := t.t.UpdateName(r.Context(), r.FormValue("name")); err != nil {
+			view_team.NameForm(ctxvar.GetTeam(r.Context())).Render(r.Context(), w)
+		} else {
+			hxLocation(w, ctxvar.Url(r.Context(), team))
+			view_team.Name(team).Render(r.Context(), w)
+		}
+	default:
+		panic(fmt.Sprintf("unexpected field %s", field))
 	}
-	if !dto.Validate(dto) {
-		view_team.TeamForm(true, dto).Render(r.Context(), w)
-		return
-	}
+}
 
-	if team, err := t.t.UpdateTeam(r.Context(), dto.Name, dto.Organization); errors.Is(err, service.ErrTeamExists) {
-		dto.AddFieldError("Name", "Name is already taken")
-		view_team.TeamForm(true, dto).Render(r.Context(), w)
-	} else if err != nil {
-		dto.AddFormError("unexpected error")
-		view_team.TeamForm(true, dto).Render(r.Context(), w)
-	} else {
-		hxRetarget(w, fmt.Sprintf("#team-%d", team.ID), "outerHTML")
-		hxCloseModal(w)
-		view_team.TeamRow(team).Render(r.Context(), w)
+func (t *Team) GetCancelEdit(w http.ResponseWriter, r *http.Request) {
+	field := r.URL.Query().Get("field")
+	switch field {
+	case "Organization":
+		view_team.Organization(ctxvar.GetTeam(r.Context())).Render(r.Context(), w)
+	case "Name":
+		view_team.Name(ctxvar.GetTeam(r.Context())).Render(r.Context(), w)
+	default:
+		panic(fmt.Sprintf("unexpected field %s", field))
 	}
 }

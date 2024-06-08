@@ -28,6 +28,8 @@ type FieldConfig struct {
 	FaRightIcon string
 	RightIconColor TextColor
 	FaIconSize  FaSize
+	
+	IncludeButtons bool
 }
 
 func NewFieldConfig(dto FieldErrorAccessor, dtoField string, modifiers ...Modifier) *FieldConfig {

@@ -77,7 +77,7 @@ func (t *Team) CreateTeam(ctx context.Context, name, organization string) (*mode
 	return &team, nil
 }
 
-func (t *Team) UpdateTeam(ctx context.Context, name, organization string) (*models.Team, error) {
+func (t *Team) UpdateName(ctx context.Context, name string) (*models.Team, error) {
 	oldSlug := ctxvar.GetTeam(ctx).Slug
 	slug := slug.From(name)
 	if slug != oldSlug {
@@ -87,13 +87,28 @@ func (t *Team) UpdateTeam(ctx context.Context, name, organization string) (*mode
 			return nil, ErrTeamExists
 		}
 	}
-	newTeam, err := t.q.UpdateTeam(ctx, models.UpdateTeamParams{
-		Name:         name,
-		Organization: sql.NullString{String: organization, Valid: organization != ""},
-		Slug:         oldSlug,
+	newTeam, err := t.q.UpdateTeamName(ctx, models.UpdateTeamNameParams{
+		Name:    name,
+		OldSlug: oldSlug,
+		NewSlug: slug,
 	})
 	if err != nil {
 		return nil, convertAndLogSqlError(ctx, "error updating team", err)
 	}
 	return &newTeam, nil
+}
+
+func (t *Team) UpdateOrganization(ctx context.Context, organization string) (*models.Team, error) {
+	team := ctxvar.GetTeam(ctx)
+	if team.Organization.String == organization {
+		return team, nil
+	}
+	updatedTeam, err := t.q.UpdateTeamOrganization(ctx, models.UpdateTeamOrganizationParams{
+		Slug:         team.Slug,
+		Organization: sql.NullString{String: organization, Valid: organization != ""},
+	})
+	if err != nil {
+		return nil, convertAndLogSqlError(ctx, "error updating organization", err)
+	}
+	return &updatedTeam, nil
 }

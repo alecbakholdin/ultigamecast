@@ -48,9 +48,9 @@ func main() {
 	// public directory
 	if dir, err := filepath.Glob("./web/public/**"); err != nil {
 		panic(fmt.Errorf("could not read directory web/dir: %w", err))
-	} else  {
+	} else {
 		for _, f := range dir {
-			http.HandleFunc(fmt.Sprintf("GET %s", strings.TrimPrefix(f, "web/public")), func(w http.ResponseWriter, r *http.Request) {http.ServeFile(w, r, f)})
+			http.HandleFunc(fmt.Sprintf("GET %s", strings.TrimPrefix(f, "web/public")), func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, f) })
 		}
 	}
 
@@ -70,8 +70,9 @@ func main() {
 	http.Handle("GET /teams", authenticatedOnly.ThenFunc(teamHandler.GetTeams))
 	http.Handle("POST /teams", authenticatedOnly.ThenFunc(teamHandler.PostTeams))
 	http.Handle("GET /teams/{teamSlug}", withTeam.ThenFunc(teamHandler.GetTeam))
-	http.Handle("PUT /teams/{teamSlug}", withTeamAdminOnly.ThenFunc(teamHandler.PutTeam))
-	http.Handle("GET /teams-edit/{teamSlug}", withTeamAdminOnly.ThenFunc(teamHandler.GetTeamsEdit))
+	http.Handle("GET /teams/{teamSlug}/edit", withTeamAdminOnly.ThenFunc(teamHandler.GetEdit))
+	http.Handle("PUT /teams/{teamSlug}/edit", withTeamAdminOnly.ThenFunc(teamHandler.PutEdit))
+	http.Handle("GET /teams/{teamSlug}/cancel-edit", withTeamAdminOnly.ThenFunc(teamHandler.GetCancelEdit))
 	http.Handle("GET /teams-create", authenticatedOnly.ThenFunc(teamHandler.GetTeamsCreate))
 
 	playerHandler := handlers.NewPlayer(playerService)

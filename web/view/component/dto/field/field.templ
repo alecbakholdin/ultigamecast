@@ -5,7 +5,7 @@ templ Field(dto FieldErrorAccessor, dtoField string, modifiers ...Modifier) {
 }
 
 templ FieldFromConfig(fc *FieldConfig) {
-	<div class="field" x-id="['input']">
+	<div class={ "field", templ.KV("has-addons", fc.IncludeButtons) } x-id="['input']">
 		if fc.Label != "" {
 			<label class="label level justify-start" :for="$id('input')">
 				<span>{ fc.Label }</span>
@@ -18,7 +18,7 @@ templ FieldFromConfig(fc *FieldConfig) {
 			<input
 				:id="$id('input')"
 				class={ "input", string(fc.FieldColor), string(fc.Size) }
-				{fc.InputAttributes...}
+				{ fc.InputAttributes... }
 			/>
 			if fc.FaLeftIcon != "" {
 				<span class={ "icon is-left", string(fc.IconSize), string(fc.LeftIconColor) }>
@@ -31,6 +31,23 @@ templ FieldFromConfig(fc *FieldConfig) {
 				</span>
 			}
 		</div>
+		if fc.IncludeButtons {
+			<div class="control">
+				<button class="button" type="button" hx-on:click="htmx.trigger(this, 'cancel')">
+					<span class={ "icon", string(fc.IconSize) }>
+						<i class={ "fas fa-xmark", string(fc.FaIconSize) }></i>
+					</span>
+				</button>
+			</div>
+			<div class="control">
+				<button class="button is-primary">
+					<span class={"icon", string(fc.IconSize)}>
+						<i class={"fas fa-check", string(fc.FaIconSize)}>
+						</i>
+					</span>
+				</button>
+			</div>
+		}
 		if fc.HelpText != "" {
 			<p class={ "help", string(fc.HelpTextColor) }>
 				{ fc.HelpText }

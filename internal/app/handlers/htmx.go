@@ -26,6 +26,10 @@ func hxTrigger(w http.ResponseWriter, event string) {
 	w.Header().Add("Hx-Trigger", event)
 }
 
+func hxLocation(w http.ResponseWriter, url string) {
+	w.Header().Add("HX-Location", url)
+}
+
 func hxRetarget(w http.ResponseWriter, target, swap string) {
 	w.Header().Add("Hx-Retarget", target)
 	w.Header().Add("Hx-Reswap", swap)

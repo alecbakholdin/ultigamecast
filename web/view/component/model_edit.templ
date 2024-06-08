@@ -1,0 +1,22 @@
+package view_component
+
+import "ultigamecast/internal/ctxvar"
+
+templ EditModelField(size, err string) {
+    
+}
+
+templ EditModelFieldLink(link string) {
+	if ctxvar.IsAdmin(ctx) {
+		<a
+			hx-get={ link }
+			hx-target="this"
+			hx-swap="outerHTML"
+			class="hover-primary-text underline"
+		>
+			{ children... }
+		</a>
+	} else {
+		{ children... }
+	}
+}

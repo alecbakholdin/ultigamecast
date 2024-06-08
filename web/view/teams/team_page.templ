@@ -1,0 +1,106 @@
+package view_team
+
+import "ultigamecast/internal/models"
+import "ultigamecast/web/view/layout"
+import "fmt"
+import "ultigamecast/internal/ctxvar"
+import "ultigamecast/web/view/component/dto"
+import "ultigamecast/web/view/component/dto/field"
+
+var tabs = []struct {
+	name string
+	icon string
+	url  string
+}{
+	{"Schedule", "fa-calendar-days", "schedule"},
+	{"Roster", "fa-user", "roster"},
+	{"Statistics", "fa-chart-line", "statistics"},
+}
+
+templ TeamPage(team *models.Team) {
+	@view_layout.NavLayout() {
+		<section class="section" x-data="{ activeTab: 0 }">
+			<div class="container flex p-2 gap-4">
+				<img src="/frisbee.png" alt={ team.Name } class="w-20 h-20"/>
+				<div class="flex-column gap-2">
+					@Name(team)
+					@Organization(team)
+				</div>
+			</div>
+			<div class="container">
+				<div class="tabs is-left">
+					<ul>
+						for i, t := range tabs {
+							<li x-bind:class={ fmt.Sprintf("activeTab === %d ? 'is-active' : ''", i) }>
+								<a
+									hx-get={ ctxvar.Url(ctx, ctxvar.Team, t.url) }
+									hx-target={ fmt.Sprintf("#tab-%d", i) }
+									hx-swap="innerHTML"
+									hx-on::after-request="this.setAttribute('hx-disable', 'true')"
+									x-on:click={ fmt.Sprintf("activeTab = %d", i) }
+									if i == 0 {
+										hx-trigger="load"
+									}
+								>
+									<span class="icon"><i class={ "fas", t.icon }></i></span>
+									<span>{ t.name }</span>
+								</a>
+							</li>
+						}
+					</ul>
+				</div>
+			</div>
+			for i := range tabs {
+				<div
+					id={ fmt.Sprintf("tab-%d", i) }
+					x-bind:class={ fmt.Sprintf("activeTab !== %d ? 'hidden' : ''", i) }
+					class="container"
+				>
+					<div class="flex justify-center"><span class="icon is-large animate-spin"><i class="fas fa-spinner fa-lg"></i></span></div>
+				</div>
+			}
+		</section>
+	}
+}
+
+templ Name(t *models.Team) {
+	if ctxvar.IsAdmin(ctx) {
+		<a
+			hx-get={ ctxvar.Url(ctx, ctxvar.Team, "edit?field=Name") }
+			hx-target="this"
+			hx-swap="outerHTML"
+			class="hover-primary-text"
+		>
+			<h4 class="is-size-4 underline">{ t.Name }</h4>
+		</a>
+	} else {
+		<h4 class="is-size-4">{ t.Name }</h4>
+	}
+}
+
+type NameDTO struct {
+	dto.DTO
+	Name string `validate:"required,max=64"`
+}
+
+templ NameForm(dto *NameDTO) {
+	<div
+		hx-get={ctxvar.Url(ctx, ctxvar.Team, "cancel-edit?field=Name")}
+		hx-target="this"
+		hx-swap="outerHTML"
+		hx-trigger="cancel"
+	>
+		<form
+			hx-put={ctxvar.Url(ctx, ctxvar.Team, "edit?field=Name")}
+		>
+			@field.Field(dto, "Name")
+			
+		</form>
+	</div>
+}
+
+templ Organization(t *models.Team) {
+}
+
+templ OrganizationForm(t *models.Team) {
+}
