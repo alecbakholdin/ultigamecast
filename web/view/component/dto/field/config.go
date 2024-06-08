@@ -4,44 +4,44 @@ import (
 	"github.com/a-h/templ"
 )
 
-type FieldErrorAccessor interface {
+type FormFieldErrorAccessor interface {
 	FieldError(string) string
+	FormError() string
 }
 
 type FieldConfig struct {
-	Dto      FieldErrorAccessor
+	Dto      FormFieldErrorAccessor
 	DtoField string
-	
+
 	Label      string
-	Size         Size
+	Size       Size
 	FieldColor FieldColor
-	
-	HelpText      string
-	HelpTextColor TextColor
+
+	HelpText        string
+	HelpTextColor   TextColor
 	TooltipHelpText string
-	
+
 	InputAttributes templ.Attributes
 
-	IconSize    Size
-	FaLeftIcon  string
-	LeftIconColor TextColor
-	FaRightIcon string
+	IconSize       Size
+	FaLeftIcon     string
+	LeftIconColor  TextColor
+	FaRightIcon    string
 	RightIconColor TextColor
-	FaIconSize  FaSize
-	
+	FaIconSize     FaSize
+
 	IncludeButtons bool
 }
 
-func NewFieldConfig(dto FieldErrorAccessor, dtoField string, modifiers ...Modifier) *FieldConfig {
+func NewFieldConfig(dto FormFieldErrorAccessor, dtoField string, modifiers ...Modifier) *FieldConfig {
 	config := &FieldConfig{
-		Dto:        dto,
-		DtoField:   dtoField,
-		Size:       SizeNormal,
-		IconSize:   SizeNormal,
-		FaIconSize: FaSizeLarge,
+		Dto:             dto,
+		DtoField:        dtoField,
+		Size:            SizeNormal,
+		IconSize:        SizeNormal,
+		FaIconSize:      FaSizeLarge,
 		InputAttributes: templ.Attributes{},
 	}
-
 
 	for _, m := range modifiers {
 		m.Apply(config)

@@ -82,11 +82,14 @@ func (t *Team) PostTeams(w http.ResponseWriter, r *http.Request) {
 
 func (t *Team) GetEdit(w http.ResponseWriter, r *http.Request) {
 	field := r.URL.Query().Get("field")
+	team := ctxvar.GetTeam(r.Context())
 	switch field {
 	case "Organization":
-		view_team.OrganizationForm(ctxvar.GetTeam(r.Context())).Render(r.Context(), w)
+		dto := &view_team.OrganizationDTO{Organization: team.Organization.String}
+		view_team.OrganizationForm(dto).Render(r.Context(), w)
 	case "Name":
-		view_team.NameForm(ctxvar.GetTeam(r.Context())).Render(r.Context(), w)
+		dto := &view_team.NameDTO{Name: team.Name}
+		view_team.NameForm(dto).Render(r.Context(), w)
 	default:
 		panic(fmt.Sprintf("unexpected field %s", field))
 	}
@@ -96,16 +99,28 @@ func (t *Team) PutEdit(w http.ResponseWriter, r *http.Request) {
 	field := r.URL.Query().Get("field")
 	switch field {
 	case "Organization":
-		if team, err := t.t.UpdateOrganization(r.Context(), r.FormValue("organization")); err != nil {
-			view_team.OrganizationForm(ctxvar.GetTeam(r.Context())).Render(r.Context(), w)
+		dto := &view_team.OrganizationDTO{Organization: r.FormValue("organization")}
+		if !dto.Validate(dto) {
+			view_team.OrganizationForm(dto).Render(r.Context(), w)
+			return
+		}
+		if team, err := t.t.UpdateOrganization(r.Context(), dto.Organization); err != nil {
+			dto.AddFormError("unexpected error")
+			view_team.OrganizationForm(dto).Render(r.Context(), w)
 		} else {
 			view_team.Organization(team).Render(r.Context(), w)
 		}
 	case "Name":
-		if team, err := t.t.UpdateName(r.Context(), r.FormValue("name")); err != nil {
-			view_team.NameForm(ctxvar.GetTeam(r.Context())).Render(r.Context(), w)
+		dto := &view_team.NameDTO{Name: r.FormValue("name")}
+		if !dto.Validate(dto) {
+			view_team.NameForm(dto).Render(r.Context(), w)
+			return
+		}
+		if team, err := t.t.UpdateName(r.Context(), dto.Name); err != nil {
+			dto.AddFormError("unexpected error")
+			view_team.NameForm(dto).Render(r.Context(), w)
 		} else {
-			hxLocation(w, ctxvar.Url(r.Context(), team))
+			hxRedirect(w, ctxvar.Url(r.Context(), team))
 			view_team.Name(team).Render(r.Context(), w)
 		}
 	default:

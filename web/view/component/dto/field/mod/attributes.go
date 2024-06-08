@@ -18,6 +18,10 @@ func InputAttribute(k, v string) *AttributeModifier {
 	}
 }
 
+func Value(v string) *AttributeModifier {
+	return InputAttribute("value", v)
+}
+
 func Name(n string) *AttributeModifier {
 	return InputAttribute("name", n)
 }
@@ -28,6 +32,10 @@ func Placeholder(p string) *AttributeModifier {
 
 func Autocomplete(a string) *AttributeModifier {
 	return InputAttribute("autocomplete", a)
+}
+
+func Autofocus() *AttributeModifier {
+	return InputAttribute("autofocus", "true")
 }
 
 func InputType(t field.InputType) *AttributeModifier {

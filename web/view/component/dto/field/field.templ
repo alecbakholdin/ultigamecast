@@ -1,12 +1,12 @@
 package field
 
-templ Field(dto FieldErrorAccessor, dtoField string, modifiers ...Modifier) {
+templ Field(dto FormFieldErrorAccessor, dtoField string, modifiers ...Modifier) {
 	@FieldFromConfig(NewFieldConfig(dto, dtoField, modifiers...))
 }
 
 templ FieldFromConfig(fc *FieldConfig) {
-	<div class={ "field", templ.KV("has-addons", fc.IncludeButtons) } x-id="['input']">
-		if fc.Label != "" {
+	<div class={ "field", templ.KV("has-addons flex-wrap", fc.IncludeButtons) } x-id="['input']">
+		if fc.Label != "" && !fc.IncludeButtons {
 			<label class="label level justify-start" :for="$id('input')">
 				<span>{ fc.Label }</span>
 				if fc.TooltipHelpText != "" {
@@ -33,22 +33,24 @@ templ FieldFromConfig(fc *FieldConfig) {
 		</div>
 		if fc.IncludeButtons {
 			<div class="control">
-				<button class="button" type="button" hx-on:click="htmx.trigger(this, 'cancel')">
+				<button class={ "button htmx-loading", string(fc.Size) } type="button" hx-on:click="htmx.trigger(this, 'cancel')">
 					<span class={ "icon", string(fc.IconSize) }>
 						<i class={ "fas fa-xmark", string(fc.FaIconSize) }></i>
 					</span>
 				</button>
 			</div>
 			<div class="control">
-				<button class="button is-primary">
-					<span class={"icon", string(fc.IconSize)}>
-						<i class={"fas fa-check", string(fc.FaIconSize)}>
-						</i>
+				<button class={ "button is-primary htmx-loading", string(fc.Size) }>
+					<span class={ "icon", string(fc.IconSize) }>
+						<i class={ "fas fa-check", string(fc.FaIconSize) }></i>
 					</span>
 				</button>
 			</div>
 		}
 		if fc.HelpText != "" {
+			if fc.IncludeButtons {
+				<p class="basis-full h-0"></p>
+			}
 			<p class={ "help", string(fc.HelpTextColor) }>
 				{ fc.HelpText }
 			</p>

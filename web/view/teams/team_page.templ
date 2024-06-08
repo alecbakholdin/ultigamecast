@@ -6,6 +6,7 @@ import "fmt"
 import "ultigamecast/internal/ctxvar"
 import "ultigamecast/web/view/component/dto"
 import "ultigamecast/web/view/component/dto/field"
+import "ultigamecast/web/view/component/dto/field/mod"
 
 var tabs = []struct {
 	name string
@@ -19,7 +20,7 @@ var tabs = []struct {
 
 templ TeamPage(team *models.Team) {
 	@view_layout.NavLayout() {
-		<section class="section" x-data="{ activeTab: 0 }">
+		<section class="section" x-data="{ activeTab: 0, editing: false }">
 			<div class="container flex p-2 gap-4">
 				<img src="/frisbee.png" alt={ team.Name } class="w-20 h-20"/>
 				<div class="flex-column gap-2">
@@ -70,6 +71,10 @@ templ Name(t *models.Team) {
 			hx-target="this"
 			hx-swap="outerHTML"
 			class="hover-primary-text"
+			hx-trigger="edit"
+			x-on:click="!editing && htmx.trigger($el, 'edit')"
+			x-on:htmx:before-request="editing = true"
+			x-on:htmx:after-settle="editing = false"
 		>
 			<h4 class="is-size-4 underline">{ t.Name }</h4>
 		</a>
@@ -80,27 +85,78 @@ templ Name(t *models.Team) {
 
 type NameDTO struct {
 	dto.DTO
-	Name string `validate:"required,max=64"`
+	Name string `validate:"required,max=64,ascii"`
 }
 
 templ NameForm(dto *NameDTO) {
 	<div
-		hx-get={ctxvar.Url(ctx, ctxvar.Team, "cancel-edit?field=Name")}
+		hx-get={ ctxvar.Url(ctx, ctxvar.Team, "cancel-edit?field=Name") }
 		hx-target="this"
 		hx-swap="outerHTML"
 		hx-trigger="cancel"
 	>
 		<form
-			hx-put={ctxvar.Url(ctx, ctxvar.Team, "edit?field=Name")}
+			hx-put={ ctxvar.Url(ctx, ctxvar.Team, "edit?field=Name") }
 		>
-			@field.Field(dto, "Name")
-			
+			@field.Field(dto, "Name",
+				mod.FieldNameGuesser(),
+				mod.IncludeButtons(),
+				mod.Value(dto.Name),
+				mod.Autocomplete("off"),
+				mod.Autofocus(),
+				mod.IncludeFormError(),
+			)
 		</form>
 	</div>
 }
 
 templ Organization(t *models.Team) {
+	if ctxvar.IsAdmin(ctx) {
+		<a
+			hx-get={ ctxvar.Url(ctx, ctxvar.Team, "edit?field=Organization") }
+			hx-target="this"
+			hx-swap="outerHTML"
+			class="is-underlined"
+			hx-trigger="edit"
+			x-on:click="!editing && htmx.trigger($el, 'edit')"
+			x-on:htmx:after-settle="editing = false"
+			x-on:htmx:before-request="editing = true"
+		>
+			if t.Organization.String == "" {
+				<h6 class="is-size-6 hover-primary-text has-text-grey">click to specify an organization</h6>
+			} else {
+				<h6 class="is-size-6 hover-primary-text">{ t.Organization.String }</h6>
+			}
+		</a>
+	} else {
+		<h6 class="is-size-6">{ t.Organization.String }</h6>
+	}
 }
 
-templ OrganizationForm(t *models.Team) {
+type OrganizationDTO struct {
+	dto.DTO
+	Organization string `validate:"max=64,ascii"`
+}
+
+templ OrganizationForm(dto *OrganizationDTO) {
+	<div
+		hx-get={ ctxvar.Url(ctx, ctxvar.Team, "cancel-edit?field=Organization") }
+		hx-target="this"
+		hx-swap="outerHTML"
+		hx-trigger="cancel"
+	>
+		<form
+			hx-put={ ctxvar.Url(ctx, ctxvar.Team, "edit?field=Organization") }
+		>
+			@field.Field(dto, "Organization",
+				mod.FieldNameGuesser(),
+				mod.IncludeButtons(),
+				mod.Value(dto.Organization),
+				mod.Autocomplete("off"),
+				mod.Autofocus(),
+				mod.IncludeFormError(),
+				mod.FieldSizeSmall(),
+			)
+		</form>
+	</div>
 }
