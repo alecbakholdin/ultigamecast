@@ -86,6 +86,18 @@ FROM tournaments
 WHERE team = @teamId
 ORDER BY "start_date" ASC,
     id ASC;
+-- name: ListTeamGames :many
+SELECT g.*
+FROM games g
+INNER JOIN tournaments t
+WHERE t.team = @teamId
+ORDER BY g.start ASC;
+-- name: ListTeamTournamentData :many
+SELECT td.*
+FROM tournament_data td
+INNER JOIN tournaments t
+WHERE t.team = @teamId
+ORDER BY td."order" ASC;
 -- name: CreateTournament :one
 INSERT INTO tournaments (team, "name", slug)
 VALUES (@teamId, ?, ?)

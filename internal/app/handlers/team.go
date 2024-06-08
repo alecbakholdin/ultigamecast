@@ -23,6 +23,8 @@ type TeamService interface {
 	CreateTeam(ctx context.Context, name, organization string) (*models.Team, error)
 	UpdateName(ctx context.Context, name string) (*models.Team, error)
 	UpdateOrganization(ctx context.Context, organization string) (*models.Team, error)
+
+	GetSchedule(ctx context.Context) ([]models.TournamentSummary, error)
 }
 
 func NewTeam(t TeamService) *Team {
@@ -138,4 +140,13 @@ func (t *Team) GetCancelEdit(w http.ResponseWriter, r *http.Request) {
 	default:
 		panic(fmt.Sprintf("unexpected field %s", field))
 	}
+}
+
+func (t *Team) GetSchedule(w http.ResponseWriter, r *http.Request) {
+	schedule, err := t.t.GetSchedule(r.Context())
+	if err != nil {
+		http.Error(w, "unexpected error", http.StatusInternalServerError)
+		return
+	}
+	view_team.TeamSchedule(schedule).Render(r.Context(), w)
 }

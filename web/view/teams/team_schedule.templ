@@ -1,0 +1,54 @@
+package view_team
+
+import "ultigamecast/internal/models"
+import "ultigamecast/internal/ctxvar"
+
+templ TeamSchedule(schedule []models.TournamentSummary) {
+	<div class="flex flex-col gap-2 py-4 px-2">
+		for _, tg := range schedule {
+			@TeamScheduleRow(&tg)
+		}
+	</div>
+}
+
+templ TeamScheduleRow(t *models.TournamentSummary) {
+	<div class="flex gap-3">
+		<div class="flex flex-col items-center gap-3">
+			<div class="mt-[0.625rem]">
+				<div class="w-3 h-3 rounded-full has-background-primary"></div>
+			</div>
+			<div class="w-1 h-full has-background-primary"></div>
+		</div>
+		<div class="flex flex-col gap-2 pb-4">
+			<a href={ ctxvar.SafeUrl(ctx, ctxvar.Team, t) } class="is-size-5">{ t.Name }</a>
+			<span class="flex items-center !gap-1">
+				<span class="icon"><i class="fa-regular fa-calendar"></i></span>
+				if t.StartDate.Time.IsZero() {
+					<span>?</span>
+				} else {
+					<span>{ t.StartDate.Time.Format("Jan 2") }</span>
+				}
+				<span>-</span>
+				if t.EndDate.Time.IsZero() {
+					<span>?</span>
+				} else {
+					<span>{ t.EndDate.Time.Format("Jan 2") }</span>
+				}
+			</span>
+			for _, td := range t.Data {
+				if td.ShowInPreview.Int64 == 1 {
+					<span class="flex items-center gap-1">
+						<span class="icon"><i class={ "fas", td.Icon }></i></span>
+						<span>{ td.TextPreview }</span>
+					</span>
+				}
+			}
+			<span class="h-0"></span> // spacing
+			for _, g := range t.Games {
+				<span>
+					{ g.Opponent }
+				</span>
+			}
+		</div>
+	</div>
+}

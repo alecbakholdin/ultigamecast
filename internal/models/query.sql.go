@@ -338,6 +338,50 @@ func (q *Queries) ListOwnedTeams(ctx context.Context, userid int64) ([]Team, err
 	return items, nil
 }
 
+const listTeamGames = `-- name: ListTeamGames :many
+SELECT g.id, g.tournament, g.slug, g.opponent, g.schedule_status, g.start, g.start_timezone, g.wind, g."temp", g.half_cap, g.soft_cap, g.hard_cap
+FROM games g
+INNER JOIN tournaments t
+WHERE t.team = ?1
+ORDER BY g.start ASC
+`
+
+func (q *Queries) ListTeamGames(ctx context.Context, teamid int64) ([]Game, error) {
+	rows, err := q.db.QueryContext(ctx, listTeamGames, teamid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Game
+	for rows.Next() {
+		var i Game
+		if err := rows.Scan(
+			&i.ID,
+			&i.Tournament,
+			&i.Slug,
+			&i.Opponent,
+			&i.ScheduleStatus,
+			&i.Start,
+			&i.StartTimezone,
+			&i.Wind,
+			&i.Temp,
+			&i.HalfCap,
+			&i.SoftCap,
+			&i.HardCap,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listTeamPlayers = `-- name: ListTeamPlayers :many
 SELECT id, team, slug, name, "order"
 FROM players
@@ -359,6 +403,48 @@ func (q *Queries) ListTeamPlayers(ctx context.Context, teamid int64) ([]Player, 
 			&i.Team,
 			&i.Slug,
 			&i.Name,
+			&i.Order,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTeamTournamentData = `-- name: ListTeamTournamentData :many
+SELECT td.id, td.tournament, td.icon, td.title, td.show_in_preview, td.text_preview, td.data_type, td.value_text, td.value_link, td."order"
+FROM tournament_data td
+INNER JOIN tournaments t
+WHERE t.team = ?1
+ORDER BY td."order" ASC
+`
+
+func (q *Queries) ListTeamTournamentData(ctx context.Context, teamid int64) ([]TournamentDatum, error) {
+	rows, err := q.db.QueryContext(ctx, listTeamTournamentData, teamid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TournamentDatum
+	for rows.Next() {
+		var i TournamentDatum
+		if err := rows.Scan(
+			&i.ID,
+			&i.Tournament,
+			&i.Icon,
+			&i.Title,
+			&i.ShowInPreview,
+			&i.TextPreview,
+			&i.DataType,
+			&i.ValueText,
+			&i.ValueLink,
 			&i.Order,
 		); err != nil {
 			return nil, err
