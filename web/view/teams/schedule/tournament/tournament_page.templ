@@ -1,0 +1,108 @@
+package view_tournament
+
+import "ultigamecast/internal/models"
+import "ultigamecast/web/view/layout"
+import "ultigamecast/internal/ctxvar"
+import "ultigamecast/web/view/component/dto/field"
+import "ultigamecast/web/view/component/dto"
+import "ultigamecast/web/view/component/dto/field/mod"
+import "fmt"
+
+var tabs = []struct {
+	name string
+	icon string
+	url  string
+}{
+	{"Schedule", "fa-calendar-days", "schedule"},
+	{"Info", "fa-circle-info", "info"},
+	{"Statistics", "fa-chart-line", "statistics"},
+}
+
+templ TournamentPage(t *models.Tournament) {
+	@view_layout.NavLayout() {
+		<section class="section" x-data="{ activeTab: 0, editing: false }">
+			<div class="container flex p-2">
+				@Name(t)
+			</div>
+			<div class="container">
+				<div class="tabs is-left">
+					<ul>
+                        for i, t := range tabs {
+                            <li :class={ fmt.Sprintf("activeTab === %d ? 'is-active' : ''", i) }>
+                                <a
+                                    hx-get={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, t.url) }
+                                    hx-target={ fmt.Sprintf("#tab-%d", i) }
+                                    hx-swap="innerHTML"
+                                    hx-on::after-request="this.setAttribute('hx-disable', 'true')"
+                                    x-on:click={ fmt.Sprintf("activeTab = %d", i) }
+                                    if i == 0 {
+                                        hx-trigger="load"
+                                    }
+                                >
+                                    <span class="icon"><i class={ "fas", t.icon }></i></span>
+                                    <span>{ t.name }</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+				</div>
+			</div>
+			for i := range tabs {
+				<div
+					id={ fmt.Sprintf("tab-%d", i) }
+					x-bind:class={ fmt.Sprintf("activeTab !== %d ? 'hidden' : ''", i) }
+					class="container"
+				>
+					<div class="flex justify-center"><span class="icon is-large animate-spin"><i class="fas fa-spinner fa-lg"></i></span></div>
+				</div>
+			}
+		</section>
+	}
+}
+
+type NameDTO struct {
+	dto.DTO
+	Name string `validate:"required,max=64,ascii"`
+}
+
+templ Name(t *models.Tournament) {
+	if ctxvar.IsAdmin(ctx) {
+		<a
+			hx-get={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, "edit?field=Name") }
+			hx-target="this"
+			hx-swap="outerHTML"
+			class="hover-primary-text"
+			hx-trigger="edit"
+			x-on:click="!editing && htmx.trigger($el, 'edit')"
+			x-on:htmx:before-request="editing = true"
+			x-on:htmx:after-settle="editing = false"
+		>
+			<h4 class="is-size-4 underline">{ t.Name }</h4>
+		</a>
+	} else {
+		<h4 class="is-size-4">{ t.Name }</h4>
+	}
+}
+
+templ NameForm(dto *NameDTO) {
+	<div
+		hx-target="this"
+		hx-swap="outerHTML"
+		hx-trigger="cancel"
+	>
+		<form
+			hx-put={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, "edit?field=Name") }
+		>
+			@field.Field(dto, "Name",
+				mod.FieldNameGuesser(),
+				mod.IncludeButtons(),
+				mod.Value(dto.Name),
+				mod.IncludeFormError(),
+				mod.Autofocus(),
+				mod.Autocomplete("off"),
+				mod.FieldSizeMedium(),
+				mod.IconLeft("fa-t"),
+			)
+		</form>
+	</div>
+}

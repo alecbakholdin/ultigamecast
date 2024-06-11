@@ -40,6 +40,12 @@ func LoadContext(services Services) alice.Constructor {
 			ctx = loadValue(ctx, pathvar.PlayerSlug(r), ctxvar.Player, services.Player.GetPlayer)
 			ctx = loadValue(ctx, pathvar.GameSlug(r), ctxvar.Game, services.Game.GetGame)
 
+			user := ctxvar.GetUser(ctx)
+			team := ctxvar.GetTeam(ctx)
+			if user != nil && team != nil && user.ID == team.Owner {
+				ctx = context.WithValue(ctx, ctxvar.Admin, true)
+			}
+
 			*r = *r.WithContext(ctx)
 			h.ServeHTTP(w, r)
 		})

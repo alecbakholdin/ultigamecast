@@ -73,14 +73,18 @@ func main() {
 	http.Handle("GET /teams/{teamSlug}", base.ThenFunc(teamHandler.GetTeam))
 	http.Handle("GET /teams/{teamSlug}/edit", adminOnly.ThenFunc(teamHandler.GetEdit))
 	http.Handle("PUT /teams/{teamSlug}/edit", adminOnly.ThenFunc(teamHandler.PutEdit))
-	http.Handle("GET /teams/{teamSlug}/cancel-edit", adminOnly.ThenFunc(teamHandler.GetCancelEdit))
+	http.Handle("GET /teams/{teamSlug}/edit-cancel", adminOnly.ThenFunc(teamHandler.GetCancelEdit))
 
 	teamScheduleHandler := handlers.NewTeamSchedule(tournamentService)
 	http.Handle("GET /teams/{teamSlug}/schedule", base.ThenFunc(teamScheduleHandler.Get))
-	http.Handle("POST /teams/{teamSlug}/schedule", base.ThenFunc(teamScheduleHandler.Post))
-	http.Handle("GET /teams/{teamSlug}/schedule-create", base.ThenFunc(teamScheduleHandler.GetModal))
+	http.Handle("POST /teams/{teamSlug}/schedule", adminOnly.ThenFunc(teamScheduleHandler.Post))
+	http.Handle("GET /teams/{teamSlug}/schedule-create", adminOnly.ThenFunc(teamScheduleHandler.GetModal))
 
-	
+	tournamentHandler := handlers.NewTournament(tournamentService)
+	http.Handle("GET /teams/{teamSlug}/schedule/{tournamentSlug}", base.ThenFunc(tournamentHandler.Get))
+	http.Handle("GET /teams/{teamSlug}/schedule/{tournamentSlug}/edit", adminOnly.ThenFunc(tournamentHandler.GetEdit))
+	http.Handle("PUT /teams/{teamSlug}/schedule/{tournamentSlug}/edit", adminOnly.ThenFunc(tournamentHandler.PutEdit))
+	http.Handle("GET /teams/{teamSlug}/schedule/{tournamentSlug}/edit-cancel", adminOnly.ThenFunc(tournamentHandler.GetEditCancel))
 
 	log.Fatal(http.ListenAndServe("localhost:8090", nil))
 }

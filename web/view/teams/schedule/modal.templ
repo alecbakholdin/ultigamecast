@@ -56,11 +56,13 @@ templ CreateTournamentForm(dto *CreateTournamentDTO) {
 			mod.FieldNameGuesser(),
 			mod.Autocomplete("off"),
 			mod.Autofocus(),
+			mod.Value(dto.Name),
 			mod.IconLeft("fa-t"),
 		)
 		@field.Field(dto, "Dates",
 			mod.Id(CreateTournamentDatesId),
 			mod.InputTypeHidden(),
+			mod.Value(dto.Dates),
 			mod.Name("dates"),
 		)
 		<span class="is-danger">

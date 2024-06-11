@@ -49,9 +49,9 @@ func Url(ctx context.Context, segments ...any) string {
 		case *models.Team:
 			urlParts = append(urlParts, "teams", v.Slug)
 		case *models.TournamentSummary:
-			urlParts = append(urlParts, "tournaments", v.Slug)
+			urlParts = append(urlParts, "schedule", v.Slug)
 		case *models.Tournament:
-			urlParts = append(urlParts, "tournaments", v.Slug)
+			urlParts = append(urlParts, "schedule", v.Slug)
 		case *models.Player:
 			urlParts = append(urlParts, "players", v.Slug)
 		case *models.Game:
