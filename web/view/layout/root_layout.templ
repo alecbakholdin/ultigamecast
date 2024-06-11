@@ -40,6 +40,7 @@ templ Root() {
 		<body
 			hx-on:openmodal="modal.classList.add('is-active')"
 			hx-on:closemodal="modal.classList.remove('is-active')"
+			hx-on:createdatepicker="createDatePicker(event.detail.value)"
 			hx-on::response-error="console.log(event.detail.xhr.responseText)"
 		>
 			{ children... }
@@ -82,5 +83,19 @@ templ RootScripts() {
 				});
 			}
 		})
+	</script>
+	// create datepicker
+	<script>
+		function createDatePicker(id) {
+			console.log('initializing datepicker', id)
+			new easepick.create({
+				element: "#" + id,
+				css: ["https://cdn.jsdelivr.net/npm/@easepick/bundle@1.2.1/dist/index.css"],
+				zIndex: 110,
+				inline: true,
+				format: "MMM D, YYYY",
+				plugins: ["RangePlugin"]
+			})
+		}
 	</script>
 }

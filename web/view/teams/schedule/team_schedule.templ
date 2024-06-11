@@ -1,17 +1,35 @@
-package view_team
+package view_team_schedule
 
 import "ultigamecast/internal/models"
 import "ultigamecast/internal/ctxvar"
 
-templ TeamSchedule(schedule []models.TournamentSummary) {
+templ Schedule(schedule []models.TournamentSummary) {
 	<div class="flex flex-col gap-2 py-4 px-2">
-		for _, tg := range schedule {
-			@TeamScheduleRow(&tg)
-		}
+		<div id="schedule-list" class="flex flex-col gap-2">
+			for _, tg := range schedule {
+				@ScheduleRow(&tg)
+			}
+		</div>
+		<div class="flex gap-3">
+			<div class="w-3"></div>
+			<div class="buttons">
+				<a
+					hx-get={ ctxvar.Url(ctx, ctxvar.Team, "schedule-create") }
+					hx-target="#modal-content"
+					hx-swap="innerHTML"
+					class="button is-primary rounded-full htmx-loading"
+					hx-on:mouseover="this.querySelector('.w-0').style.width = '9.75rem'"
+					hx-on:mouseout="this.querySelector('.w-0').style.width = '0px'"
+				>
+					<span class="icon !-mr-2"><i class="fas fa-plus"></i></span>
+					<span class="overflow-clip w-0 transition-all"><span class="ml-4">New Tournament</span></span>
+				</a>
+			</div>
+		</div>
 	</div>
 }
 
-templ TeamScheduleRow(t *models.TournamentSummary) {
+templ ScheduleRow(t *models.TournamentSummary) {
 	<div class="flex gap-3">
 		<div class="flex flex-col items-center gap-3">
 			<div class="mt-[0.625rem]">

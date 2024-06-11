@@ -34,6 +34,7 @@ const (
 	InputTypeText     InputType = "text"
 	InputTypeEmail    InputType = "email"
 	InputTypePassword InputType = "password"
+	InputTypeHidden   InputType = "hidden"
 )
 
 type Size string

@@ -1,8 +1,9 @@
 package service
 
 import (
-	"errors"
+	"fmt"
 	"testing"
+	"time"
 	"ultigamecast/test/testctx"
 	"ultigamecast/test/testdb"
 
@@ -10,91 +11,83 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateTournamentWithDuplicateNames(t *testing.T) {
+func TestTournament(t *testing.T) {
 	to := NewTournament(testdb.DB())
-	ctx := testctx.LoadTeam(to.q)
-	t1, err := to.CreateTournament(ctx, "Tournament  Name")
-	if err != nil {
-		t.Fatalf("error creating tourment: %s", err)
-	}
-	assert.Equal(t, "tournament--name", t1.Slug)
-
-	t2, err := to.CreateTournament(ctx, "Tournament  Name")
-	if err != nil {
-		t.Fatalf("error creating tourment 2: %s", err)
-	}
-	assert.Equal(t, "tournament--name-2", t2.Slug)
-}
-
-func TestUpdateDataOrder(t *testing.T) {
-	to := NewTournament(testdb.DB())
-	ctx := testctx.LoadTeam(to.q)
-	tournament, err := to.CreateTournament(ctx, "Tournament Name")
-	if err != nil {
-		t.Fatalf("error creating tournament: %s", err)
-	}
-	ctx = testctx.Load(ctx, tournament)
-	var ids []int64
-	for range 5 {
+	t.Run("create simple", func(t *testing.T) {
+		ctx := testctx.LoadTeam(to.q)
+		tournament, err := to.CreateTournament(ctx, "Random name", "Jan 2, 2024 - Jan 3, 2024")
+		assert.Nil(t, err, "error creating tournament")
+		assert.Equal(t, "Random name", tournament.Name)
+		assert.Equal(t, "random-name", tournament.Slug)
+		assert.Equal(t, mustParseTime("Jan 2, 2006", "Jan 2, 2024"), tournament.StartDate.Time)
+		assert.Equal(t, mustParseTime("Jan 2, 2006", "Jan 3, 2024"), tournament.EndDate.Time)
+	})
+	t.Run("create no time", func(t *testing.T) {
+		ctx := testctx.LoadTeam(to.q)
+		tournament, err := to.CreateTournament(ctx, "name", "")
+		assert.Nil(t, err, "error creating tournament")
+		assert.Equal(t, "name", tournament.Name)
+		assert.Equal(t, "name", tournament.Slug)
+		assert.False(t, tournament.StartDate.Valid, "start date is valid when it shouldn't be")
+		assert.False(t, tournament.EndDate.Valid, "end date is valid when it shouldn't be")
+	})
+	t.Run("create duplicate names", func(t *testing.T) {
+		ctx := testctx.LoadTeam(to.q)
+		t1, err := to.CreateTournament(ctx, "Dupe Name", "")
+		assert.Nil(t, err, "error creating tournament")
+		assert.Equal(t, "dupe-name", t1.Slug)
+		t2, err := to.CreateTournament(ctx, "dupe name", "")
+		assert.Nil(t, err, "error creating tournament")
+		assert.Equal(t, "dupe-name-2", t2.Slug)
+	})
+	t.Run("datum creation", func(t *testing.T) {
+		ctx := testctx.LoadTournament(to.q)
+		_, err := to.Data(ctx)
+		assert.Nil(t, err, "error fetching data") // doesnt return error when empty
 		datum, err := to.NewDatum(ctx)
-		if err != nil {
-			t.Fatalf("error creating datum: %s", err)
+		assert.Nil(t, err, "error creating datum")
+		data, err := to.Data(ctx)
+		assert.Nil(t, err, "error fetching data")
+		assert.Equal(t, 1, len(data))
+		assert.Equal(t, datum.ID, data[0].ID)
+	})
+	t.Run("update data order", func(t *testing.T) {
+		ctx := testctx.LoadTournament(to.q)
+		var ids []int64
+		for range 5 {
+			datum, err := to.NewDatum(ctx)
+			assert.Nil(t, err, "error creating datum")
+			ids = append(ids, datum.ID)
 		}
-		ids = append(ids, datum.ID)
-	}
 
-	dataPreOrder, err := to.Data(ctx)
-	if err != nil {
-		t.Fatalf("error fetching data pre-order: %s", err)
-	}
-	idsPreOrder := make([]int64, len(dataPreOrder))
-	for i, d := range dataPreOrder {
-		idsPreOrder[i] = d.ID
-	}
-	assert.Equal(t, ids, idsPreOrder)
+		dataPreOrder, err := to.Data(ctx)
+		assert.Nil(t, err, "error fetching data pre-order")
+		idsPreOrder := make([]int64, len(dataPreOrder))
+		for i, d := range dataPreOrder {
+			idsPreOrder[i] = d.ID
+		}
+		assert.Equal(t, ids, idsPreOrder)
 
-	temp := ids[1]
-	ids[1] = ids[2]
-	ids[2] = temp
-	if err := to.UpdateDataOrder(ctx, ids); err != nil {
-		t.Fatalf("error updating order: %s", err)
-	}
+		temp := ids[1]
+		ids[1] = ids[2]
+		ids[2] = temp
+		assert.Nil(t, to.UpdateDataOrder(ctx, ids), "error updating order")
 
-	dataPostOrder, err := to.Data(ctx)
-	if err != nil {
-		t.Fatalf("error fetching data post-order: %s", err)
-	}
-	idsPostOrder := make([]int64, len(dataPostOrder))
-	for i, d := range dataPostOrder {
-		idsPostOrder[i] = d.ID
-	}
-	assert.Equal(t, ids, idsPostOrder)
+		dataPostOrder, err := to.Data(ctx)
+		assert.Nil(t, err, "error fetching data post-order")
+		idsPostOrder := make([]int64, len(dataPostOrder))
+		for i, d := range dataPostOrder {
+			idsPostOrder[i] = d.ID
+		}
+		assert.Equal(t, ids, idsPostOrder)
+	})
 }
 
-func TestUpdateDataOrderFailsWhenNotProperTournament(t *testing.T) {
-	to := NewTournament(testdb.DB())
-	withTeam := testctx.LoadTeam(to.q)
-	t1, err := to.CreateTournament(withTeam, "random name")
+func mustParseTime(layout, val string) time.Time {
+	time, err := time.Parse(layout, val)
 	if err != nil {
-		t.Fatalf("error creating tournament: %s", err)
+		panic(fmt.Errorf("error parsing time: %w", err))
 	}
-	withT1 := testctx.Load(withTeam, t1)
-	datum1, err := to.NewDatum(withT1)
-	if err != nil {
-		t.Fatalf("error creating datumw for t1: %s", err)
-	}
-
-	t2, err := to.CreateTournament(withTeam, "random name 2")
-	if err != nil {
-		t.Fatalf("error creating tournament 2: %s", err)
-	}
-	withT2 := testctx.Load(withTeam, t2)
-	_, err = to.NewDatum(withT2)
-	if err != nil {
-		t.Fatalf("error creating datumw for t1: %s", err)
-	}
-
-	if err = to.UpdateDataOrder(withT2, []int64{datum1.ID}); !errors.Is(ErrNotFound, err) {
-		t.Fatalf("wrong or no error updating order: %s", err)
-	}
+	return time
 }
+

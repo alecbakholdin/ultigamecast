@@ -2,46 +2,78 @@ package testctx
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"math/rand"
+	"strings"
 	"ultigamecast/internal/ctxvar"
 	"ultigamecast/internal/models"
 
 	_ "github.com/mattn/go-sqlite3"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func LoadUser(q *models.Queries) context.Context {
-	if user, err := q.GetUser(context.Background(), "alecbakholdin@gmail.com"); err != nil {
-		panic(fmt.Errorf("error fetching user: %w", err))
-	} else {
-		return Load(context.Background(), &user)
+const randChars = "abcdefghjiklmnopqrstuvwxyz0123456789"
+
+func randomString(n int) string {
+	str := ""
+	for range n {
+		str += string(randChars[rand.Int()%len(randChars)])
 	}
+	return str
+}
+
+func LoadUser(q *models.Queries) context.Context {
+	ctx := context.Background()
+	pwd, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+	if err != nil {
+		panic(fmt.Errorf("error bcrypting pwd: %w", err))
+	}
+	user, err := q.CreateUser(ctx, models.CreateUserParams{
+		Email:        fmt.Sprintf("user%s@gmail.com", randomString(10)),
+		PasswordHash: sql.NullString{String: string(pwd), Valid: true},
+	})
+	if err != nil {
+		panic(fmt.Errorf("error creating user: %w", err))
+	}
+	return Load(ctx, user)
 }
 
 func LoadTeam(q *models.Queries) context.Context {
 	ctx := LoadUser(q)
-	if teams, err := q.ListOwnedTeams(ctx, ctxvar.GetUser(ctx).ID); err != nil {
-		panic(fmt.Errorf("error fetching teams: %w", err))
-	} else {
-		return Load(ctx, &teams[0])
+	randstr := randomString(10)
+	team, err := q.CreateTeam(ctx, models.CreateTeamParams{
+		Owner: ctxvar.GetUser(ctx).ID,
+		Name:  "team " + randstr,
+		Slug:  "team-" + strings.ToLower(randstr),
+	})
+	if err != nil {
+		panic(fmt.Errorf("error creating team: %w", err))
 	}
+	return Load(ctx, team)
 }
 
 func LoadTournament(q *models.Queries) context.Context {
 	ctx := LoadTeam(q)
-	if tournaments, err := q.ListTournaments(ctx, ctxvar.GetTeam(ctx).ID); err != nil {
-		panic(fmt.Errorf("error fetching teams: %w", err))
-	} else {
-		return Load(ctx, &tournaments[0])
+	randstr := randomString(10)
+	tournament, err := q.CreateTournament(ctx, models.CreateTournamentParams{
+		TeamId: ctxvar.GetTeam(ctx).ID,
+		Name: "tournament " + randstr,
+		Slug: "tournament-" + strings.ToLower(randstr),
+	})
+	if err != nil {
+		panic(fmt.Errorf("error creating tournament: %w", err))
 	}
+	return Load(ctx, tournament)
 }
 
 func LoadTournamentDatum(q *models.Queries) context.Context {
 	ctx := LoadTournament(q)
-	if data, err := q.ListTournamentData(ctx, ctxvar.GetTournament(ctx).ID); err != nil {
-		panic(fmt.Errorf("error fetching data: %w", err))
-	} else {
-		return Load(ctx, &data[0])
+	datum, err := q.CreateTournamentDatum(ctx, ctxvar.GetTournament(ctx).ID)
+	if err != nil {
+		panic(fmt.Errorf("error creating datum: %w", err))
 	}
+	return Load(ctx, datum)
 }
 
 func Load(ctx context.Context, values ...any) context.Context {

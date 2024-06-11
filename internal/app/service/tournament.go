@@ -38,16 +38,48 @@ func (t *Tournament) GetTournament(ctx context.Context, slug string) (*models.To
 	return &tournament, nil
 }
 
-func (t *Tournament) GetTeamTournaments(ctx context.Context) ([]models.Tournament, error) {
+func (t *Tournament) GetSchedule(ctx context.Context) ([]models.TournamentSummary, error) {
 	team := ctxvar.GetTeam(ctx)
 	tournaments, err := t.q.ListTournaments(ctx, team.ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return nil, convertAndLogSqlError(ctx, "error fetching team tournaments", err)
+		return nil, convertAndLogSqlError(ctx, "error getting team tournaments", err)
 	}
-	return tournaments, nil
+	games, err := t.q.ListTeamGames(ctx, team.ID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, convertAndLogSqlError(ctx, "error getting team games", err)
+	}
+	data, err := t.q.ListTeamTournamentData(ctx, team.ID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, convertAndLogSqlError(ctx, "error getting team tournament data", err)
+	}
+
+	tg := make([]models.TournamentSummary, len(tournaments))
+	for i, t := range tournaments {
+		tg[i] = models.TournamentSummary{
+			Tournament: &t,
+			Games:      []models.Game{},
+			Data:       []models.TournamentDatum{},
+		}
+		for _, g := range games {
+			if g.Tournament == t.ID {
+				tg[i].Games = append(tg[i].Games, g)
+			}
+		}
+		for _, td := range data {
+			if td.Tournament == t.ID {
+				tg[i].Data = append(tg[i].Data, td)
+			}
+		}
+	}
+
+	return tg, nil
 }
 
-func (t *Tournament) CreateTournament(ctx context.Context, name string) (*models.Tournament, error) {
+func (t *Tournament) CreateTournament(ctx context.Context, name, dates string) (*models.TournamentSummary, error) {
+	start, end, err := t.parseDates(ctx, dates)
+	if err != nil {
+		return nil, err
+	}
 	slug, err := t.getSafeSlug(ctx, -1, name)
 	if err != nil {
 		return nil, convertAndLogSqlError(ctx, "error creating safe slug", err)
@@ -57,35 +89,25 @@ func (t *Tournament) CreateTournament(ctx context.Context, name string) (*models
 		TeamId: team.ID,
 		Slug:   slug,
 		Name:   name,
+		StartDate: sql.NullTime{Time: start, Valid: !start.IsZero()},
+		EndDate: sql.NullTime{Time: end, Valid: !end.IsZero()},
 	})
 	if err != nil {
 		return nil, convertAndLogSqlError(ctx, "error creating tournament", err)
 	}
-	return &tournament, nil
+	return &models.TournamentSummary{
+		Tournament: &tournament,
+		Games: []models.Game{},
+		Data: []models.TournamentDatum{},
+	}, nil
 }
 
-// edits a tournament provided in context using dates in the format 2024-01-02 - 2024-01-02. Returns [ErrBadFormat]
+// edits a tournament provided in context using dates in the format DateFormat(). Returns [ErrBadFormat]
 // if this is improperly formatted or start is after end
 func (t *Tournament) UpdateTournamentDates(ctx context.Context, dates string) (*models.Tournament, error) {
-	dateSlice := strings.Split(dates, " - ")
-	if len(dateSlice) != 2 {
-		slog.ErrorContext(ctx, fmt.Sprintf("invalid number of dates in dates string: %d", len(dateSlice)))
-		return nil, errors.Join(ErrBadFormat, fmt.Errorf("invalid number of dates in dates string: %d", len(dateSlice)))
-	}
-	start, startErr := time.Parse(t.DateFormat(), strings.TrimSpace(dateSlice[0]))
-	if startErr != nil {
-		err := errors.Join(ErrBadFormat, fmt.Errorf("error parsing start date: %w", startErr))
-		slog.ErrorContext(ctx, err.Error())
+	start, end, err := t.parseDates(ctx, dates)
+	if err != nil {
 		return nil, err
-	}
-	end, endErr := time.Parse(t.DateFormat(), strings.TrimSpace(dateSlice[1]))
-	if endErr != nil {
-		err := errors.Join(ErrBadFormat, fmt.Errorf("error parsing end date: %w", endErr))
-		slog.ErrorContext(ctx, err.Error())
-		return nil, err
-	}
-	if start.After(end) {
-		return nil, errors.Join(ErrBadFormat, errors.New("start is after end"))
 	}
 	tournament, err := t.q.UpdateTournamentDates(ctx, models.UpdateTournamentDatesParams{
 		StartDate:    sql.NullTime{Time: start, Valid: !start.IsZero()},
@@ -96,6 +118,33 @@ func (t *Tournament) UpdateTournamentDates(ctx context.Context, dates string) (*
 		return nil, convertAndLogSqlError(ctx, "error updating tournament dates", err)
 	}
 	return &tournament, nil
+}
+
+func (t *Tournament) parseDates(ctx context.Context, dates string) (time.Time, time.Time, error) {
+	if dates == "" {
+		return time.Time{}, time.Time{}, nil
+	}
+	dateSlice := strings.Split(dates, " - ")
+	if len(dateSlice) != 2 {
+		slog.ErrorContext(ctx, fmt.Sprintf("invalid number of dates in dates string: %d", len(dateSlice)))
+		return time.Time{}, time.Time{}, errors.Join(ErrBadFormat, fmt.Errorf("invalid number of dates in dates string: %d", len(dateSlice)))
+	}
+	start, startErr := time.Parse(t.DateFormat(), strings.TrimSpace(dateSlice[0]))
+	if startErr != nil {
+		err := errors.Join(ErrBadFormat, fmt.Errorf("error parsing start date: %w", startErr))
+		slog.ErrorContext(ctx, err.Error())
+		return time.Time{}, time.Time{}, err
+	}
+	end, endErr := time.Parse(t.DateFormat(), strings.TrimSpace(dateSlice[1]))
+	if endErr != nil {
+		err := errors.Join(ErrBadFormat, fmt.Errorf("error parsing end date: %w", endErr))
+		slog.ErrorContext(ctx, err.Error())
+		return time.Time{}, time.Time{}, err
+	}
+	if start.After(end) {
+		return time.Time{}, time.Time{}, errors.Join(ErrBadFormat, errors.New("start is after end"))
+	}
+	return start, end, nil
 }
 
 // get all the tournament data for the tournament found in ctx

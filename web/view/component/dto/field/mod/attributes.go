@@ -42,6 +42,10 @@ func InputType(t field.InputType) *AttributeModifier {
 	return InputAttribute("type", string(t))
 }
 
+func Id(id string) *AttributeModifier {
+	return InputAttribute("id", id)
+}
+
 func InputTypeText() *AttributeModifier {
 	return InputType(field.InputTypeText)
 }
@@ -52,4 +56,8 @@ func InputTypeEmail() *AttributeModifier {
 
 func InputTypePassword() *AttributeModifier {
 	return InputType(field.InputTypePassword)
+}
+
+func InputTypeHidden() *AttributeModifier {
+	return InputType(field.InputTypeHidden)
 }

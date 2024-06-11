@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"ultigamecast/internal/app/handlers/htmx"
 	"ultigamecast/internal/models"
 	view_players "ultigamecast/web/view/teams/players"
 )
@@ -45,8 +46,8 @@ func (p *Player) PostPlayers(w http.ResponseWriter, r *http.Request) {
 		view_players.CreatePlayerForm(dto).Render(r.Context(), w)
 		return
 	} else {
-		hxRetarget(w, "#team_players", "beforeend")
-		hxClearForm(w)
+		htmx.HxRetarget(w, "#team_players", "beforeend")
+		htmx.HxClearForm(w)
 		view_players.TeamPlayerRow(player).Render(r.Context(), w)
 	}
 }

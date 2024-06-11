@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"ultigamecast/internal/app/handlers/htmx"
 	"ultigamecast/internal/app/service"
 	view_auth "ultigamecast/web/view/auth"
 )
@@ -55,7 +56,7 @@ func (a *Auth) PostLogin(w http.ResponseWriter, r *http.Request) {
 			Secure:   true,
 			SameSite: http.SameSiteLaxMode,
 		})
-		hxRedirect(w, "/")
+		htmx.HxRedirect(w, "/")
 	}
 }
 
@@ -91,7 +92,7 @@ func (a *Auth) PostSignup(w http.ResponseWriter, r *http.Request) {
 			Secure:   true,
 			SameSite: http.SameSiteLaxMode,
 		})
-		hxRedirect(w, "/")
+		htmx.HxRedirect(w, "/")
 	}
 }
 
@@ -102,8 +103,8 @@ func (a *Auth) PostLogout(w http.ResponseWriter, r *http.Request) {
 		MaxAge: 1,
 	})
 	if r.URL.Path == "/" {
-		hxRefresh(w)
+		htmx.HxRefresh(w)
 	} else {
-		hxRedirect(w, "/")
+		htmx.HxRedirect(w, "/")
 	}
 }

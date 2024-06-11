@@ -18,6 +18,10 @@ func NewGame(q *models.Queries, db *sql.DB) *Game {
 	}
 }
 
+func (g *Game) GetGame(ctx context.Context, slug string) (*models.Game, error) {
+	return nil, nil
+}
+
 func (g *Game) CreateGame(ctx context.Context) {
 
 }

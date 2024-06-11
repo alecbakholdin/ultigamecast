@@ -1,0 +1,70 @@
+package view_team_schedule
+
+import "ultigamecast/web/view/component/dto"
+import "ultigamecast/internal/ctxvar"
+import "ultigamecast/web/view/component/dto/field"
+import "ultigamecast/web/view/component/dto/field/mod"
+
+type CreateTournamentDTO struct {
+	dto.DTO
+	Name  string `validate:"required,max=64,ascii"`
+	Dates string
+}
+
+const (
+	createTournamentSubmitId = "create-tournament-submit"
+	createTournamentFormId   = "create-tournament-form"
+	CreateTournamentDatesId  = "create-tournament-dates"
+)
+
+templ TournamentModal() {
+	<header class="modal-card-head">
+		<p class="modal-card-title">New Tournament</p>
+		<button class="delete" aria-label="close" onclick="htmx.trigger(this, 'closemodal')"></button>
+	</header>
+	<div
+		class="modal-card-body"
+	>
+		@CreateTournamentForm(&CreateTournamentDTO{})
+	</div>
+	<footer class="modal-card-foot">
+		<div class="buttons">
+			<button class="button" onclick="htmx.trigger(this, 'closemodal')">
+				Cancel
+			</button>
+			<button
+				id={ createTournamentSubmitId }
+				form={ createTournamentFormId }
+				class="button is-success htmx-loading"
+			>
+				Submit
+			</button>
+		</div>
+	</footer>
+}
+
+templ CreateTournamentForm(dto *CreateTournamentDTO) {
+	<form
+		id={ createTournamentFormId }
+		hx-post={ ctxvar.Url(ctx, ctxvar.Team, "schedule") }
+		hx-target="this"
+		hx-swap="outerHTML"
+		hx-indicator="closest .modal"
+		hx-disabled-elt={ "#" + createTournamentSubmitId }
+	>
+		@field.Field(dto, "Name",
+			mod.FieldNameGuesser(),
+			mod.Autocomplete("off"),
+			mod.Autofocus(),
+			mod.IconLeft("fa-t"),
+		)
+		@field.Field(dto, "Dates",
+			mod.Id(CreateTournamentDatesId),
+			mod.InputTypeHidden(),
+			mod.Name("dates"),
+		)
+		<span class="is-danger">
+			{ dto.FormError() }
+		</span>
+	</form>
+}

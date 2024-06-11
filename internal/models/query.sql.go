@@ -76,19 +76,27 @@ func (q *Queries) CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, e
 }
 
 const createTournament = `-- name: CreateTournament :one
-INSERT INTO tournaments (team, "name", slug)
-VALUES (?, ?, ?)
+INSERT INTO tournaments (team, "name", slug, "start_date", end_date)
+VALUES (?, ?, ?, ?, ?)
 RETURNING id, team, name, slug, start_date, end_date, location
 `
 
 type CreateTournamentParams struct {
-	TeamId int64  `db:"teamId" json:"teamId"`
-	Name   string `db:"name" json:"name"`
-	Slug   string `db:"slug" json:"slug"`
+	TeamId    int64        `db:"teamId" json:"teamId"`
+	Name      string       `db:"name" json:"name"`
+	Slug      string       `db:"slug" json:"slug"`
+	StartDate sql.NullTime `db:"start_date" json:"start_date"`
+	EndDate   sql.NullTime `db:"end_date" json:"end_date"`
 }
 
 func (q *Queries) CreateTournament(ctx context.Context, arg CreateTournamentParams) (Tournament, error) {
-	row := q.db.QueryRowContext(ctx, createTournament, arg.TeamId, arg.Name, arg.Slug)
+	row := q.db.QueryRowContext(ctx, createTournament,
+		arg.TeamId,
+		arg.Name,
+		arg.Slug,
+		arg.StartDate,
+		arg.EndDate,
+	)
 	var i Tournament
 	err := row.Scan(
 		&i.ID,

@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"ultigamecast/internal/app/handlers/htmx"
 	"ultigamecast/internal/app/service"
 	"ultigamecast/internal/ctxvar"
 	"ultigamecast/internal/models"
-	"ultigamecast/internal/pathvar"
 	view_team "ultigamecast/web/view/teams"
 )
 
@@ -23,8 +23,6 @@ type TeamService interface {
 	CreateTeam(ctx context.Context, name, organization string) (*models.Team, error)
 	UpdateName(ctx context.Context, name string) (*models.Team, error)
 	UpdateOrganization(ctx context.Context, organization string) (*models.Team, error)
-
-	GetSchedule(ctx context.Context) ([]models.TournamentSummary, error)
 }
 
 func NewTeam(t TeamService) *Team {
@@ -42,18 +40,8 @@ func (t *Team) GetTeams(w http.ResponseWriter, r *http.Request) {
 }
 
 func (t *Team) GetTeamsCreate(w http.ResponseWriter, r *http.Request) {
-	hxOpenModal(w)
+	htmx.HxOpenModal(w)
 	view_team.TeamModal(true, &view_team.TeamFormDTO{IsFirstTeam: r.URL.Query().Get("firstTeam") != ""}).Render(r.Context(), w)
-}
-
-func (t *Team) GetTeam(w http.ResponseWriter, r *http.Request) {
-	if team, err := t.t.GetTeam(r.Context(), pathvar.TeamSlug(r)); errors.Is(err, service.ErrNotFound) {
-		http.Error(w, "Team doesn't exist", http.StatusNotFound)
-	} else if err != nil {
-		http.Error(w, "unexpected error", http.StatusInternalServerError)
-	} else {
-		view_team.TeamPage(team).Render(r.Context(), w)
-	}
 }
 
 func (t *Team) PostTeams(w http.ResponseWriter, r *http.Request) {
@@ -74,12 +62,17 @@ func (t *Team) PostTeams(w http.ResponseWriter, r *http.Request) {
 		dto.AddFormError("unexpected error")
 		view_team.TeamForm(true, dto).Render(r.Context(), w)
 	} else if dto.IsFirstTeam {
-		hxRefresh(w)
+		htmx.HxRefresh(w)
 	} else {
-		hxCloseModal(w)
-		hxRetarget(w, "#owned-teams-list", "beforeend")
+		htmx.HxCloseModal(w)
+		htmx.HxRetarget(w, "#owned-teams-list", "beforeend")
 		view_team.TeamRow(team).Render(r.Context(), w)
 	}
+}
+
+func (t *Team) GetTeam(w http.ResponseWriter, r *http.Request) {
+	team := ctxvar.GetTeam(r.Context())
+	view_team.TeamPage(team).Render(r.Context(), w)
 }
 
 func (t *Team) GetEdit(w http.ResponseWriter, r *http.Request) {
@@ -122,7 +115,7 @@ func (t *Team) PutEdit(w http.ResponseWriter, r *http.Request) {
 			dto.AddFormError("unexpected error")
 			view_team.NameForm(dto).Render(r.Context(), w)
 		} else {
-			hxRedirect(w, ctxvar.Url(r.Context(), team))
+			htmx.HxRedirect(w, ctxvar.Url(r.Context(), team))
 			view_team.Name(team).Render(r.Context(), w)
 		}
 	default:
@@ -140,13 +133,4 @@ func (t *Team) GetCancelEdit(w http.ResponseWriter, r *http.Request) {
 	default:
 		panic(fmt.Sprintf("unexpected field %s", field))
 	}
-}
-
-func (t *Team) GetSchedule(w http.ResponseWriter, r *http.Request) {
-	schedule, err := t.t.GetSchedule(r.Context())
-	if err != nil {
-		http.Error(w, "unexpected error", http.StatusInternalServerError)
-		return
-	}
-	view_team.TeamSchedule(schedule).Render(r.Context(), w)
 }

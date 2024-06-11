@@ -7,7 +7,14 @@ templ Field(dto FormFieldErrorAccessor, dtoField string, modifiers ...Modifier) 
 templ FieldFromConfig(fc *FieldConfig) {
 	<div class={ "field", templ.KV("has-addons flex-wrap", fc.IncludeButtons) } x-id="['input']">
 		if fc.Label != "" && !fc.IncludeButtons {
-			<label class="label level justify-start" :for="$id('input')">
+			<label
+				class="label level justify-start items-start"
+				if id, ok := fc.InputAttributes["id"].(string); ok {
+					for={ id }
+				} else {
+					:for="$id('input')"
+				}
+			>
 				<span>{ fc.Label }</span>
 				if fc.TooltipHelpText != "" {
 					<span class="icon" data-tooltip={ fc.TooltipHelpText }><i class="fa-regular fa-circle-question"></i></span>
@@ -16,7 +23,9 @@ templ FieldFromConfig(fc *FieldConfig) {
 		}
 		<div class={ "control", fc.LeftIconClass(), fc.RightIconClass() }>
 			<input
-				:id="$id('input')"
+				if _, ok := fc.InputAttributes["id"]; !ok {
+					:id="$id('input')"
+				}
 				class={ "input", string(fc.FieldColor), string(fc.Size) }
 				{ fc.InputAttributes... }
 			/>

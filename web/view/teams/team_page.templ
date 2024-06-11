@@ -90,7 +90,7 @@ type NameDTO struct {
 
 templ NameForm(dto *NameDTO) {
 	<div
-		hx-get={ ctxvar.Url(ctx, ctxvar.Team, "cancel-edit?field=Name") }
+		hx-get={ ctxvar.Url(ctx, ctxvar.Team, "edit-cancel?field=Name") }
 		hx-target="this"
 		hx-swap="outerHTML"
 		hx-trigger="cancel"
@@ -140,7 +140,7 @@ type OrganizationDTO struct {
 
 templ OrganizationForm(dto *OrganizationDTO) {
 	<div
-		hx-get={ ctxvar.Url(ctx, ctxvar.Team, "cancel-edit?field=Organization") }
+		hx-get={ ctxvar.Url(ctx, ctxvar.Team, "edit-cancel?field=Organization") }
 		hx-target="this"
 		hx-swap="outerHTML"
 		hx-trigger="cancel"

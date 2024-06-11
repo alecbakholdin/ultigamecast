@@ -99,8 +99,8 @@ INNER JOIN tournaments t
 WHERE t.team = @teamId
 ORDER BY td."order" ASC;
 -- name: CreateTournament :one
-INSERT INTO tournaments (team, "name", slug)
-VALUES (@teamId, ?, ?)
+INSERT INTO tournaments (team, "name", slug, "start_date", end_date)
+VALUES (@teamId, ?, ?, ?, ?)
 RETURNING *;
 -- name: UpdateTournamentDates :one
 UPDATE tournaments
