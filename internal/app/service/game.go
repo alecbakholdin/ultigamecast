@@ -61,6 +61,9 @@ func (g *Game) CreateGame(ctx context.Context, opponent, start, startTimezone st
 			return nil, err
 		}
 	}
+	if startTime.Before(tournament.StartDate.Time) || startTime.After(tournament.EndDate.Time.AddDate(0, 0, 1)) {
+		return nil, ErrDateOutOfBounds
+	}
 
 	game, err := g.q.CreateGame(ctx, models.CreateGameParams{
 		Tournament: tournament.ID,

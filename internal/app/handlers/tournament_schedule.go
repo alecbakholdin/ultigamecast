@@ -3,9 +3,11 @@ package handlers
 import (
 	"cmp"
 	"context"
+	"errors"
 	"net/http"
 	"strconv"
 	"ultigamecast/internal/app/handlers/htmx"
+	"ultigamecast/internal/app/service"
 	"ultigamecast/internal/models"
 	view_tournament_schedule "ultigamecast/web/view/teams/schedule/tournament/schedule"
 )
@@ -58,7 +60,11 @@ func (t *TournamentSchedule) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, err = t.schedule.CreateGame(r.Context(), dto.Opponent, dto.Start, dto.StartTimezone, dto.HalfCap, dto.SoftCap, dto.HardCap)
-	if err != nil {
+	if errors.Is(err, service.ErrDateOutOfBounds) {
+		dto.AddFieldError("Start", "Game must occur within the bounds of the tournament start and end dates")
+		view_tournament_schedule.CreateGameForm(dto).Render(r.Context(), w)
+		return 
+	} else if err != nil {
 		dto.AddFormError("unexpected error")
 		view_tournament_schedule.CreateGameForm(dto).Render(r.Context(), w)
 		return

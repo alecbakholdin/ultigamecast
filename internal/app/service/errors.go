@@ -11,6 +11,7 @@ var (
 	ErrNotFound = errors.New("did not find a matching record")
 	ErrUnexpected = errors.New("unexpected error")
 	ErrBadFormat = errors.New("poorly formatted request")
+	ErrDateOutOfBounds = errors.New("date is out of the proper bounds")
 )
 
 func convertAndLogSqlError(ctx context.Context, message string, sqlErr error) error {
