@@ -3,6 +3,9 @@ package dto
 import (
 	"encoding/json"
 	"errors"
+	"io"
+	"log/slog"
+	"net/http"
 	"strings"
 
 	"github.com/a-h/templ"
@@ -91,7 +94,7 @@ func (d *DTO) FormInvalidClass() templ.KeyValue[string, bool] {
 	return templ.KV("invalid", d.Invalid())
 }
 
-func (d *DTO) Validate(obj interface{}) bool {
+func (d *DTO) Validate(obj any) bool {
 	err := validate.Struct(obj)
 	if err == nil {
 		return true
@@ -125,14 +128,18 @@ func (d *DTO) FormError() string {
 	return strings.Join(d.FormErrors, ", ")
 }
 
-func (d *DTO) UnmarshalJson(data []byte, dto *struct{ DTO }) {
-	err := json.Unmarshal(data, dto)
+func (d *DTO) UnmarshalJsonRequestValidate(r *http.Request, dto any) bool {
+	bytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		d.AddFormError("error parsing data")
+		slog.ErrorContext(r.Context(), "error reading from body", "err", err)
+		d.AddFormError("unexpected error")
+		return false
 	}
-}
 
-func (d *DTO) UnmarshalJsonValidate(data []byte, dto *struct{ DTO }) bool {
-	d.UnmarshalJson(data, dto)
+	err = json.Unmarshal(bytes, dto)
+	if err != nil {
+		slog.ErrorContext(r.Context(), "error parsing request", "err", err)
+		d.AddFormError("error parsing request")
+	}
 	return d.Valid()
 }

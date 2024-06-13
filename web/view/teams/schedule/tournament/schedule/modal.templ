@@ -1,0 +1,96 @@
+package view_tournament_schedule
+
+import "ultigamecast/web/view/component/dto"
+import "ultigamecast/internal/ctxvar"
+import "ultigamecast/web/view/component/dto/field"
+import "ultigamecast/web/view/component/dto/field/mod"
+import "strconv"
+
+type CreateGameDTO struct {
+	dto.DTO
+	Opponent      string `validate:"required,max=64,ascii"`
+	Start         string
+	StartTimezone string
+	HalfCap       int
+	SoftCap       int
+	HardCap       int
+}
+
+const (
+	createGameSubmitId = "create-game-submit"
+	createGameFormId   = "create-game-form"
+	CreateGameDatesId  = "create-game-dates"
+)
+
+templ GameModal() {
+	<header class="modal-card-head">
+		<p class="modal-card-title">New Game</p>
+		<button class="delete" aria-label="close" onclick="htmx.trigger(this, 'closemodal')"></button>
+	</header>
+	<div
+		class="modal-card-body"
+	>
+		@CreateGameForm(&CreateGameDTO{StartTimezone: "America/New_York", Start: ctxvar.GetTournament(ctx).StartDate.Time.Format("2006-01-02T15:04")})
+	</div>
+	<footer class="modal-card-foot">
+		<div class="buttons">
+			<button class="button" onclick="htmx.trigger(this, 'closemodal')">
+				Cancel
+			</button>
+			<button
+				id={ createGameSubmitId }
+				form={ createGameFormId }
+				class="button is-success htmx-loading"
+			>
+				Submit
+			</button>
+		</div>
+	</footer>
+}
+
+templ CreateGameForm(dto *CreateGameDTO) {
+	<form
+		id={ createGameFormId }
+		hx-post={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, "schedule") }
+		hx-target="this"
+		hx-swap="outerHTML"
+		hx-indicator="closest .modal"
+		hx-disabled-elt={ "#" + createGameSubmitId }
+	>
+		@field.Field(dto, "Opponent",
+			mod.FieldNameGuesser(),
+			mod.Autocomplete("off"),
+			mod.Autofocus(),
+			mod.Value(dto.Opponent),
+			mod.IconLeft("fa-t"),
+		)
+		@field.Field(dto, "Start",
+			mod.InputTypeDatetime(),
+			mod.FieldNameGuesser(),
+			mod.Autocomplete("off"),
+			mod.Value(dto.Start),
+			mod.IconLeft("fa-clock"),
+		)
+		<input type="hidden" name="start_timezone" value={ dto.StartTimezone }/>
+		<div class="flex flex-col sm:flex-row gap-1">
+			@field.Field(dto, "HalfCap", capModifiers(dto.HalfCap, "fa-circle-half-stroke")...)
+			@field.Field(dto, "SoftCap", capModifiers(dto.SoftCap, "fa-circle-notch")...)
+			@field.Field(dto, "HardCap", capModifiers(dto.HardCap, "fa-circle")...)
+		</div>
+		<span class="is-danger">
+			{ dto.FormError() }
+		</span>
+	</form>
+}
+
+var defaultCapModifiers = []field.Modifier{mod.FieldNameGuesser(), mod.InputTypeNumber(), mod.InputAttribute("step", "1"), mod.InputAttribute("min", "0")}
+
+func capModifiers(val int, icon string) []field.Modifier {
+	mods := make([]field.Modifier, len(defaultCapModifiers))
+	copy(mods, defaultCapModifiers)
+	mods = append(mods, mod.IconLeft(icon))
+	if val != 0 {
+		mods = append(mods, mod.Value(strconv.Itoa(val)))
+	}
+	return mods
+}

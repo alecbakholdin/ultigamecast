@@ -86,5 +86,10 @@ func main() {
 	http.Handle("PUT /teams/{teamSlug}/schedule/{tournamentSlug}/edit", adminOnly.ThenFunc(tournamentHandler.PutEdit))
 	http.Handle("GET /teams/{teamSlug}/schedule/{tournamentSlug}/edit-cancel", adminOnly.ThenFunc(tournamentHandler.GetEditCancel))
 
+	tournamentScheduleHandler := handlers.NewTournamentSchedule(gameService)
+	http.Handle("GET /teams/{teamSlug}/schedule/{tournamentSlug}/schedule", base.ThenFunc(tournamentScheduleHandler.Get))
+	http.Handle("POST /teams/{teamSlug}/schedule/{tournamentSlug}/schedule", adminOnly.ThenFunc(tournamentScheduleHandler.Post))
+	http.Handle("GET /teams/{teamSlug}/schedule/{tournamentSlug}/schedule-create", adminOnly.ThenFunc(tournamentScheduleHandler.GetModal))
+
 	log.Fatal(http.ListenAndServe("localhost:8090", nil))
 }

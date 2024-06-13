@@ -64,7 +64,11 @@ func HxLocation(w http.ResponseWriter, url string) {
 	w.Header().Add("Hx-Location", url)
 }
 
-func HxRetarget(w http.ResponseWriter, target, swap string) {
+func HxRetargetSwap(w http.ResponseWriter, target, swap string) {
 	w.Header().Add("Hx-Retarget", target)
 	w.Header().Add("Hx-Reswap", swap)
+}
+
+func HxRetarget(w http.ResponseWriter, target string) {
+	w.Header().Add("Hx-Retarget", target)
 }

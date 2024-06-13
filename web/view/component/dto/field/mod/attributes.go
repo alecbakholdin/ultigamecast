@@ -61,3 +61,11 @@ func InputTypePassword() *AttributeModifier {
 func InputTypeHidden() *AttributeModifier {
 	return InputType(field.InputTypeHidden)
 }
+
+func InputTypeDatetime() *AttributeModifier {
+	return InputType(field.InputTypeDatetime)
+}
+
+func InputTypeNumber() *AttributeModifier {
+	return InputType(field.InputTypeNumber)
+}

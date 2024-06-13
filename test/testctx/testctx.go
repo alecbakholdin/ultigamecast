@@ -91,6 +91,10 @@ func Load(ctx context.Context, values ...any) context.Context {
 			ctx = context.WithValue(ctx, ctxvar.Tournament, &v)
 		case *models.Tournament:
 			ctx = context.WithValue(ctx, ctxvar.Tournament, v)
+		case models.TournamentSummary:
+			ctx = context.WithValue(ctx, ctxvar.Tournament, v.Tournament)
+		case *models.TournamentSummary:
+			ctx = context.WithValue(ctx, ctxvar.Tournament, v.Tournament)
 		case models.TournamentDatum:
 			ctx = context.WithValue(ctx, ctxvar.TournamentDatum, &v)
 		case *models.TournamentDatum:
@@ -108,7 +112,7 @@ func Load(ctx context.Context, values ...any) context.Context {
 		case *models.Event:
 			ctx = context.WithValue(ctx, ctxvar.Event, v)
 		default:
-			panic(fmt.Errorf("unexpected type %T", v))
+			panic(fmt.Errorf("unexpected type while loading context %T", v))
 		}
 	}
 	return ctx

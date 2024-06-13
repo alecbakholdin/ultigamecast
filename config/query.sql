@@ -80,6 +80,11 @@ SELECT *
 FROM tournaments
 WHERE team = @teamId
     AND slug = @slug;
+-- name: ListTournamentGames :many
+SELECT *
+FROM games
+WHERE tournament = @tournamentId
+ORDER BY "start";
 -- name: ListTournaments :many
 SELECT *
 FROM tournaments
@@ -89,13 +94,13 @@ ORDER BY "start_date" ASC,
 -- name: ListTeamGames :many
 SELECT g.*
 FROM games g
-INNER JOIN tournaments t
+    INNER JOIN tournaments t ON t.id = g.tournament
 WHERE t.team = @teamId
 ORDER BY g.start ASC;
 -- name: ListTeamTournamentData :many
 SELECT td.*
 FROM tournament_data td
-INNER JOIN tournaments t
+    INNER JOIN tournaments t
 WHERE t.team = @teamId
 ORDER BY td."order" ASC;
 -- name: CreateTournament :one
@@ -139,3 +144,16 @@ UPDATE tournament_data
 SET "order" = ?
 WHERE id = @dataId
     AND tournament = @tournamentId;
+-- name: CreateGame :one
+INSERT INTO games (
+        tournament,
+        opponent,
+        slug,
+        "start",
+        "start_timezone",
+        "half_cap",
+        "soft_cap",
+        "hard_cap"
+    )
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING *;

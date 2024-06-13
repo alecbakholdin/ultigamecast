@@ -81,6 +81,21 @@ func TestTournament(t *testing.T) {
 		}
 		assert.Equal(t, ids, idsPostOrder)
 	})
+	t.Run("get schedule", func(t *testing.T) {
+		ctx := testctx.LoadTeam(to.q)
+		tournament, err := to.CreateTournament(ctx, "get schedule", "Jan 1, 2024 - Jan 2, 2024")
+		assert.Nil(t, err, "error creating tournament")
+		withTournament := testctx.Load(ctx, tournament)
+		g := NewGame(testdb.DB())
+		game, err := g.CreateGame(withTournament, "opp", "2024-01-02T15:04", "America/New_York", 1, 2, 3)
+		assert.Nil(t, err, "error creating game")
+		schedule, err := to.GetSchedule(ctx)
+		assert.Nil(t, err, "error getting schedule")
+		assert.Equal(t, 1, len(schedule))
+		assert.Equal(t, *tournament.Tournament, *schedule[0].Tournament)
+		assert.Equal(t, 1, len(schedule[0].Games))
+		assert.Equal(t, *game, schedule[0].Games[0])
+	})
 }
 
 func mustParseTime(layout, val string) time.Time {

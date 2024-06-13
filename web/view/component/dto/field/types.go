@@ -35,6 +35,8 @@ const (
 	InputTypeEmail    InputType = "email"
 	InputTypePassword InputType = "password"
 	InputTypeHidden   InputType = "hidden"
+	InputTypeDatetime InputType = "datetime-local"
+	InputTypeNumber   InputType = "number"
 )
 
 type Size string

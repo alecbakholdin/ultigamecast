@@ -10,6 +10,61 @@ import (
 	"database/sql"
 )
 
+const createGame = `-- name: CreateGame :one
+INSERT INTO games (
+        tournament,
+        opponent,
+        slug,
+        "start",
+        "start_timezone",
+        "half_cap",
+        "soft_cap",
+        "hard_cap"
+    )
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING id, tournament, slug, opponent, schedule_status, start, start_timezone, wind, "temp", half_cap, soft_cap, hard_cap
+`
+
+type CreateGameParams struct {
+	Tournament    int64          `db:"tournament" json:"tournament"`
+	Opponent      string         `db:"opponent" json:"opponent"`
+	Slug          string         `db:"slug" json:"slug"`
+	Start         sql.NullTime   `db:"start" json:"start"`
+	StartTimezone sql.NullString `db:"start_timezone" json:"start_timezone"`
+	HalfCap       sql.NullInt64  `db:"half_cap" json:"half_cap"`
+	SoftCap       sql.NullInt64  `db:"soft_cap" json:"soft_cap"`
+	HardCap       sql.NullInt64  `db:"hard_cap" json:"hard_cap"`
+}
+
+func (q *Queries) CreateGame(ctx context.Context, arg CreateGameParams) (Game, error) {
+	row := q.db.QueryRowContext(ctx, createGame,
+		arg.Tournament,
+		arg.Opponent,
+		arg.Slug,
+		arg.Start,
+		arg.StartTimezone,
+		arg.HalfCap,
+		arg.SoftCap,
+		arg.HardCap,
+	)
+	var i Game
+	err := row.Scan(
+		&i.ID,
+		&i.Tournament,
+		&i.Slug,
+		&i.Opponent,
+		&i.ScheduleStatus,
+		&i.Start,
+		&i.StartTimezone,
+		&i.Wind,
+		&i.Temp,
+		&i.HalfCap,
+		&i.SoftCap,
+		&i.HardCap,
+	)
+	return i, err
+}
+
 const createPlayer = `-- name: CreatePlayer :one
 INSERT INTO players (team, slug, "name", "order")
 VALUES (
@@ -349,7 +404,7 @@ func (q *Queries) ListOwnedTeams(ctx context.Context, userid int64) ([]Team, err
 const listTeamGames = `-- name: ListTeamGames :many
 SELECT g.id, g.tournament, g.slug, g.opponent, g.schedule_status, g.start, g.start_timezone, g.wind, g."temp", g.half_cap, g.soft_cap, g.hard_cap
 FROM games g
-INNER JOIN tournaments t
+    INNER JOIN tournaments t ON t.id = g.tournament
 WHERE t.team = ?1
 ORDER BY g.start ASC
 `
@@ -429,7 +484,7 @@ func (q *Queries) ListTeamPlayers(ctx context.Context, teamid int64) ([]Player, 
 const listTeamTournamentData = `-- name: ListTeamTournamentData :many
 SELECT td.id, td.tournament, td.icon, td.title, td.show_in_preview, td.text_preview, td.data_type, td.value_text, td.value_link, td."order"
 FROM tournament_data td
-INNER JOIN tournaments t
+    INNER JOIN tournaments t
 WHERE t.team = ?1
 ORDER BY td."order" ASC
 `
@@ -495,6 +550,49 @@ func (q *Queries) ListTournamentData(ctx context.Context, tournamentid int64) ([
 			&i.ValueText,
 			&i.ValueLink,
 			&i.Order,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTournamentGames = `-- name: ListTournamentGames :many
+SELECT id, tournament, slug, opponent, schedule_status, start, start_timezone, wind, "temp", half_cap, soft_cap, hard_cap
+FROM games
+WHERE tournament = ?1
+ORDER BY "start"
+`
+
+func (q *Queries) ListTournamentGames(ctx context.Context, tournamentid int64) ([]Game, error) {
+	rows, err := q.db.QueryContext(ctx, listTournamentGames, tournamentid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Game
+	for rows.Next() {
+		var i Game
+		if err := rows.Scan(
+			&i.ID,
+			&i.Tournament,
+			&i.Slug,
+			&i.Opponent,
+			&i.ScheduleStatus,
+			&i.Start,
+			&i.StartTimezone,
+			&i.Wind,
+			&i.Temp,
+			&i.HalfCap,
+			&i.SoftCap,
+			&i.HardCap,
 		); err != nil {
 			return nil, err
 		}

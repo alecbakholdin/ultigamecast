@@ -48,7 +48,7 @@ func (t *TeamSchedule) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		htmx.HxCloseModal(w)
-		htmx.HxRetarget(w, "#schedule-list", "beforeend")
+		htmx.HxRetargetSwap(w, "#schedule-list", "beforeend")
 		view_team_schedule.ScheduleRow(tournament).Render(r.Context(), w)
 	}
 }

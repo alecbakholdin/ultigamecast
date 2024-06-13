@@ -65,7 +65,7 @@ func (t *Team) PostTeams(w http.ResponseWriter, r *http.Request) {
 		htmx.HxRefresh(w)
 	} else {
 		htmx.HxCloseModal(w)
-		htmx.HxRetarget(w, "#owned-teams-list", "beforeend")
+		htmx.HxRetargetSwap(w, "#owned-teams-list", "beforeend")
 		view_team.TeamRow(team).Render(r.Context(), w)
 	}
 }

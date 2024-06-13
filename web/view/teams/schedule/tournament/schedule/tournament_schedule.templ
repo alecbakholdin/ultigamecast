@@ -1,0 +1,70 @@
+package view_tournament_schedule
+
+import "ultigamecast/internal/models"
+import "ultigamecast/internal/ctxvar"
+import "time"
+import "log/slog"
+
+templ Schedule(games []models.Game) {
+	<div class="flex flex-col gap-2 py-4 px-2">
+		<div id="game-list">
+			for _, g := range games {
+				@ScheduleRow(&g)
+			}
+		</div>
+		if ctxvar.IsAdmin(ctx) {
+			<div class="flex gap-3">
+				<div class="buttons -ml-3.5">
+					<a
+						hx-get={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, "schedule-create") }
+						hx-target="#modal-content"
+						hx-swap="innerHTML"
+						class="button is-primary rounded-full htmx-loading"
+						hx-on:mouseover="this.querySelector('.w-0').style.width = '9.75rem'"
+						hx-on:mouseout="this.querySelector('.w-0').style.width = '0px'"
+					>
+						<span class="icon !-mr-2"><i class="fas fa-plus"></i></span>
+						<span class="overflow-clip w-0 transition-all"><span class="ml-4">New Game</span></span>
+					</a>
+				</div>
+			</div>
+		}
+	</div>
+}
+
+templ ScheduleRow(game *models.Game) {
+	<div class="flex gap-3">
+		<div class="flex flex-col items-center gap-3">
+			<div class="w-3 h-3 rounded-full has-background-primary"></div>
+		</div>
+		<div class="w-1 h-full has-background-primary"></div>
+		<div class="flex flex-col gap-2 pb-4">
+			<a href={ ctxvar.SafeUrl(ctx, ctxvar.Team, ctxvar.Tournament, game) }>
+				{ game.Opponent }
+			</a>
+		</div>
+	</div>
+}
+
+type groupedGames map[int][]models.Game
+
+func groupByDate(ctx context.Context, games []models.Game) groupedGames {
+	m := make(groupedGames)
+	tournamentStart := ctxvar.GetTournament(ctx).StartDate.Time
+	for _, g := range games {
+		if tournamentStart.IsZero() || !g.StartTimezone.Valid || !g.Start.Valid {
+			m[0] = append(m[0], g)
+			continue
+		}
+		loc, err := time.LoadLocation(g.StartTimezone.String)
+		if err != nil {
+			m[0] = append(m[0], g)
+			slog.ErrorContext(ctx, "error parsing game timezone", "game", g, "loc", loc, "err", err)
+			continue
+		}
+		timeInLoc := g.Start.Time.In(loc)
+		daysSinceStart := int(timeInLoc.Sub(tournamentStart).Hours()/24) + 1
+		m[daysSinceStart] = append(m[daysSinceStart], g)
+	}
+	return m
+}
