@@ -8,10 +8,12 @@ import (
 )
 
 var (
-	ErrNotFound = errors.New("did not find a matching record")
-	ErrUnexpected = errors.New("unexpected error")
-	ErrBadFormat = errors.New("poorly formatted request")
+	ErrNotFound        = errors.New("did not find a matching record")
+	ErrUnexpected      = errors.New("unexpected error")
+	ErrBadFormat       = errors.New("poorly formatted request")
 	ErrDateOutOfBounds = errors.New("date is out of the proper bounds")
+	ErrGameNotLive     = errors.New("game is not live")
+	ErrLineNotReady    = errors.New("line is not ready for point start")
 )
 
 func convertAndLogSqlError(ctx context.Context, message string, sqlErr error) error {

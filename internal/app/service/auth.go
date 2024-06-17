@@ -18,12 +18,14 @@ import (
 
 type Auth struct {
 	q      *models.Queries
+	db     *sql.DB
 	secret []byte
 }
 
-func NewAuth(q *models.Queries, secret string) *Auth {
+func NewAuth(db *sql.DB, secret string) *Auth {
 	return &Auth{
-		q:      q,
+		q:      models.New(db),
+		db:     db,
 		secret: []byte(secret),
 	}
 }

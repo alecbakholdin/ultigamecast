@@ -16,9 +16,9 @@ type Player struct {
 	db *sql.DB
 }
 
-func NewPlayer(q *models.Queries, db *sql.DB) *Player {
+func NewPlayer(db *sql.DB) *Player {
 	return &Player{
-		q:  q,
+		q:  models.New(db),
 		db: db,
 	}
 }

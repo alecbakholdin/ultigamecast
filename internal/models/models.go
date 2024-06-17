@@ -11,24 +11,36 @@ import (
 )
 
 type Event struct {
-	ID   int64  `db:"id" json:"id"`
-	Game int64  `db:"game" json:"game"`
-	Type string `db:"type" json:"type"`
+	ID                string         `db:"id" json:"id"`
+	Batch             sql.NullString `db:"batch" json:"batch"`
+	Created           sql.NullTime   `db:"created" json:"created"`
+	TeamScore         int64          `db:"team_score" json:"team_score"`
+	OpponentScore     int64          `db:"opponent_score" json:"opponent_score"`
+	Game              int64          `db:"game" json:"game"`
+	Type              EventType      `db:"type" json:"type"`
+	Player            sql.NullInt64  `db:"player" json:"player"`
+	PreviousGameState GameLiveStatus `db:"previous_game_state" json:"previous_game_state"`
+	PreviousEvent     sql.NullString `db:"previous_event" json:"previous_event"`
 }
 
 type Game struct {
-	ID             int64          `db:"id" json:"id"`
-	Tournament     int64          `db:"tournament" json:"tournament"`
-	Slug           string         `db:"slug" json:"slug"`
-	Opponent       string         `db:"opponent" json:"opponent"`
-	ScheduleStatus sql.NullString `db:"schedule_status" json:"schedule_status"`
-	Start          sql.NullTime   `db:"start" json:"start"`
-	StartTimezone  sql.NullString `db:"start_timezone" json:"start_timezone"`
-	Wind           sql.NullInt64  `db:"wind" json:"wind"`
-	Temp           sql.NullInt64  `db:"temp" json:"temp"`
-	HalfCap        sql.NullInt64  `db:"half_cap" json:"half_cap"`
-	SoftCap        sql.NullInt64  `db:"soft_cap" json:"soft_cap"`
-	HardCap        sql.NullInt64  `db:"hard_cap" json:"hard_cap"`
+	ID             int64              `db:"id" json:"id"`
+	Tournament     int64              `db:"tournament" json:"tournament"`
+	Slug           string             `db:"slug" json:"slug"`
+	Opponent       string             `db:"opponent" json:"opponent"`
+	Start          sql.NullTime       `db:"start" json:"start"`
+	StartTimezone  sql.NullString     `db:"start_timezone" json:"start_timezone"`
+	Wind           sql.NullInt64      `db:"wind" json:"wind"`
+	Temp           sql.NullInt64      `db:"temp" json:"temp"`
+	HalfCap        sql.NullInt64      `db:"half_cap" json:"half_cap"`
+	SoftCap        sql.NullInt64      `db:"soft_cap" json:"soft_cap"`
+	HardCap        sql.NullInt64      `db:"hard_cap" json:"hard_cap"`
+	ScheduleStatus GameScheduleStatus `db:"schedule_status" json:"schedule_status"`
+	LiveStatus     GameLiveStatus     `db:"live_status" json:"live_status"`
+	ActivePlayers  sql.NullString     `db:"active_players" json:"active_players"`
+	LastEvent      sql.NullString     `db:"last_event" json:"last_event"`
+	TeamScore      int64              `db:"team_score" json:"team_score"`
+	OpponentScore  int64              `db:"opponent_score" json:"opponent_score"`
 }
 
 type Player struct {

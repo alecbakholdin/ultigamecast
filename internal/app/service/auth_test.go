@@ -9,8 +9,7 @@ import (
 )
 
 func TestSignUp(t *testing.T) {
-	q, _ := testdb.DB()
-	a := NewAuth(q, "secret")
+	a := NewAuth(testdb.DB(), "secret")
 	jwt, err := a.SignUp("email@email.com", "randompassword")
 	if err != nil {
 		t.Fatalf("could not sign up: %s", err)
@@ -23,8 +22,7 @@ func TestSignUp(t *testing.T) {
 }
 
 func TestSignInWithPasswordOnlyWorksWithProperPassword(t *testing.T) {
-	q, _ := testdb.DB()
-	a := NewAuth(q, "secret")
+	a := NewAuth(testdb.DB(), "secret")
 	_, err := a.SignUp("email2@email.com", "randompassword")
 	if err != nil {
 		t.Fatalf("could not sign up: %s", err)

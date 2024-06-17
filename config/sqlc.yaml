@@ -14,3 +14,15 @@ sql:
             go_type:
               import: "ultigamecast/internal/models/tournament_data_types"
               type: "Option"
+          - column: "games.schedule_status"
+            go_type:
+              type: "GameScheduleStatus"
+          - column: "games.live_status"
+            go_type:
+              type: "GameLiveStatus"
+          - column: "events.previous_game_state"
+            go_type:
+              type: "GameLiveStatus"
+          - column: "events.type"
+            go_type:
+              type: "EventType"

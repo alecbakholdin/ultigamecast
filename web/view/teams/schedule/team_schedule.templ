@@ -72,7 +72,7 @@ templ ScheduleRow(t *models.TournamentSummary) {
 				}
 				for _, g := range games {
 					<a href={ ctxvar.SafeUrl(ctx, ctxvar.Team, t, &g) }>
-						{ g.ScheduleStatus.String }
+						{ string(g.ScheduleStatus) }
 						vs { g.Opponent }
 					</a>
 				}

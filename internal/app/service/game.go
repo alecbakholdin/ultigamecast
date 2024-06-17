@@ -17,12 +17,18 @@ import (
 type Game struct {
 	q  *models.Queries
 	db *sql.DB
+	clearer SubscriptionClearer
 }
 
-func NewGame(q *models.Queries, db *sql.DB) *Game {
+type SubscriptionClearer interface{
+	ClearGameSubscriptions(ctx context.Context) 
+}
+
+func NewGame(db *sql.DB, clearer SubscriptionClearer) *Game {
 	return &Game{
-		q:  q,
+		q:  models.New(db),
 		db: db,
+		clearer: clearer,
 	}
 }
 
@@ -61,7 +67,7 @@ func (g *Game) CreateGame(ctx context.Context, opponent, start, startTimezone st
 			return nil, err
 		}
 	}
-	if startTime.Before(tournament.StartDate.Time) || startTime.After(tournament.EndDate.Time.AddDate(0, 0, 1)) {
+	if (startTime.Before(tournament.StartDate.Time) || startTime.After(tournament.EndDate.Time.AddDate(0, 0, 1))) && tournament.StartDate.Valid {
 		return nil, ErrDateOutOfBounds
 	}
 
@@ -96,4 +102,24 @@ func (t *Game) getSafeSlug(ctx context.Context, opponent string) (string, error)
 		num++
 	}
 	return s, nil
+}
+
+func (g *Game) UpdateScheduleStatus(ctx context.Context, status string) (*models.Game, error) {
+	game := ctxvar.GetGame(ctx)
+	assert.That(game != nil, "game cannot be nil when updating schedule status")
+	scheduleStatus, ok := models.GameScheduleStatusMap[status]
+	assert.That(ok, "unexpected status provided %s", status)
+
+	if game.ScheduleStatus == scheduleStatus {
+		return game, nil
+	}
+	// clear subs if game was live and is now not live
+	if scheduleStatus != models.GameScheduleStatusLive && game.ScheduleStatus == models.GameScheduleStatusLive {
+		g.clearer.ClearGameSubscriptions(ctx)
+	}
+	if game, err := g.q.UpdateGameScheduleStatus(ctx, models.UpdateGameScheduleStatusParams{ID: game.ID, ScheduleStatus: scheduleStatus}); err != nil {
+		return nil, convertAndLogSqlError(ctx, "error updating game schedule status", err)
+	} else {
+		return &game, nil
+	}
 }

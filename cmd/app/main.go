@@ -14,7 +14,6 @@ import (
 	"ultigamecast/internal/app/service"
 	"ultigamecast/internal/env"
 	"ultigamecast/internal/logger"
-	"ultigamecast/internal/models"
 
 	"github.com/justinas/alice"
 	_ "github.com/mattn/go-sqlite3"
@@ -27,13 +26,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	queries := models.New(db)
 
-	authService := service.NewAuth(queries, env.MustGetenv("JWT_SECRET"))
-	teamService := service.NewTeam(queries, db)
-	playerService := service.NewPlayer(queries, db)
-	tournamentService := service.NewTournament(queries, db)
-	gameService := service.NewGame(queries, db)
+	authService := service.NewAuth(db, env.MustGetenv("JWT_SECRET"))
+	teamService := service.NewTeam(db)
+	playerService := service.NewPlayer(db)
+	tournamentService := service.NewTournament(db)
+	eventService := service.NewEvent(db)
+	gameService := service.NewGame(db, eventService)
 	base := alice.New(
 		middleware.RecoverPanic,
 		middleware.LoadUser(authService),

@@ -57,7 +57,7 @@ func Url(ctx context.Context, segments ...any) string {
 		case *models.Game:
 			urlParts = append(urlParts, "games", v.Slug)
 		case *models.Event:
-			urlParts = append(urlParts, "events", strconv.FormatInt(v.ID, 10))
+			urlParts = append(urlParts, "events", v.ID)
 		case *models.TournamentDatum:
 			urlParts = append(urlParts, "data", strconv.FormatInt(v.ID, 10))
 		default:
@@ -142,7 +142,7 @@ func GetValue(ctx context.Context, key ContextVar) string {
 		}
 	case Event:
 		if event := GetEvent(ctx); event != nil {
-			return fmt.Sprintf("[%d] %s", event.ID, event.Type)
+			return fmt.Sprintf("[%s] %s", event.ID, event.Type)
 		}
 	case TournamentDatum:
 		if datum := GetTournamentDatum(ctx); datum != nil {

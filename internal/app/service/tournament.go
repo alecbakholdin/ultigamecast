@@ -19,9 +19,9 @@ type Tournament struct {
 	db *sql.DB
 }
 
-func NewTournament(q *models.Queries, db *sql.DB) *Tournament {
+func NewTournament(db *sql.DB) *Tournament {
 	return &Tournament{
-		q:  q,
+		q:  models.New(db),
 		db: db,
 	}
 }

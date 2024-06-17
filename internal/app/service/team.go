@@ -14,9 +14,9 @@ type Team struct {
 	db *sql.DB
 }
 
-func NewTeam(q *models.Queries, db *sql.DB) *Team {
+func NewTeam(db *sql.DB) *Team {
 	return &Team{
-		q:  q,
+		q:  models.New(db),
 		db: db,
 	}
 }

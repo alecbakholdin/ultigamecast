@@ -64,6 +64,16 @@ SELECT *
 FROM players
 WHERE team = @teamId
 ORDER BY "order" ASC;
+-- name: ListTeamPlayersBySlug :many
+SELECT *
+FROM players
+WHERE team = @teamId
+    AND slug IN (sqlc.slice('playerSlugs'));
+-- name: ListTeamPlayersByID :many
+SELECT *
+FROM players
+WHERE team = @teamId
+    AND id IN (@playerIDs);
 -- name: UpdatePlayer :one
 UPDATE players
 SET "name" = ?,
@@ -156,4 +166,36 @@ INSERT INTO games (
         "hard_cap"
     )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING *;
+-- name: UpdateGameScheduleStatus :one
+UPDATE games
+SET schedule_status = ?
+WHERE id = ?
+RETURNING *;
+-- name: UpdateLiveGame :one
+UPDATE games
+SET team_score = ?,
+    opponent_score = ?,
+    live_status = ?,
+    last_event = ?,
+    active_players = ?
+WHERE id = ?
+RETURNING *;
+-- name: GetGameById :one
+SELECT *
+FROM games
+WHERE id = ?;
+-- name: CreateEvent :one
+INSERT INTO events (
+        id,
+        batch,
+        game,
+        team_score,
+        opponent_score,
+        previous_game_state,
+        previous_event,
+        "type",
+        player
+    )
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING *;

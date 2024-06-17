@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"ultigamecast/internal/models"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -19,11 +18,11 @@ var (
 )
 var testdb *sql.DB
 
-func DB() (*models.Queries, *sql.DB) {
+func DB() *sql.DB {
 	if testdb == nil {
 		Init()
 	}
-	return models.New(testdb), testdb
+	return testdb
 }
 
 func Init() {

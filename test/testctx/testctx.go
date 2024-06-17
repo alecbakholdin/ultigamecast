@@ -58,8 +58,8 @@ func LoadTournament(q *models.Queries) context.Context {
 	randstr := randomString(10)
 	tournament, err := q.CreateTournament(ctx, models.CreateTournamentParams{
 		TeamId: ctxvar.GetTeam(ctx).ID,
-		Name: "tournament " + randstr,
-		Slug: "tournament-" + strings.ToLower(randstr),
+		Name:   "tournament " + randstr,
+		Slug:   "tournament-" + strings.ToLower(randstr),
 	})
 	if err != nil {
 		panic(fmt.Errorf("error creating tournament: %w", err))
@@ -74,6 +74,20 @@ func LoadTournamentDatum(q *models.Queries) context.Context {
 		panic(fmt.Errorf("error creating datum: %w", err))
 	}
 	return Load(ctx, datum)
+}
+
+func LoadGame(q *models.Queries) context.Context {
+	ctx := LoadTournament(q)
+	randstr := randomString(10)
+	game, err := q.CreateGame(ctx, models.CreateGameParams{
+		Tournament: ctxvar.GetTournament(ctx).ID,
+		Opponent:   "opp " + randstr,
+		Slug:       "game-" + strings.ToLower(randstr),
+	})
+	if err != nil {
+		panic(fmt.Errorf("error creating game: %w", err))
+	}
+	return Load(ctx, game)
 }
 
 func Load(ctx context.Context, values ...any) context.Context {

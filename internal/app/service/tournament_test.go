@@ -86,7 +86,7 @@ func TestTournament(t *testing.T) {
 		tournament, err := to.CreateTournament(ctx, "get schedule", "Jan 1, 2024 - Jan 2, 2024")
 		assert.Nil(t, err, "error creating tournament")
 		withTournament := testctx.Load(ctx, tournament)
-		g := NewGame(testdb.DB())
+		g := NewGame(testdb.DB(), NewEvent(testdb.DB()))
 		game, err := g.CreateGame(withTournament, "opp", "2024-01-02T15:04", "America/New_York", 1, 2, 3)
 		assert.Nil(t, err, "error creating game")
 		schedule, err := to.GetSchedule(ctx)
