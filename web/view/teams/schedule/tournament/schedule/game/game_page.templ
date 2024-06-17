@@ -4,9 +4,11 @@ import "ultigamecast/internal/models"
 import "ultigamecast/web/view/layout"
 
 templ GamePage(g *models.Game) {
-    @view_layout.NavLayout() {
-        <section class="section">
-
-        </section>
-    }   
+	@view_layout.NavLayout() {
+		<section class="section">
+			<div class="container w-full">
+				{ g.Opponent }
+			</div>
+		</section>
+	}
 }

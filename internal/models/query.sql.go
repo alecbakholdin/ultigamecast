@@ -307,6 +307,42 @@ func (q *Queries) GetGameById(ctx context.Context, id int64) (Game, error) {
 	return i, err
 }
 
+const getGameBySlug = `-- name: GetGameBySlug :one
+SELECT id, tournament, slug, opponent, start, start_timezone, wind, "temp", half_cap, soft_cap, hard_cap, schedule_status, live_status, active_players, last_event, team_score, opponent_score
+FROM games
+WHERE tournament = ? AND slug = ?
+`
+
+type GetGameBySlugParams struct {
+	TournamentID int64  `db:"tournamentID" json:"tournamentID"`
+	Slug         string `db:"slug" json:"slug"`
+}
+
+func (q *Queries) GetGameBySlug(ctx context.Context, arg GetGameBySlugParams) (Game, error) {
+	row := q.db.QueryRowContext(ctx, getGameBySlug, arg.TournamentID, arg.Slug)
+	var i Game
+	err := row.Scan(
+		&i.ID,
+		&i.Tournament,
+		&i.Slug,
+		&i.Opponent,
+		&i.Start,
+		&i.StartTimezone,
+		&i.Wind,
+		&i.Temp,
+		&i.HalfCap,
+		&i.SoftCap,
+		&i.HardCap,
+		&i.ScheduleStatus,
+		&i.LiveStatus,
+		&i.ActivePlayers,
+		&i.LastEvent,
+		&i.TeamScore,
+		&i.OpponentScore,
+	)
+	return i, err
+}
+
 const getPlayer = `-- name: GetPlayer :one
 SELECT id, team, slug, name, "order"
 FROM players

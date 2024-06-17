@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"ultigamecast/internal/ctxvar"
 	"ultigamecast/internal/models"
@@ -57,7 +58,10 @@ func loadValue[T any](ctx context.Context, pathVal string, cv ctxvar.ContextVar,
 		return ctx
 	}
 
-	if m, err := getFn(ctx, pathVal); err != nil || m == nil {
+	if m, err := getFn(ctx, pathVal); err != nil {
+		slog.ErrorContext(ctx, "error fetching path val", "ctxvar", cv, "pathval", pathVal)
+		return ctx
+	} else if m == nil {
 		return ctx
 	} else {
 		return context.WithValue(ctx, cv, m)

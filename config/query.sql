@@ -185,6 +185,10 @@ RETURNING *;
 SELECT *
 FROM games
 WHERE id = ?;
+-- name: GetGameBySlug :one
+SELECT *
+FROM games
+WHERE tournament = @tournamentID AND slug = ?;
 -- name: CreateEvent :one
 INSERT INTO events (
         id,

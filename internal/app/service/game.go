@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strings"
 	"time"
 	"ultigamecast/internal/app/service/slug"
 	"ultigamecast/internal/assert"
@@ -43,7 +44,16 @@ func (g *Game) GetSchedule(ctx context.Context) ([]models.Game, error) {
 }
 
 func (g *Game) GetGame(ctx context.Context, slug string) (*models.Game, error) {
-	return nil, nil
+	tournament := ctxvar.GetTournament(ctx)
+	assert.That(tournament != nil, "tournament is nil")
+	game, err := g.q.GetGameBySlug(ctx, models.GetGameBySlugParams{
+		TournamentID: tournament.ID,
+		Slug: strings.ToLower(slug),
+	})
+	if err != nil {
+		return nil, convertAndLogSqlError(ctx, "error getting game", err)
+	}
+	return &game, nil
 }
 
 func (g *Game) CreateGame(ctx context.Context, opponent, start, startTimezone string, half, soft, hard int) (*models.Game, error){
