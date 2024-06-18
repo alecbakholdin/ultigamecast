@@ -67,21 +67,16 @@ func TestEvent(t *testing.T) {
 			if err != nil {
 				return
 			}
-			var batch string
-			for range 7 {
-				u := <-sub.EventChan
-
-				if batch == "" {
-					batch = u.Event.Batch.String
-				}
-				assert.NotEmpty(t, batch)
-				assert.Equal(t, batch, u.Event.Batch.String)
-				assert.Equal(t, batch, u.Game.LastEvent.String)
-
-				assert.Equal(t, models.EventTypeStartingLine, u.Event.Type)
-				assert.Equal(t, models.GameLiveStatusPrePoint, u.Game.LiveStatus)
-				assert.True(t, u.Game.ActivePlayers.Valid)
-				assert.Equal(t, strings.Join(playerIdStrings, ","), u.Game.ActivePlayers.String)
+			u := <-sub.EventChan
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
+			assert.Equal(t, models.GameLiveStatusPrePoint, u.Game.LiveStatus)
+			assert.True(t, u.Game.ActivePlayers.Valid)
+			assert.Equal(t, strings.Join(playerIdStrings, ","), u.Game.ActivePlayers.String)
+			assert.NotEmpty(t, u.Id)
+			for i, e := range u.Event{
+				assert.Equal(t, u.Id, e.Batch.String)
+				assert.Equal(t, models.EventTypeStartingLine, e.Type)
+				assert.Equal(t, playerIds[i], e.Player.Int64)
 			}
 		})
 
@@ -92,11 +87,12 @@ func TestEvent(t *testing.T) {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, models.EventTypePointStart, u.Event.Type)
+			assert.Equal(t, u.Event[0].ID, u.Game.LastEvent.String)
 			assert.Equal(t, models.GameLiveStatusOpponentPossession, u.Game.LiveStatus)
-			assert.Equal(t, int64(0), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.ID, u.Game.LastEvent.String)
+			assert.Equal(t, 1, len(u.Event))
+			assert.Equal(t, models.EventTypePointStart, u.Event[0].Type)
+			assert.Equal(t, int64(0), u.Event[0].TeamScore)
+			assert.Equal(t, int64(0), u.Event[0].OpponentScore)
 		})
 
 		t.Run("03 opponent drop", func(t *testing.T) {
@@ -106,11 +102,11 @@ func TestEvent(t *testing.T) {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, models.EventTypeOpponentDrop, u.Event.Type)
 			assert.Equal(t, models.GameLiveStatusTeamPossession, u.Game.LiveStatus)
-			assert.Equal(t, int64(0), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.ID, u.Game.LastEvent.String)
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
+			assert.Equal(t, models.EventTypeOpponentDrop, u.Event[0].Type)
+			assert.Equal(t, int64(0), u.Event[0].TeamScore)
+			assert.Equal(t, int64(0), u.Event[0].OpponentScore)
 		})
 
 		t.Run("04 team drop", func(t *testing.T) {
@@ -120,12 +116,13 @@ func TestEvent(t *testing.T) {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, playerIds[0], u.Event.Player.Int64)
-			assert.Equal(t, models.EventTypeDrop, u.Event.Type)
+			assert.Equal(t, 1, len(u.Event))
+			assert.Equal(t, playerIds[0], u.Event[0].Player.Int64)
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
+			assert.Equal(t, models.EventTypeDrop, u.Event[0].Type)
 			assert.Equal(t, models.GameLiveStatusOpponentPossession, u.Game.LiveStatus)
-			assert.Equal(t, int64(0), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.ID, u.Game.LastEvent.String)
+			assert.Equal(t, int64(0), u.Event[0].TeamScore)
+			assert.Equal(t, int64(0), u.Event[0].OpponentScore)
 		})
 
 		t.Run("05 opponent timeout", func(t *testing.T) {
@@ -135,11 +132,12 @@ func TestEvent(t *testing.T) {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, models.EventTypeOpponentTimeout, u.Event.Type)
+			assert.Equal(t, 1, len(u.Event))
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
 			assert.Equal(t, models.GameLiveStatusOpponentTimeout, u.Game.LiveStatus)
-			assert.Equal(t, int64(0), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.ID, u.Game.LastEvent.String)
+			assert.Equal(t, models.EventTypeOpponentTimeout, u.Event[0].Type)
+			assert.Equal(t, int64(0), u.Event[0].TeamScore)
+			assert.Equal(t, int64(0), u.Event[0].OpponentScore)
 		})
 
 		t.Run("06 opponent end timeout", func(t *testing.T) {
@@ -149,11 +147,12 @@ func TestEvent(t *testing.T) {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, models.EventTypeOpponentTimeoutEnd, u.Event.Type)
+			assert.Equal(t, 1, len(u.Event))
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
 			assert.Equal(t, models.GameLiveStatusOpponentPossession, u.Game.LiveStatus)
-			assert.Equal(t, int64(0), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.ID, u.Game.LastEvent.String)
+			assert.Equal(t, models.EventTypeOpponentTimeoutEnd, u.Event[0].Type)
+			assert.Equal(t, int64(0), u.Event[0].TeamScore)
+			assert.Equal(t, int64(0), u.Event[0].OpponentScore)
 		})
 
 		t.Run("07 opponent turn", func(t *testing.T) {
@@ -163,11 +162,12 @@ func TestEvent(t *testing.T) {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, models.EventTypeOpponentTurn, u.Event.Type)
+			assert.Equal(t, 1, len(u.Event))
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
 			assert.Equal(t, models.GameLiveStatusTeamPossession, u.Game.LiveStatus)
-			assert.Equal(t, int64(0), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.ID, u.Game.LastEvent.String)
+			assert.Equal(t, models.EventTypeOpponentTurn, u.Event[0].Type)
+			assert.Equal(t, int64(0), u.Event[0].TeamScore)
+			assert.Equal(t, int64(0), u.Event[0].OpponentScore)
 		})
 
 		t.Run("08 team timeout", func(t *testing.T) {
@@ -177,11 +177,12 @@ func TestEvent(t *testing.T) {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, models.EventTypeTimeout, u.Event.Type)
+			assert.Equal(t, 1, len(u.Event))
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
 			assert.Equal(t, models.GameLiveStatusTeamTimeout, u.Game.LiveStatus)
-			assert.Equal(t, int64(0), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.ID, u.Game.LastEvent.String)
+			assert.Equal(t, models.EventTypeTimeout, u.Event[0].Type)
+			assert.Equal(t, int64(0), u.Event[0].TeamScore)
+			assert.Equal(t, int64(0), u.Event[0].OpponentScore)
 		})
 
 		t.Run("09 team end timeout", func(t *testing.T) {
@@ -191,11 +192,12 @@ func TestEvent(t *testing.T) {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, models.EventTypeTimeoutEnd, u.Event.Type)
+			assert.Equal(t, 1, len(u.Event))
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
 			assert.Equal(t, models.GameLiveStatusTeamPossession, u.Game.LiveStatus)
-			assert.Equal(t, int64(0), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.ID, u.Game.LastEvent.String)
+			assert.Equal(t, models.EventTypeTimeoutEnd, u.Event[0].Type)
+			assert.Equal(t, int64(0), u.Event[0].TeamScore)
+			assert.Equal(t, int64(0), u.Event[0].OpponentScore)
 		})
 
 		t.Run("10 team goal", func(t *testing.T) {
@@ -205,23 +207,23 @@ func TestEvent(t *testing.T) {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, models.EventTypeGoal, u.Event.Type)
-			assert.Equal(t, playerIds[0], u.Event.Player.Int64)
+			assert.Equal(t, 2, len(u.Event))
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
 			assert.Equal(t, models.GameLiveStatusPrePoint, u.Game.LiveStatus)
-			assert.Equal(t, int64(0), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.Batch.String, u.Game.LastEvent.String)
-
-			u = <-sub.EventChan
-			assert.Equal(t, models.EventTypeAssist, u.Event.Type)
-			assert.Equal(t, playerIds[1], u.Event.Player.Int64)
-			assert.Equal(t, models.GameLiveStatusPrePoint, u.Game.LiveStatus)
-			assert.Equal(t, int64(0), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.Batch.String, u.Game.LastEvent.String)
-
 			assert.Equal(t, int64(1), u.Game.TeamScore)
 			assert.Equal(t, int64(0), u.Game.OpponentScore)
+
+			assert.Equal(t, models.EventTypeGoal, u.Event[0].Type)
+			assert.Equal(t, playerIds[0], u.Event[0].Player.Int64)
+			assert.Equal(t, int64(0), u.Event[0].TeamScore)
+			assert.Equal(t, int64(0), u.Event[0].OpponentScore)
+			assert.Equal(t, u.Id, u.Event[0].Batch.String)
+
+			assert.Equal(t, models.EventTypeAssist, u.Event[1].Type)
+			assert.Equal(t, playerIds[1], u.Event[1].Player.Int64)
+			assert.Equal(t, int64(0), u.Event[1].TeamScore)
+			assert.Equal(t, int64(0), u.Event[1].OpponentScore)
+			assert.Equal(t, u.Id, u.Event[1].Batch.String)
 		})
 
 		t.Run("11 opponent prepoint timeout", func(t *testing.T) {
@@ -231,11 +233,12 @@ func TestEvent(t *testing.T) {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, models.EventTypeOpponentTimeout, u.Event.Type)
+			assert.Equal(t, 1, len(u.Event))
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
 			assert.Equal(t, models.GameLiveStatusOpponentTimeout, u.Game.LiveStatus)
-			assert.Equal(t, int64(1), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.ID, u.Game.LastEvent.String)
+			assert.Equal(t, models.EventTypeOpponentTimeout, u.Event[0].Type)
+			assert.Equal(t, int64(1), u.Event[0].TeamScore)
+			assert.Equal(t, int64(0), u.Event[0].OpponentScore)
 		})
 
 		t.Run("12 opponent prepoint timeout end", func(t *testing.T) {
@@ -245,11 +248,12 @@ func TestEvent(t *testing.T) {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, models.EventTypeOpponentTimeoutEnd, u.Event.Type)
+			assert.Equal(t, 1, len(u.Event))
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
 			assert.Equal(t, models.GameLiveStatusPrePoint, u.Game.LiveStatus)
-			assert.Equal(t, int64(1), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.ID, u.Game.LastEvent.String)
+			assert.Equal(t, models.EventTypeOpponentTimeoutEnd, u.Event[0].Type)
+			assert.Equal(t, int64(1), u.Event[0].TeamScore)
+			assert.Equal(t, int64(0), u.Event[0].OpponentScore)
 		})
 
 		t.Run("13 team prepoint timeout", func(t *testing.T) {
@@ -259,11 +263,12 @@ func TestEvent(t *testing.T) {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, models.EventTypeTimeout, u.Event.Type)
+			assert.Equal(t, 1, len(u.Event))
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
 			assert.Equal(t, models.GameLiveStatusPrePoint, u.Game.LiveStatus)
-			assert.Equal(t, int64(1), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.ID, u.Game.LastEvent.String)
+			assert.Equal(t, models.EventTypeTimeout, u.Event[0].Type)
+			assert.Equal(t, int64(1), u.Event[0].TeamScore)
+			assert.Equal(t, int64(0), u.Event[0].OpponentScore)
 		})
 
 		t.Run("14 team prepoint timeout end", func(t *testing.T) {
@@ -273,33 +278,33 @@ func TestEvent(t *testing.T) {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, models.EventTypeTimeoutEnd, u.Event.Type)
+			assert.Equal(t, 1, len(u.Event))
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
 			assert.Equal(t, models.GameLiveStatusPrePoint, u.Game.LiveStatus)
-			assert.Equal(t, int64(1), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.ID, u.Game.LastEvent.String)
+			assert.Equal(t, models.EventTypeTimeoutEnd, u.Event[0].Type)
+			assert.Equal(t, int64(1), u.Event[0].TeamScore)
+			assert.Equal(t, int64(0), u.Event[0].OpponentScore)
 		})
 
 		t.Run("15 start point defense", func(t *testing.T) {
 			err = event.StartingLine(gameCtx, playerSlugs...)
 			assert.Nil(t, err)
-			for range 7 {
-				<-sub.EventChan
-			}
 			if err != nil {
 				return
 			}
+			<- sub.EventChan
 			err = event.StartPointDefense(gameCtx)
 			assert.Nil(t, err)
 			if err != nil {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, models.EventTypePointStart, u.Event.Type)
+			assert.Equal(t, 1, len(u.Event))
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
 			assert.Equal(t, models.GameLiveStatusOpponentPossession, u.Game.LiveStatus)
-			assert.Equal(t, int64(1), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.ID, u.Game.LastEvent.String)
+			assert.Equal(t, models.EventTypePointStart, u.Event[0].Type)
+			assert.Equal(t, int64(1), u.Event[0].TeamScore)
+			assert.Equal(t, int64(0), u.Event[0].OpponentScore)
 		})
 
 		t.Run("16 opponent goal", func(t *testing.T) {
@@ -309,36 +314,36 @@ func TestEvent(t *testing.T) {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, models.EventTypeOpponentGoal, u.Event.Type)
+			assert.Equal(t, 1, len(u.Event))
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
 			assert.Equal(t, models.GameLiveStatusPrePoint, u.Game.LiveStatus)
-			assert.Equal(t, int64(1), u.Event.TeamScore)
-			assert.Equal(t, int64(0), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.ID, u.Game.LastEvent.String)
-
 			assert.Equal(t, int64(1), u.Game.TeamScore)
 			assert.Equal(t, int64(1), u.Game.OpponentScore)
+			
+			assert.Equal(t, models.EventTypeOpponentGoal, u.Event[0].Type)
+			assert.Equal(t, int64(1), u.Event[0].TeamScore)
+			assert.Equal(t, int64(0), u.Event[0].OpponentScore)
 		})
 
 		t.Run("17 start point offense", func(t *testing.T) {
 			err = event.StartingLine(gameCtx, playerSlugs...)
-			for range 7 {
-				<-sub.EventChan
-			}
 			assert.Nil(t, err)
 			if err != nil {
 				return
-			}
+				}
+			<-sub.EventChan
 			err = event.StartPointOffense(gameCtx)
 			assert.Nil(t, err)
 			if err != nil {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, models.EventTypePointStart, u.Event.Type)
+			assert.Equal(t, 1, len(u.Event))
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
 			assert.Equal(t, models.GameLiveStatusTeamPossession, u.Game.LiveStatus)
-			assert.Equal(t, int64(1), u.Event.TeamScore)
-			assert.Equal(t, int64(1), u.Event.OpponentScore)
-			assert.Equal(t, u.Event.ID, u.Game.LastEvent.String)
+			assert.Equal(t, models.EventTypePointStart, u.Event[0].Type)
+			assert.Equal(t, int64(1), u.Event[0].TeamScore)
+			assert.Equal(t, int64(1), u.Event[0].OpponentScore)
 		})
 
 		t.Run("18 team goal", func(t *testing.T) {
@@ -348,22 +353,23 @@ func TestEvent(t *testing.T) {
 				return
 			}
 			u := <-sub.EventChan
-			assert.Equal(t, playerIds[1], u.Event.Player.Int64)
-			assert.Equal(t, models.EventTypeGoal, u.Event.Type)
+			assert.Equal(t, 2, len(u.Event))
+			assert.Equal(t, u.Id, u.Game.LastEvent.String)
 			assert.Equal(t, models.GameLiveStatusPrePoint, u.Game.LiveStatus)
-			assert.Equal(t, int64(1), u.Event.TeamScore)
-			assert.Equal(t, int64(1), u.Event.OpponentScore)
-
-			u = <-sub.EventChan
-			assert.Equal(t, playerIds[0], u.Event.Player.Int64)
-			assert.Equal(t, models.EventTypeAssist, u.Event.Type)
-			assert.Equal(t, models.GameLiveStatusPrePoint, u.Game.LiveStatus)
-			assert.Equal(t, int64(1), u.Event.TeamScore)
-			assert.Equal(t, int64(1), u.Event.OpponentScore)
-
-			assert.Equal(t, u.Event.Batch, u.Game.LastEvent)
 			assert.Equal(t, int64(2), u.Game.TeamScore)
 			assert.Equal(t, int64(1), u.Game.OpponentScore)
+
+			assert.Equal(t, models.EventTypeGoal, u.Event[0].Type)
+			assert.Equal(t, playerIds[1], u.Event[0].Player.Int64)
+			assert.Equal(t, int64(1), u.Event[0].TeamScore)
+			assert.Equal(t, int64(1), u.Event[0].OpponentScore)
+			assert.Equal(t, u.Id, u.Event[0].Batch.String)
+
+			assert.Equal(t, models.EventTypeAssist, u.Event[1].Type)
+			assert.Equal(t, playerIds[0], u.Event[1].Player.Int64)
+			assert.Equal(t, int64(1), u.Event[0].TeamScore)
+			assert.Equal(t, int64(1), u.Event[0].OpponentScore)
+			assert.Equal(t, u.Id, u.Event[1].Batch.String)
 		})
 	})
 }

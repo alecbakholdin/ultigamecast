@@ -90,7 +90,7 @@ func main() {
 	http.Handle("POST /teams/{teamSlug}/schedule/{tournamentSlug}/schedule", adminOnly.ThenFunc(tournamentScheduleHandler.Post))
 	http.Handle("GET /teams/{teamSlug}/schedule/{tournamentSlug}/schedule-create", adminOnly.ThenFunc(tournamentScheduleHandler.GetModal))
 
-	gameHandler := handlers.NewGame()
+	gameHandler := handlers.NewGame(eventService)
 	http.Handle("GET /teams/{teamSlug}/schedule/{tournamentSlug}/schedule/{gameSlug}", base.ThenFunc(gameHandler.Get))
 	http.Handle("GET /teams/{teamSlug}/schedule/{tournamentSlug}/schedule/{gameSlug}/ws", base.ThenFunc(gameHandler.GetWs))
 

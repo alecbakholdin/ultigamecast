@@ -30,7 +30,8 @@ type EventSubscription struct {
 }
 
 type EventUpdate struct {
-	Event *models.Event
+	Id string
+	Event []models.Event
 	Game  *models.Game
 }
 
@@ -270,7 +271,6 @@ func (e *Event) applyChanges(ctx context.Context, expectedState models.GameLiveS
 		return convertAndLogSqlError(ctx, "error opening transaction for applying event", err)
 	}
 	defer func() { convertAndLogSqlError(ctx, "error rolling back transaion", tx.Rollback()) }()
-	slog.InfoContext(ctx, "applyChanges", "type", events)
 
 	q := e.q.WithTx(tx)
 	liveGameData, err := q.GetGameById(ctx, game.ID)
@@ -299,7 +299,6 @@ func (e *Event) applyChanges(ctx context.Context, expectedState models.GameLiveS
 	}
 	modifierFn(gameUpdate)
 	updatedGame, err := q.UpdateLiveGame(ctx, *gameUpdate)
-	slog.InfoContext(ctx, "activePlayers", "activePlayers", gameUpdate.ActivePlayers, "updated", updatedGame.ActivePlayers)
 	if err != nil {
 		return convertAndLogSqlError(ctx, "error updating game", err)
 	}
@@ -319,7 +318,6 @@ func (e *Event) createEvents(ctx context.Context, qWithTx *models.Queries, game 
 	}
 	createdEvents := make([]models.Event, len(events))
 	for i, e := range events {
-		slog.InfoContext(ctx, "event type", "type", e.Type)
 		e.Game = game.ID
 		if len(events) > 1 {
 			e.Batch = sql.NullString{String: batchId, Valid: true}
@@ -332,7 +330,6 @@ func (e *Event) createEvents(ctx context.Context, qWithTx *models.Queries, game 
 		if createdEvents[i], err = qWithTx.CreateEvent(ctx, e); err != nil {
 			return nil, convertAndLogSqlError(ctx, fmt.Sprintf("error creating event %d %s", i, e.Type), err)
 		}
-		slog.InfoContext(ctx, "created event", "event", createdEvents[i], "params", e)
 	}
 	return createdEvents, nil
 }
@@ -340,16 +337,21 @@ func (e *Event) createEvents(ctx context.Context, qWithTx *models.Queries, game 
 func (e *Event) notifySubscribers(game *models.Game, events []models.Event) {
 	e.mut.Lock()
 	defer e.mut.Unlock()
+	assert.That(len(events) > 0, "events cannot be empty")
+
+	update := &EventUpdate{
+		Event: events,
+		Game: game,
+	}
+	if len(events) > 1 {
+		update.Id = events[0].Batch.String
+	} else {
+		update.Id = events[0].ID
+	}
 
 	for _, s := range e.subs {
 		if game.ID == s.GameId {
-			for _, e := range events {
-				slog.Info("game players", "players", game.ActivePlayers.String, "valid", game.ActivePlayers.Valid)
-				s.EventChan <- &EventUpdate{
-					Event: &e,
-					Game:  game,
-				}
-			}
+			s.EventChan <- update
 		}
 	}
 }
