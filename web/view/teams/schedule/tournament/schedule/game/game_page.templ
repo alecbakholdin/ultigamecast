@@ -5,10 +5,8 @@ import "ultigamecast/web/view/layout"
 
 templ GamePage(g *models.Game) {
 	@view_layout.NavLayout() {
-		<section class="section">
-			<div class="container w-full">
-				{ g.Opponent }
-			</div>
+		<section class="section px-0">
+			@scoreCard(g)
 		</section>
 	}
 }
