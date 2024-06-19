@@ -44,7 +44,7 @@ func Url(ctx context.Context, segments ...any) string {
 		switch v := val.(type) {
 		case string:
 			if v = strings.TrimSpace(v); len(v) > 0 {
-				urlParts = append(urlParts, v)
+				urlParts = append(urlParts, strings.Trim(v, "/"))
 			}
 		case *models.Team:
 			urlParts = append(urlParts, "teams", v.Slug)

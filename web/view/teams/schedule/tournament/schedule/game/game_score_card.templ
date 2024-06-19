@@ -33,9 +33,9 @@ templ scoreCardHeader(g *models.Game) {
 
 templ scoreCardContent(g *models.Game) {
 	<div class="card-content pt-1 pb-6 relative">
-		<div class="flex w-full justify-around items-center gap-4">
+		<div class="flex w-full justify-around items-center gap-4 px-1">
 			<div class="flex flex-col items-center gap-1">
-				<div class="h-28 w-28 rounded-full has-background-primary-light"></div>
+				<div class="w-16 h-16 sm:w-28 sm:h-28 rounded-full has-background-primary-light"></div>
 				<span class="font-bold text-nowrap text-ellipsis text-lg">{ ctxvar.GetTeam(ctx).Name }</span>
 			</div>
 			<div class="flex flex-col items-center justify-end gap-2">
@@ -51,7 +51,7 @@ templ scoreCardContent(g *models.Game) {
 				</span>
 			</div>
 			<div class="flex flex-col items-center gap-1">
-				<div class="h-28 w-28 rounded-full has-background-primary-light"></div>
+				<div class="w-16 h-16 sm:w-28 sm:h-28 rounded-full has-background-primary-light"></div>
 				<span class="font-bold text-nowrap text-ellipsis text-lg">{ g.Opponent }</span>
 			</div>
 		</div>
