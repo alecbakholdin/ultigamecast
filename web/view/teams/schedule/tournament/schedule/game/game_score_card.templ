@@ -33,7 +33,7 @@ templ scoreCardHeader(g *models.Game) {
 
 templ scoreCardContent(g *models.Game) {
 	<div class="card-content pt-1 pb-6 relative">
-		<div class="flex w-full justify-around items-center gap-4 px-1">
+		<div class="flex w-full justify-around items-center gap-4">
 			<div class="flex flex-col items-center gap-1">
 				<div class="w-16 h-16 sm:w-28 sm:h-28 rounded-full has-background-primary-light"></div>
 				<span class="font-bold text-nowrap text-ellipsis text-lg">{ ctxvar.GetTeam(ctx).Name }</span>
@@ -75,7 +75,7 @@ templ capProgress(g *models.Game) {
 			</span>
 		</div>
 		<div
-			class={ "absolute -translate-x-1/2 top-0 -translate-y-full right-0" }
+			class={ "absolute -translate-x-1/2 top-0 -translate-y-full right-1" }
 		>
 			<span class="absolute icon is-small has-tooltip-left" data-tooltip={ fmt.Sprintf("Hard Cap %d min", g.HardCap.Int64) }>
 				<i class="fas fa-circle fa-sm"></i>

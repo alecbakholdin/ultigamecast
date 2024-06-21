@@ -2,11 +2,58 @@ package view_game
 
 import "ultigamecast/internal/models"
 import "ultigamecast/web/view/layout"
+import "ultigamecast/web/view/component"
+import "ultigamecast/internal/ctxvar"
 
-templ GamePage(g *models.Game) {
+templ GamePage(g *models.Game, playerMap map[int64]models.Player, events []models.Event) {
 	@view_layout.NavLayout() {
 		<section class="section px-0">
 			@scoreCard(g)
+			@view_component.Tabs(getTabs(g, playerMap, events, ctxvar.IsAdmin(ctx)))
 		</section>
+	}
+}
+
+func getTabs(g *models.Game, playerMap map[int64]models.Player, events []models.Event, isAdmin bool) []view_component.TabInfo {
+	tabs := []view_component.TabInfo{
+		{Title: "Feed", Icon: "fas fa-stopwatch", Component: EventList(g, events)},
+		{Title: "Statistics", Icon: "fas fa-chart-line", UrlSegments: []any{ctxvar.Team, ctxvar.Tournament, ctxvar.Game, "statistics"}},
+	}
+	if isAdmin {
+		return append([]view_component.TabInfo{
+			{Title: "Lines", Icon: "fas fa-user", Component: Lines(g, playerMap, events)},
+			{Title: "Point", Icon: "fas fa-compact-disc", Component: GamePoint(g, playerMap)},
+		}, tabs...)
+	}
+	return tabs
+}
+
+templ EventList(g *models.Game, events []models.Event) {
+	<div class="grid grid-cols-1 gap-4 px-2 text-sm pt-8">
+		for _, e := range events {
+			@Event(&e)
+		}
+	</div>
+}
+
+templ Event(e *models.Event) {
+	if e.Type == models.EventTypeGoal {
+		<div class="w-5/6 flex items-start gap-2 place-self-start">
+			<span class="w-14 text-gray-400 pt-0.5 flex-shrink-0 text-xs text-right font-semibold">
+				{ formatTime(e.Created.Time, ctxvar.GetGame(ctx).StartTimezone.String, "3:04 PM") }
+			</span>
+			<span class="text-green-700">
+				Team { string(e.Type) }
+			</span>
+		</div>
+	} else {
+		<div class="w-5/6 flex items-start gap-2 place-self-end flex-row-reverse">
+			<span class="w-14 text-gray-400 pt-0.5 flex-shrink-0 text-xs font-semibold">
+				{ formatTime(e.Created.Time, ctxvar.GetGame(ctx).StartTimezone.String, "3:04 PM") }
+			</span>
+			<span class="text-red-700 text-right">
+				Opponent { string(e.Type) }
+			</span>
+		</div>
 	}
 }

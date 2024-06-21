@@ -188,7 +188,8 @@ WHERE id = ?;
 -- name: GetGameBySlug :one
 SELECT *
 FROM games
-WHERE tournament = @tournamentID AND slug = ?;
+WHERE tournament = @tournamentID
+    AND slug = ?;
 -- name: CreateEvent :one
 INSERT INTO events (
         id,
@@ -203,3 +204,7 @@ INSERT INTO events (
     )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING *;
+-- name: ListGameEvents :many
+SELECT *
+FROM events
+WHERE events.game = @gameId;

@@ -4,9 +4,10 @@ import "fmt"
 import "ultigamecast/internal/ctxvar"
 
 type TabInfo struct {
-	Title string
-	Icon  string
-    UrlSegments []any
+	Title       string
+	Icon        string
+	UrlSegments []any
+	Component   templ.Component
 }
 
 templ Tabs(tabs []TabInfo) {
@@ -25,6 +26,7 @@ templ Tabs(tabs []TabInfo) {
 								if i == 0 {
 									hx-trigger="load"
 								}
+								hx-disable?={ t.Component != nil }
 							>
 								<span class="icon"><i class={ "fas", t.Icon }></i></span>
 								<span>{ t.Title }</span>
@@ -34,13 +36,17 @@ templ Tabs(tabs []TabInfo) {
 				</ul>
 			</div>
 		</div>
-		for i := range tabs {
+		for i, t := range tabs {
 			<div
 				id={ fmt.Sprintf("tab-%d", i) }
 				x-bind:class={ fmt.Sprintf("activeTab !== %d ? 'hidden' : ''", i) }
 				class="container"
 			>
-				<div class="flex justify-center"><span class="icon is-large animate-spin"><i class="fas fa-spinner fa-lg"></i></span></div>
+				if t.Component == nil {
+					<div class="flex justify-center"><span class="icon is-large animate-spin"><i class="fas fa-spinner fa-lg"></i></span></div>
+				} else {
+					@t.Component
+				}
 			</div>
 		}
 	</div>

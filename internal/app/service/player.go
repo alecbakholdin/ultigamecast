@@ -35,6 +35,18 @@ func (p *Player) GetPlayer(ctx context.Context, slug string) (*models.Player, er
 	return &player, nil
 }
 
+func (p *Player) GetTeamPlayerMap(ctx context.Context) (map[int64]models.Player, error) {
+	players, err := p.GetTeamPlayers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	playerMap := make(map[int64]models.Player, len(players))
+	for _, p := range players {
+		playerMap[p.ID] = p
+	}
+	return playerMap, nil
+}
+
 func (p *Player) GetTeamPlayers(ctx context.Context) ([]models.Player, error) {
 	team := ctxvar.GetTeam(ctx)
 	players, err := p.q.ListTeamPlayers(ctx, team.ID)

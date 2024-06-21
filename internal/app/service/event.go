@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strconv"
@@ -40,6 +41,16 @@ func NewEvent(db *sql.DB) *Event {
 		q:  models.New(db),
 		db: db,
 	}
+}
+
+func (e *Event) GameEvents(ctx context.Context) ([]models.Event, error) {
+	game := ctxvar.GetGame(ctx)
+	assert.That(game != nil, "game was nil")
+	events, err := e.q.ListGameEvents(ctx, game.ID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, convertAndLogSqlError(ctx, "error fetching game events", err)
+	}
+	return events, nil
 }
 
 func (e *Event) Subscribe(ctx context.Context) (*EventSubscription, error) {

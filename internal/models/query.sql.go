@@ -310,7 +310,8 @@ func (q *Queries) GetGameById(ctx context.Context, id int64) (Game, error) {
 const getGameBySlug = `-- name: GetGameBySlug :one
 SELECT id, tournament, slug, opponent, start, start_timezone, wind, "temp", half_cap, soft_cap, hard_cap, schedule_status, live_status, active_players, last_event, team_score, opponent_score
 FROM games
-WHERE tournament = ? AND slug = ?
+WHERE tournament = ?
+    AND slug = ?
 `
 
 type GetGameBySlugParams struct {
@@ -480,6 +481,46 @@ func (q *Queries) ListFollowedTeams(ctx context.Context, userid int64) ([]Team, 
 			&i.Name,
 			&i.Slug,
 			&i.Organization,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listGameEvents = `-- name: ListGameEvents :many
+SELECT id, batch, created, team_score, opponent_score, game, type, player, previous_game_state, previous_event
+FROM events
+WHERE events.game = ?1
+`
+
+func (q *Queries) ListGameEvents(ctx context.Context, gameid int64) ([]Event, error) {
+	rows, err := q.db.QueryContext(ctx, listGameEvents, gameid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Event
+	for rows.Next() {
+		var i Event
+		if err := rows.Scan(
+			&i.ID,
+			&i.Batch,
+			&i.Created,
+			&i.TeamScore,
+			&i.OpponentScore,
+			&i.Game,
+			&i.Type,
+			&i.Player,
+			&i.PreviousGameState,
+			&i.PreviousEvent,
 		); err != nil {
 			return nil, err
 		}

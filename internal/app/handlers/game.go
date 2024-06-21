@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"log/slog"
 	"net/http"
 	"ultigamecast/internal/app/service"
@@ -11,25 +10,34 @@ import (
 
 	"nhooyr.io/websocket"
 )
+
 type Game struct {
-	eventSubscriber EventSubscriber
+	player *service.Player
+	event *service.Event
 }
 
-type EventSubscriber interface {
-	Subscribe(ctx context.Context) (*service.EventSubscription, error)
-	Unsubscribe(ctx context.Context, subId string)
-}
-
-func NewGame(eventSubscriber EventSubscriber) *Game {
+func NewGame(p *service.Player, e *service.Event) *Game {
 	return &Game{
-		eventSubscriber: eventSubscriber,
+		event: e,
+		player: p,
 	}
 }
 
 func (g *Game) Get(w http.ResponseWriter, r *http.Request) {
 	game := ctxvar.GetGame(r.Context())
 	assert.That(game != nil, "game is nil")
-	view_game.GamePage(game).Render(r.Context(), w)
+	playerMap, err := g.player.GetTeamPlayerMap(r.Context())
+	if err != nil {
+		http.Error(w, "unexpected error", http.StatusInternalServerError)
+		return
+	}
+	events, err := g.event.GameEvents(r.Context())
+	if err != nil {
+		http.Error(w, "unexpected error", http.StatusInternalServerError)
+		return
+	}
+
+	view_game.GamePage(game, playerMap, events).Render(r.Context(), w)
 }
 
 func (g *Game) GetWs(w http.ResponseWriter, r *http.Request) {
@@ -41,20 +49,20 @@ func (g *Game) GetWs(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.CloseNow()
 
-	sub, err := g.eventSubscriber.Subscribe(r.Context())
+	sub, err := g.event.Subscribe(r.Context())
 	if err != nil {
 		slog.ErrorContext(r.Context(), "unexpected error subscribing to game", "err", err)
 		http.Error(w, "unexpected error", http.StatusInternalServerError)
 		return
 	}
-	defer g.eventSubscriber.Unsubscribe(r.Context(), sub.Id)
+	defer g.event.Unsubscribe(r.Context(), sub.Id)
 	//admin := ctxvar.IsAdmin(r.Context())
 
 	for {
 		select {
-		//case u := <- sub.EventChan: 
-			
-		case <- r.Context().Done():
+		//case u := <- sub.EventChan:
+
+		case <-r.Context().Done():
 			return
 		}
 	}
