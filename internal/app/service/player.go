@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"slices"
 	"ultigamecast/internal/app/service/slug"
+	"ultigamecast/internal/assert"
 	"ultigamecast/internal/ctxvar"
 	"ultigamecast/internal/models"
 )
@@ -49,6 +50,7 @@ func (p *Player) GetTeamPlayerMap(ctx context.Context) (map[int64]models.Player,
 
 func (p *Player) GetTeamPlayers(ctx context.Context) ([]models.Player, error) {
 	team := ctxvar.GetTeam(ctx)
+	assert.That(team != nil, "team is nil in GetTeamPlayers")
 	players, err := p.q.ListTeamPlayers(ctx, team.ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, convertAndLogSqlError(ctx, "error fetching team players", err)

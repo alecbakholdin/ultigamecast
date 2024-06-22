@@ -1,0 +1,80 @@
+package view_team_roster
+
+import "ultigamecast/internal/models"
+import "ultigamecast/web/view/component/dto"
+import "ultigamecast/web/view/component/dto/field"
+import "ultigamecast/web/view/component/dto/field/mod"
+import "ultigamecast/internal/ctxvar"
+
+templ TeamRoster(player []models.Player) {
+	<form
+		id="team_roster_list"
+		hx-put={ ctxvar.Url(ctx, ctxvar.Team, "rosterOrder") }
+		hx-swap="none"
+        hx-trigger="end"
+		hx-on::after-settle="create_player_modal.classList.remove('is-active')"
+	>
+		for _, p := range player {
+			@TeamRosterRow(&p)
+		}
+	</form>
+	@createPlayerButton()
+}
+
+templ TeamRosterRow(p *models.Player) {
+	<div class="flex flex-row">
+		<span class="icon handle">
+			<i class="fas fa-grip-lines"></i>
+		</span>
+		<span class="flex-grow">{ p.Name }</span>
+	</div>
+}
+
+templ createPlayerButton() {
+	<button type="button" onclick="create_player_form.reset(); create_player_modal.classList.add('is-active')">
+		Create Player
+	</button>
+	<div id="create_player_modal" class="modal">
+		<div class="modal-background"></div>
+		<button class="modal-close is-large" aria-label="close" onclick="create_player_modal.classList.remove('is-active')"></button>
+		<div class="modal-card">
+			<header class="modal-card-head">
+				<span class="is-size-5">Testing</span>
+			</header>
+			<div class="modal-card-body">
+				@CreatePlayerForm(&CreatePlayerDTO{})
+			</div>
+			<div class="modal-card-foot">
+				<div class="buttons">
+					<button type="button" class="button" onclick="create_player_modal.classList.remove('is-active')">Cancel</button>
+					<button class="button is-primary htmx-loading" form="create_player_form">Submit</button>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+templ CreatePlayerForm(dto *CreatePlayerDTO) {
+	<form
+		id="create_player_form"
+		hx-post={ ctxvar.Url(ctx, ctxvar.Team, "roster") }
+		hx-swap="outerHTML"
+		hx-target="this"
+		hx-indicator="closest .modal-card"
+	>
+		@field.Field(dto, "Name",
+			mod.FieldNameGuesser(),
+			mod.Autofocus(),
+			mod.Autocomplete("off"),
+			mod.IconLeft("fa-user"),
+		)
+		<span class="has-text-error">
+			{ dto.FormError() }
+		</span>
+	</form>
+}
+
+type CreatePlayerDTO struct {
+	dto.DTO
+	Name string
+}

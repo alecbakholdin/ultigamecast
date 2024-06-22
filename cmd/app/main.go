@@ -79,6 +79,10 @@ func main() {
 	http.Handle("POST /teams/{teamSlug}/schedule", adminOnly.ThenFunc(teamScheduleHandler.Post))
 	http.Handle("GET /teams/{teamSlug}/schedule-create", adminOnly.ThenFunc(teamScheduleHandler.GetModal))
 
+	teamRosterHandler := handlers.NewTeamRoster(playerService)
+	http.Handle("GET /teams/{teamSlug}/roster", base.ThenFunc(teamRosterHandler.Get))
+	http.Handle("POST /teams/{teamSlug}/roster", adminOnly.ThenFunc(teamRosterHandler.Post))
+
 	tournamentHandler := handlers.NewTournament(tournamentService)
 	http.Handle("GET /teams/{teamSlug}/schedule/{tournamentSlug}", base.ThenFunc(tournamentHandler.Get))
 	http.Handle("GET /teams/{teamSlug}/schedule/{tournamentSlug}/edit", adminOnly.ThenFunc(tournamentHandler.GetEdit))
