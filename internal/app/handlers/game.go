@@ -12,13 +12,14 @@ import (
 )
 
 type Game struct {
+	game   *service.Game
 	player *service.Player
-	event *service.Event
+	event  *service.Event
 }
 
-func NewGame(p *service.Player, e *service.Event) *Game {
+func NewGame(g *service.Game, p *service.Player, e *service.Event) *Game {
 	return &Game{
-		event: e,
+		event:  e,
 		player: p,
 	}
 }
@@ -38,6 +39,10 @@ func (g *Game) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	view_game.GamePage(game, playerMap, events).Render(r.Context(), w)
+}
+
+func (g *Game) Put(w http.ResponseWriter, r *http.Request) {
+	panic("not implemented")
 }
 
 func (g *Game) GetWs(w http.ResponseWriter, r *http.Request) {

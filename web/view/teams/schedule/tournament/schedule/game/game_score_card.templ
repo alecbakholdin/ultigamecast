@@ -11,11 +11,11 @@ templ scoreCard(g *models.Game) {
 		class="max-w-md rounded-md relative mx-auto"
 		x-data="{isMobile:(window.innerWidth < 640)}"
 		x-on:resize.window="isMobile = (window.innerWidth < 640)"
-        :class="isMobile ? '' : 'card'"
+		:class="isMobile ? '' : 'card'"
 	>
 		@scoreCardHeader(g)
 		@scoreCardContent(g)
-		@capProgress(g)
+		//@capProgress(g)
 	</div>
 }
 
@@ -33,12 +33,13 @@ templ scoreCardHeader(g *models.Game) {
 
 templ scoreCardContent(g *models.Game) {
 	<div class="card-content pt-1 pb-6 relative">
-		<div class="flex w-full justify-around items-center gap-4">
-			<div class="flex flex-col items-center gap-1">
+		<div class="grid grid-cols-[1fr_auto_1fr]">
+			<div class="flex flex-col items-center gap-1 w-full">
 				<div class="w-16 h-16 sm:w-28 sm:h-28 rounded-full has-background-primary-light"></div>
 				<span class="font-bold text-nowrap text-ellipsis text-lg">{ ctxvar.GetTeam(ctx).Name }</span>
 			</div>
 			<div class="flex flex-col items-center justify-end gap-2">
+				<span class="text-xs text-gray-400">{ formatTime(g.Start.Time, g.StartTimezone.String, "Jan 1, 3:04 PM") }</span>
 				<div class="h-fit">
 					<div class="w-full grid grid-cols-[1fr_auto_1fr] text-3xl sm:text-4xl font-semibold level">
 						<span class="has-text-primary place-self-end">13</span>
@@ -93,13 +94,7 @@ templ ScheduleStatus(g *models.Game) {
 	<div class="text-sm">
 		switch g.ScheduleStatus {
 			case models.GameScheduleStatusScheduled:
-				<span class="text-gray-400">
-					if g.Start.Valid {
-						{ formatTime(g.Start.Time, g.StartTimezone.String, "3:04 PM") }
-					} else {
-						Scheduled
-					}
-				</span>
+				<div></div>
 			case models.GameScheduleStatusLive:
 				<div class="tag is-danger is-light gap-1">
 					<div class="w-2 h-2 rounded-full animate-pulse has-background-danger"></div>

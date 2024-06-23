@@ -60,3 +60,9 @@ var GameScheduleStatusMap = map[string]GameScheduleStatus {
 	"Scheduled": GameScheduleStatusScheduled,
 	"Final": GameScheduleStatusFinal,
 }
+
+type GameJsonField string
+
+const (
+	GameJsonFieldScheduleStatus GameJsonField = "scheduleStatus"
+)

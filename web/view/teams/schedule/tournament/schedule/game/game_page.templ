@@ -7,7 +7,13 @@ import "ultigamecast/internal/ctxvar"
 
 templ GamePage(g *models.Game, playerMap map[int64]models.Player, events []models.Event) {
 	@view_layout.NavLayout() {
-		<section class="section px-0">
+		<section
+			class="section px-0"
+			if g.ScheduleStatus == models.GameScheduleStatusLive {
+				hx-ext="ws"
+				ws-connect={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, g, "ws") }
+			}
+		>
 			@scoreCard(g)
 			@view_component.Tabs(getTabs(g, playerMap, events, ctxvar.IsAdmin(ctx)))
 		</section>
