@@ -25,11 +25,16 @@ func getTabs(g *models.Game, playerMap map[int64]models.Player, events []models.
 		{Title: "Feed", Icon: "fas fa-stopwatch", Component: EventList(g, events)},
 		{Title: "Statistics", Icon: "fas fa-chart-line", UrlSegments: []any{ctxvar.Team, ctxvar.Tournament, ctxvar.Game, "statistics"}},
 	}
-	if isAdmin {
-		return append([]view_component.TabInfo{
+	if isAdmin && g.ScheduleStatus == models.GameScheduleStatusLive {
+		tabs = append([]view_component.TabInfo{
 			{Title: "Lines", Icon: "fas fa-user", Component: Lines(g, playerMap, events)},
 			{Title: "Point", Icon: "fas fa-compact-disc", Component: GamePoint(g, playerMap)},
 		}, tabs...)
+	}
+	if isAdmin {
+		tabs = append(tabs, view_component.TabInfo{
+			Title: "Admin", Icon: "fas fa-lock", Component: Admin(g),
+		})
 	}
 	return tabs
 }

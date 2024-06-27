@@ -1,0 +1,27 @@
+package view_game
+
+import "ultigamecast/internal/models"
+import "ultigamecast/internal/ctxvar"
+
+templ Admin(g *models.Game) {
+	<div class="p-2 max-w-sm">
+		@StatusForm(&EditGameDTO{Value: string(g.ScheduleStatus)})
+	</div>
+}
+
+templ StatusForm(dto *EditGameDTO) {
+	<form
+		hx-put={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, ctxvar.Game) }
+		class="flex flex-nowrap w-full gap-1"
+	>
+		<input type="hidden" name="field" value={ string(models.GameFieldScheduleStatus) }/>
+		<div class="select flex-grow">
+			<select class="w-full" name="value" value={ string(dto.Value) }>
+				<option value={ string(models.GameScheduleStatusScheduled) }>{ string(models.GameScheduleStatusScheduled) }</option>
+				<option value={ string(models.GameScheduleStatusLive) }>{ string(models.GameScheduleStatusLive) }</option>
+				<option value={ string(models.GameScheduleStatusFinal) }>{ string(models.GameScheduleStatusFinal) }</option>
+			</select>
+		</div>
+		<button class="button is-primary htmx-loading">Update</button>
+	</form>
+}

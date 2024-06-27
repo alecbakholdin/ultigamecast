@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
+	"ultigamecast/internal/app/handlers/htmx"
 	"ultigamecast/internal/app/service"
 	"ultigamecast/internal/assert"
 	"ultigamecast/internal/ctxvar"
+	"ultigamecast/internal/models"
 	view_game "ultigamecast/web/view/teams/schedule/tournament/schedule/game"
 
 	"nhooyr.io/websocket"
@@ -19,6 +22,7 @@ type Game struct {
 
 func NewGame(g *service.Game, p *service.Player, e *service.Event) *Game {
 	return &Game{
+		game: g,
 		event:  e,
 		player: p,
 	}
@@ -42,7 +46,23 @@ func (g *Game) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (g *Game) Put(w http.ResponseWriter, r *http.Request) {
-	panic("not implemented")
+	dto := view_game.EditGameDTO{
+		Field: r.FormValue("field"),
+		Value: r.FormValue("value"),
+	}
+	if !dto.Validate(dto) {
+		return
+	}
+	switch dto.Field {
+	case models.GameFieldScheduleStatus:
+		if _, err := g.game.UpdateScheduleStatus(r.Context(), dto.Value); err != nil {
+			dto.AddFormError("unexpected error updating")
+		} else {
+			htmx.HxRefresh(w)
+		}
+	default:
+		panic(fmt.Sprintf("Unsupported field %s", dto.Field))
+	}
 }
 
 func (g *Game) GetWs(w http.ResponseWriter, r *http.Request) {

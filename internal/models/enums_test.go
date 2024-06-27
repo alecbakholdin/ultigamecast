@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -8,15 +9,22 @@ import (
 )
 
 func TestGameFieldNamesHaventChanged(t *testing.T) {
-	t.Run("Game.ScheduleStatus", func(t *testing.T) {
-		assert.EqualValues(t, GameJsonFieldScheduleStatus, jsonField(t, reflect.TypeFor[Game](), "ScheduleStatus"))
-	})
-}
-
-func jsonField(t *testing.T, r reflect.Type, goField string) string {
-	f, ok := r.FieldByName(goField)
-	assert.True(t, ok)
-	tag := f.Tag.Get("json")
-	assert.NotEmpty(t, tag)
-	return tag
+	fields := []struct {
+		Enum  GameField
+		Field string
+	}{
+		{GameFieldScheduleStatus, "ScheduleStatus"},
+		{GameFieldHalfCap, "HalfCap"},
+		{GameFieldSoftCap, "SoftCap"},
+		{GameFieldHardCap, "HardCap"},
+		{GameFieldStart, "Start"},
+	}
+	gameType := reflect.TypeFor[Game]()
+	for _, f := range fields {
+		t.Run(fmt.Sprintf("Game.%s", f.Field), func(t *testing.T) {
+			assert.EqualValues(t, f.Field, f.Enum)
+			_, ok := gameType.FieldByName(f.Field)
+			assert.True(t, ok)
+		})
+	}
 }

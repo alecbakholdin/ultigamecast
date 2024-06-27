@@ -11,6 +11,7 @@ func RecoverPanic(h http.Handler) http.Handler {
 		defer func() {
 			if rec := recover(); rec != nil {
 				slog.ErrorContext(r.Context(), "Recovered panicking goroutine", "r", rec, "stacktrace", string(debug.Stack()))
+				http.Error(w, "unexpected error", http.StatusInternalServerError)
 			}
 		}()
 		h.ServeHTTP(w, r)

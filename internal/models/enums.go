@@ -55,14 +55,18 @@ const (
 	GameScheduleStatusFinal     GameScheduleStatus = "Final"
 )
 
-var GameScheduleStatusMap = map[string]GameScheduleStatus {
-	"Live": GameScheduleStatusLive,
+var GameScheduleStatusMap = map[string]GameScheduleStatus{
+	"Live":      GameScheduleStatusLive,
 	"Scheduled": GameScheduleStatusScheduled,
-	"Final": GameScheduleStatusFinal,
+	"Final":     GameScheduleStatusFinal,
 }
 
-type GameJsonField string
+type GameField string
 
 const (
-	GameJsonFieldScheduleStatus GameJsonField = "scheduleStatus"
+	GameFieldScheduleStatus = "ScheduleStatus"
+	GameFieldStart          = "Start"
+	GameFieldHalfCap        = "HalfCap"
+	GameFieldSoftCap        = "SoftCap"
+	GameFieldHardCap        = "HardCap"
 )

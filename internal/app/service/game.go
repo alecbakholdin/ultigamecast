@@ -127,9 +127,9 @@ func (g *Game) UpdateScheduleStatus(ctx context.Context, status string) (*models
 	if scheduleStatus != models.GameScheduleStatusLive && game.ScheduleStatus == models.GameScheduleStatusLive {
 		g.clearer.ClearGameSubscriptions(ctx)
 	}
-	if game, err := g.q.UpdateGameScheduleStatus(ctx, models.UpdateGameScheduleStatusParams{ID: game.ID, ScheduleStatus: scheduleStatus}); err != nil {
+	if updatedGame, err := g.q.UpdateGameScheduleStatus(ctx, models.UpdateGameScheduleStatusParams{ID: game.ID, ScheduleStatus: scheduleStatus}); err != nil {
 		return nil, convertAndLogSqlError(ctx, "error updating game schedule status", err)
 	} else {
-		return &game, nil
+		return &updatedGame, nil
 	}
 }
