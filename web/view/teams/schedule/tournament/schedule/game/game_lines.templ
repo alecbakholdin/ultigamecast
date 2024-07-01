@@ -4,29 +4,31 @@ import "ultigamecast/internal/models"
 import "fmt"
 
 templ Lines(g *models.Game, playerMap map[int64]models.Player, events []models.Event) {
-	<div id="game-lines" class="relative p-2 mb-10" x-data={ fmt.Sprintf("{activePlayers: new Set('%s'.split(',').filter(x => x))}", g.ActivePlayers.String) }>
-		<form
-			id="player-list"
-			class="flex flex-col gap-1"
-		>
-			for _, player := range playerMap {
-				<div class="field" x-id="['checkbox']" x-data={fmt.Sprintf("{playerId: '%d'}", player.ID)}>
-					<input
-						:id="$id('checkbox')"
-						type="checkbox"
-						name="player"
-						class="is-checkradio"
-                        :checked="activePlayers.has(playerId) ? 'on' : undefined"
-                        @change="$event.target.checked ? activePlayers.add(playerId) : activePlayers.delete(playerId)"
-					/>
-					<label :for="$id('checkbox')">{ player.Name }</label>
-				</div>
-			}
-		</form>
+	<form
+		id="game-lines"
+		class="relative p-2 mb-10"
+		x-data={ fmt.Sprintf("{activePlayers: new Set('%s'.split(',').filter(x => x))}", g.ActivePlayers.String) }
+		ws-send="testing"
+	>
+		for _, player := range playerMap {
+			<div class="field" x-id="['checkbox']" x-data={ fmt.Sprintf("{playerId: '%d'}", player.ID) }>
+				<input
+					:id="$id('checkbox')"
+					type="checkbox"
+					name={ fmt.Sprintf("%d", player.ID) }
+					class="is-checkradio"
+					:checked="activePlayers.has(playerId) ? 'on' : undefined"
+					@change="$event.target.checked ? activePlayers.add(playerId) : activePlayers.delete(playerId)"
+				/>
+				<label :for="$id('checkbox')">{ player.Name }</label>
+			</div>
+		}
 		<div class="sticky buttons justify-end bottom-16 lg:bottom-0 py-1">
-			<button type="button" class="button is-primary" :disabled="activePlayers.size !== 7">
-				Add to Point (<span x-text="activePlayers?.size ?? 0"></span>/7)
-			</button>
+			<form ws-send>
+				<button class="button is-primary" :disabled="activePlayers.size !== 7">
+					Add to Point (<span x-text="activePlayers?.size ?? 0"></span>/7)
+				</button>
+			</form>
 		</div>
-	</div>
+	</form>
 }

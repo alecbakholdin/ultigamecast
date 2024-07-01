@@ -12,8 +12,9 @@ func LogRequestAndHandleError(h http.Handler) http.Handler {
 		slog.InfoContext(r.Context(), "Start")
 		writer := &responseMiddleware{
 			ResponseWriter: w,
+			Hijacker: w.(http.Hijacker),
 		}
-		h.ServeHTTP(writer, r)
+		h.ServeHTTP(w, r)
 		if status := cmp.Or(writer.status, 200); status < 400 {
 			slog.InfoContext(r.Context(), strconv.Itoa(status))
 		} else {
@@ -24,6 +25,7 @@ func LogRequestAndHandleError(h http.Handler) http.Handler {
 
 type responseMiddleware struct {
 	http.ResponseWriter
+	http.Hijacker
 	status int
 	err    string
 	done   bool
@@ -32,7 +34,6 @@ type responseMiddleware struct {
 func (w *responseMiddleware) WriteHeader(status int) {
 	w.done = true
 	w.status = status
-	w.ResponseWriter.WriteHeader(status)
 }
 
 func (w *responseMiddleware) Write(b []byte) (int, error) {
