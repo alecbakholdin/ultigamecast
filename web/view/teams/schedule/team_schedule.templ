@@ -3,31 +3,28 @@ package view_team_schedule
 import "ultigamecast/internal/models"
 import "ultigamecast/internal/ctxvar"
 import "time"
-import "log/slog"
 import "strconv"
 
 templ Schedule(schedule []models.TournamentSummary) {
-	<div class="flex flex-col py-4 px-2">
-		<div id="schedule-list" class="flex flex-col gap-2">
+	<div class="flex flex-col py-4 px-2 max-w-full">
+		<div id="schedule-list" class="flex flex-col">
 			for _, tg := range schedule {
 				@ScheduleRow(&tg)
 			}
 		</div>
 		if ctxvar.IsAdmin(ctx) {
-			<div class="flex gap-3">
-				<div class="buttons -ml-3.5">
-					<a
-						hx-get={ ctxvar.Url(ctx, ctxvar.Team, "schedule-create") }
-						hx-target="#modal-content"
-						hx-swap="innerHTML"
-						class="button is-primary rounded-full htmx-loading"
-						hx-on:mouseover="this.querySelector('.w-0').style.width = '9.75rem'"
-						hx-on:mouseout="this.querySelector('.w-0').style.width = '0px'"
-					>
-						<span class="icon !-mr-2"><i class="fas fa-plus"></i></span>
-						<span class="overflow-clip w-0 transition-all"><span class="ml-4">New Tournament</span></span>
-					</a>
-				</div>
+			<div class="w-10 -translate-x-1/2">
+				<a
+					hx-get={ ctxvar.Url(ctx, ctxvar.Team, "schedule-create") }
+					hx-target="#modal-content"
+					hx-swap="innerHTML"
+					class="button is-primary rounded-full htmx-loading"
+					hx-on:mouseover="this.querySelector('.w-0').style.width = '9.75rem'"
+					hx-on:mouseout="this.querySelector('.w-0').style.width = '0px'"
+				>
+					<span class="icon !-mr-2"><i class="fas fa-plus"></i></span>
+					<span class="overflow-clip w-0 transition-all"><span class="ml-4">New Tournament</span></span>
+				</a>
 			</div>
 		}
 	</div>
@@ -35,26 +32,25 @@ templ Schedule(schedule []models.TournamentSummary) {
 
 templ ScheduleRow(t *models.TournamentSummary) {
 	<div class="flex gap-3">
-		<div class="flex flex-col items-center gap-3">
-			<div class="mt-[0.625rem]">
-				<div class="w-3 h-3 rounded-full has-background-primary"></div>
+		<div class="relative">
+			<div class="absolute left-1/2 -translate-x-1/2 top-2">
+				<div class="w-2 h-2 rounded-full has-background-primary"></div>
 			</div>
-			<div class="w-0.5 h-full has-background-primary"></div>
+			<div class="left-1/2 -translate-x-1/2 w-[1px] h-full has-background-primary"></div>
 		</div>
-		<div class="flex flex-col gap-2 pb-4">
-			<a href={ ctxvar.SafeUrl(ctx, ctxvar.Team, t) } class="is-size-5">{ t.Name }</a>
-			<span class="flex items-center !gap-1">
-				<span class="icon"><i class="fa-regular fa-calendar"></i></span>
+		<div class="flex flex-col gap-1 pb-4 max-w-full">
+			<a href={ ctxvar.SafeUrl(ctx, ctxvar.Team, t) } class="is-size-6 font-semibold">{ t.Name }</a>
+			<span class="flex items-center !gap-1 text-sm text-gray-500">
 				if t.StartDate.Time.IsZero() {
 					<span>?</span>
 				} else {
-					<span>{ t.StartDate.Time.Format("Jan 2") }</span>
+					<span>{ t.StartDate.Time.Format("January 2") }</span>
 				}
 				<span>-</span>
 				if t.EndDate.Time.IsZero() {
 					<span>?</span>
 				} else {
-					<span>{ t.EndDate.Time.Format("Jan 2") }</span>
+					<span>{ t.EndDate.Time.Format("January 2") }</span>
 				}
 			</span>
 			for _, td := range t.Data {
@@ -65,41 +61,51 @@ templ ScheduleRow(t *models.TournamentSummary) {
 					</span>
 				}
 			}
-			<span class="h-0"></span> // spacing
-			for i, games := range groupGamesByDate(ctx, t) {
-				if len(games) > 0 && i > 0 {
-					<span>Day { strconv.FormatInt(int64(i), 10) }</span>
+			<div class="flex flex-col gap-2">
+				for _, game := range t.Games {
+					<div class="has-background-white-ter rounded-md p-3 w-full max-w-full flex gap-2 items-center">
+						<div>
+							<div class="w-6 h-6 rounded-full has-background-grey-lighter"></div>
+						</div>
+						<div class="flex-1 overflow-hidden">
+							<p class="font-semibold text-xs whitespace-nowrap overflow-hidden overflow-ellipsis">
+								vs. { game.Opponent }
+							</p>
+							<p class={ "mt-1 text-xs text-gray-600", templ.KV("has-text-danger", game.ScheduleStatus == models.GameScheduleStatusLive) }>
+								if game.ScheduleStatus == models.GameScheduleStatusScheduled {
+									{ formatTime(game.Start.Time, game.StartTimezone.String, "January 2, 3:04 PM") }
+								} else {
+									{ strconv.FormatInt(game.TeamScore, 10) } -
+									{ strconv.FormatInt(game.OpponentScore, 10) }
+									&nbsp;
+									if game.ScheduleStatus == models.GameScheduleStatusLive {
+										Live
+									} else if game.TeamScore > game.OpponentScore {
+										Win
+									} else {
+										Loss
+									}
+								}
+							</p>
+							
+						</div>
+						<a class="button is-small hidden sm:inline" href={ ctxvar.SafeUrl(ctx, ctxvar.Team, t, &game) }>Details</a>
+						<div>
+							<a class="button is-small sm:hidden" href={ ctxvar.SafeUrl(ctx, ctxvar.Team, t, &game) }>
+								<span class="icon is-small"><i class="fas fa-sm fa-external-link"></i></span>
+							</a>
+						</div>
+					</div>
 				}
-				for _, g := range games {
-					<a href={ ctxvar.SafeUrl(ctx, ctxvar.Team, t, &g) }>
-						{ string(g.ScheduleStatus) }
-						vs { g.Opponent }
-					</a>
-				}
-			}
+			</div>
 		</div>
 	</div>
 }
 
-type groupedGames map[int][]models.Game
-
-func groupGamesByDate(ctx context.Context, tournamentSummary *models.TournamentSummary) groupedGames {
-	m := make(groupedGames)
-	tournamentStart := tournamentSummary.StartDate.Time
-	for _, g := range tournamentSummary.Games {
-		if tournamentStart.IsZero() || !g.StartTimezone.Valid || !g.Start.Valid {
-			m[0] = append(m[0], g)
-			continue
-		}
-		loc, err := time.LoadLocation(g.StartTimezone.String)
-		if err != nil {
-			m[0] = append(m[0], g)
-			slog.ErrorContext(ctx, "error parsing game timezone", "game", g, "loc", loc, "err", err)
-			continue
-		}
-		timeInLoc := g.Start.Time.In(loc)
-		daysSinceStart := int(timeInLoc.Sub(tournamentStart).Hours()/24) + 1
-		m[daysSinceStart] = append(m[daysSinceStart], g)
+func formatTime(t time.Time, timezone, format string) string {
+	loc, err := time.LoadLocation(timezone)
+	if err != nil {
+		return t.Format(format)
 	}
-	return m
+	return t.In(loc).Format(format)
 }
