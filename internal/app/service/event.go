@@ -31,9 +31,9 @@ type EventSubscription struct {
 }
 
 type EventUpdate struct {
-	Id string
-	Event []models.Event
-	Game  *models.Game
+	Id     string
+	Events []models.Event
+	Game   *models.Game
 }
 
 func NewEvent(db *sql.DB) *Event {
@@ -351,8 +351,8 @@ func (e *Event) notifySubscribers(game *models.Game, events []models.Event) {
 	assert.That(len(events) > 0, "events cannot be empty")
 
 	update := &EventUpdate{
-		Event: events,
-		Game: game,
+		Events: events,
+		Game:   game,
 	}
 	if len(events) > 1 {
 		update.Id = events[0].Batch.String

@@ -2,11 +2,10 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
-	"time"
 	"ultigamecast/internal/app/handlers/htmx"
 	"ultigamecast/internal/app/service"
 	"ultigamecast/internal/assert"
@@ -87,114 +86,51 @@ func (g *Game) GetWs(w http.ResponseWriter, r *http.Request) {
 	// open websocket
 	if c, err = websocket.Accept(w, r, nil); err != nil {
 		slog.ErrorContext(r.Context(), "unexpected error accepting websocket", "err", err)
+		http.Error(w, "unexpected error", http.StatusInternalServerError)
 		return
 	}
 	defer c.CloseNow()
-
-	// set up context
-	if !ctxvar.IsAdmin(ctx) {
-		ctx = c.CloseRead(ctx)
+	wsWriter, err := c.Writer(r.Context(), websocket.MessageText)
+	if err != nil {
+		slog.ErrorContext(r.Context(), "unexpected error creating ws writer", "err", err)
+		http.Error(w, "unexpected error", http.StatusInternalServerError)
+		return
 	}
-	ctx, cancel = context.WithCancel(ctx)
-	*r = *r.WithContext(ctx)
 
-	// subscribe to game events
-	sub, err := g.event.Subscribe(ctx)
+	sub, err := g.eventSubscriber.Subscribe(r.Context())
 	if err != nil {
 		slog.ErrorContext(ctx, "unexpected error subscribing to game", "err", err)
 		http.Error(w, "unexpected error", http.StatusInternalServerError)
 		return
 	}
-	defer g.event.Unsubscribe(ctx, sub.Id)
+	defer g.eventSubscriber.Unsubscribe(r.Context(), sub.Id)
+	admin := ctxvar.IsAdmin(r.Context())
 
-	//admin := ctxvar.IsAdmin(r.Context())
-	go func() {
-		for {
-			msgType, bytes, err := c.Read(ctx)
-			if websocket.CloseStatus(err) != -1 {
-				slog.InfoContext(ctx, "closing websocket")
-				fmt.Println(c.Close(websocket.StatusNormalClosure, ""))
-				return
-			} else if err != nil {
-				slog.ErrorContext(ctx, "error reading from websocket", "err", err)
-			} else if msgType != websocket.MessageText {
-				slog.ErrorContext(ctx, "unexpected message type", "message type", msgType)
-			} else if hMsg, err := parseMessage(bytes); err != nil {
-				slog.ErrorContext(ctx, "error converting to htmxWsMessage", "err", err)
-			} else {
-				wsMessages <- &hMsg
-			}
-		}
-	}()
-	isAdmin := ctxvar.IsAdmin(ctx)
-
-	ticker := time.NewTicker(time.Second * 15)
 	for {
 		select {
-		case wsMessage := <-wsMessages:
-			if isAdmin {
-				fmt.Println(*wsMessage)
+		case e := <-sub.EventChan:
+			if admin {
+				g.adminUpdate(r.Context(), wsWriter, e)
 			}
-		case u := <-sub.EventChan:
-			if isAdmin {
-				g.adminEventUpdate(ctx, u)
-			}
-			g.eventUpdate(ctx, u)
-		case <-ticker.C:
-			slog.InfoContext(ctx, "pinging")
-			if err := c.Ping(ctx); err != nil {
-				slog.ErrorContext(ctx, "client unresponsive", "err", err)
-				cancel()
-			}
-		case <-ctx.Done():
-			slog.InfoContext(ctx, "returning")
+			g.update(r.Context(), wsWriter, e)
+		case <-r.Context().Done():
 			return
 		}
 	}
 }
 
-func parseMessage(data []byte) (HtmxWsMessage, error) {
-	m := make(map[string]any)
-	msg := HtmxWsMessage{}
-	if err := json.Unmarshal(data, &m); err != nil {
-		return msg, err
-	}
-	headers, ok := m["HEADERS"].(map[string]any)
-	if !ok {
-		return msg, fmt.Errorf("missing headers in htmx message: %s", string(data))
-	}
-	msg.Trigger = headers["HX-Trigger"].(string)
-	msg.Target = headers["HX-Target"].(string)
-	msg.CurrentURL = headers["HX-Current-URL"].(string)
-	delete(m, "HEADERS")
-	msg.Data = m
-	return msg, nil
-}
+func (g *Game) adminUpdate(ctx context.Context, w io.Writer, update *service.EventUpdate) {
+	for _, e := range update.Events {
+		switch e.Type {
 
-func (g *Game) readAdminUpdates(ctx context.Context, c *websocket.Conn) chan *HtmxWsMessage {
-	wsMessages := make(chan *HtmxWsMessage, 5)
-	go func() {
-		for {
-			msgType, bytes, err := c.Read(ctx)
-			if websocket.CloseStatus(err) != -1 {
-				slog.InfoContext(ctx, "closing websocket")
-				fmt.Println(c.Close(websocket.StatusNormalClosure, ""))
-			} else if err != nil {
-				slog.ErrorContext(ctx, "error reading from websocket", "err", err)
-			} else if msgType != websocket.MessageText {
-				slog.ErrorContext(ctx, "unexpected message type", "message type", msgType)
-			} else if hMsg, err := parseMessage(bytes); err != nil {
-				slog.ErrorContext(ctx, "error converting to htmxWsMessage", "err", err)
-			} else {
-				wsMessages <- &hMsg
-			}
 		}
-	}()
-	return wsMessages
+	}
 }
 
-func (g *Game) adminEventUpdate(ctx context.Context, e *service.EventUpdate) {
-}
+func (g *Game) update(ctx context.Context, w io.Writer, update *service.EventUpdate) {
+	for _, e := range update.Events {
+		switch e.Type {
 
-func (g *Game) eventUpdate(ctx context.Context, e *service.EventUpdate) {
+		}
+	}
 }

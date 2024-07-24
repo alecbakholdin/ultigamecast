@@ -2,20 +2,22 @@ package view_game
 
 import "ultigamecast/internal/models"
 import "ultigamecast/web/view/layout"
-import "ultigamecast/web/view/component"
 import "ultigamecast/internal/ctxvar"
 
 templ GamePage(g *models.Game, playerMap map[int64]models.Player, events []models.Event) {
 	@view_layout.NavLayout() {
-		<section
-			class="section px-0"
-			if g.ScheduleStatus == models.GameScheduleStatusLive {
-				hx-ext="ws"
-				ws-connect={ ctxvar.Url(ctx, ctxvar.Team, ctxvar.Tournament, g, "ws") }
-			}
-		>
-			@scoreCard(g)
-			@view_component.Tabs(getTabs(g, playerMap, events, ctxvar.IsAdmin(ctx)))
+		<section class="section">
+			<div class="container max-w-md grid-cols-3 place-items-center">
+				<div class="flex flex-col items-center gap-2">
+					<div class="w-20 h-20 rounded-full"></div>
+					<span class="font-bold">{ ctxvar.GetTeam(ctx).Name }</span>
+				</div>
+				<div class="flex flex-col items-center gap-2"></div>
+				<div class="flex flex-col items-center gap-2">
+					<div class="w-20 h-20 rounded-full"></div>
+					<span class="font-bold">{ g.Opponent }</span>
+				</div>
+			</div>
 		</section>
 	}
 }
